@@ -1,10 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+const API_URL = "http://localhost:5000";
+
 function App() {
   const [count, setCount] = useState(0)
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    fetch(`${API_URL}/endpoint`)
+      .then(res => res.json())
+      .then(data => setData(data))
+      .catch(err => console.error("Error fetching data:", err));
+  }, [])
 
   return (
     <>
@@ -24,6 +34,7 @@ function App() {
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
+        <p>Data from backend: {data ? JSON.stringify(data) : "Loading..."}</p>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
