@@ -13,7 +13,7 @@ export default defineConfig({
     outDir: 'dist',
   },
   define: {
-    global: 'window', // critical: fixes "crypto.hash" error in SSR builds
-    'process.env': {}, // prevent undefined process
+    'process.env': {},
   },
+  base: './', 
 })
