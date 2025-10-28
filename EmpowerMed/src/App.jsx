@@ -1,23 +1,33 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Membership from './pages/Membership';
+import Products from './pages/Products';
+import Blog from './pages/Blog';
+import Education from './pages/Education';
+import About from './pages/About';
+import Appointment from './pages/Appointment';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import './App.css';
 
 const API_URL = "http://localhost:5000";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [data, setData] = useState(null)
+  const [data, setData] = useState(null);
   const [csrfToken, setCsrfToken] = useState(null);
 
   useEffect(() => {
     fetch(`${API_URL}/endpoint`)
       .then(res => res.json())
-      .then(data => setData(data))
+      .then(setData)
       .catch(err => console.error("Error fetching data:", err));
-  }, [])
+  }, []);
 
- useEffect(() => {
+  useEffect(() => {
     fetch(`${API_URL}/csrf-token`, { credentials: 'include' })
       .then(res => res.json())
       .then(tokenData => {
@@ -26,7 +36,9 @@ function App() {
       })
       .catch(err => console.error("Error getting CSRF token:", err));
   }, []);
- const sendSecureData = () => {
+
+  const sendSecureData = () => {
+    if (!csrfToken) return;
     fetch(`${API_URL}/secure`, {
       method: 'POST',
       credentials: 'include',
@@ -42,32 +54,24 @@ function App() {
   };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <Navbar />
+      <div className="container mt-4 mb-5">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/membership" element={<Membership />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/education" element={<Education />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Routes>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-        <p>CSRF Token: {csrfToken ? "Loaded" : "Loading..."}</p>
-        <p>Data from backend: {data ? JSON.stringify(data) : "Loading..."}</p>
-      <button onClick={sendSecureData}>Send Secure Data</button>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <Footer />
+    </Router>
+  );
 }
 
-export default App
+export default App;
