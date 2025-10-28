@@ -1,9 +1,11 @@
-function Footer() {
+export default function Footer() {
   return (
-    <footer className="bg-light text-center py-3 border-top mt-5">
-      <p className="mb-0">&copy; {new Date().getFullYear()} EmpowerMed. All rights reserved.</p>
+    <footer>
+      <p>© {new Date().getFullYear()} EmpowerMed Wellness. All rights reserved.</p>
+      <p>
+        <a href="#privacy">Privacy Policy</a> | <a href="#terms">Terms of Service</a>
+      </p>
+      <p>Designed with care to help you Renew • Restore • Thrive.</p>
     </footer>
   );
 }
-
-export default Footer;

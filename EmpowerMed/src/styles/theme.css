@@ -1,58 +1,16 @@
-/* src/styles/theme.css */
-/* Color tokens (exact values provided by you) */
-:root{
-  --mint: #88BDBC;        /* site background & accents */
-  --teal-primary: #254E58;/* nav & primary CTAs */
-  --ink: #112D32;         /* headings & primary text */
-  --earth: #4F4A41;       /* secondary buttons & subtle UI */
-  --stone: #6E6658;       /* borders and subtle accents */
+@import url('https://fonts.googleapis.com/css2?family=Aboreto&family=Lexend:wght@300;400;600;700&display=swap');
 
-  --radius-lg: 14px;
-  --radius-sm: 8px;
-  --container-max: 1280px;
-  --ease: cubic-bezier(.22,.9,.32,1);
-  --soft-shadow: 0 8px 30px rgba(17,45,50,0.06);
-  --glass: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-}
-
-/* Typography */
 body {
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  color: var(--ink);
-  background: var(--mint); /* page background */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
+  font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background-color: #EDE8F5;
+  color: #3D52A0;
+  line-height: 1.6;
 }
 
-/* Headings */
-h1, .hero-title {
-  color: var(--ink);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-size: clamp(2rem, 3.2vw, 3.2rem);
-  margin-bottom: 0.6rem;
+.display-font {
+  font-family: 'Aboreto', cursive;
 }
 
-h2.section-title {
-  color: var(--teal-primary);
-  font-weight: 700;
-  margin-bottom: 0.2rem;
-}
-
-p, .lead-para {
-  color: rgba(17,45,50,0.9);
-  font-size: 1.05rem;
-}
-
-/* Utility */
-.container {
-  max-width: var(--container-max);
-}
-
-/* Accessibility: focus visible */
-a:focus, button:focus, input:focus {
-  outline: 3px solid rgba(133,189,188,0.25);
-  outline-offset: 2px;
-  border-radius: 6px;
+.body-font {
+  font-family: 'Lexend', sans-serif;
 }
