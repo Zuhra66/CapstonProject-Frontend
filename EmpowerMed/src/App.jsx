@@ -14,22 +14,30 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import './App.css';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 function App() {
   const [data, setData] = useState(null);
   const [csrfToken, setCsrfToken] = useState(null);
 
+  // Example: Fetch profile data if authenticated
   useEffect(() => {
-    fetch(`${API_URL}/endpoint`)
-      .then(res => res.json())
+    fetch(`${API_URL}/auth/profile`, { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        return res.json();
+      })
       .then(setData)
-      .catch(err => console.error("Error fetching data:", err));
+      .catch(err => console.error("Error fetching profile data:", err));
   }, []);
 
+  // Get CSRF token
   useEffect(() => {
     fetch(`${API_URL}/csrf-token`, { credentials: 'include' })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to get CSRF token');
+        return res.json();
+      })
       .then(tokenData => {
         setCsrfToken(tokenData.csrfToken);
         console.log("CSRF token:", tokenData.csrfToken);
@@ -37,20 +45,21 @@ function App() {
       .catch(err => console.error("Error getting CSRF token:", err));
   }, []);
 
+  // Example: Sending secure POST request
   const sendSecureData = () => {
     if (!csrfToken) return;
-    fetch(`${API_URL}/secure`, {
+    fetch(`${API_URL}/auth/signup`, {   // <-- use a real backend route
       method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'CSRF-Token': csrfToken
       },
-      body: JSON.stringify({ message: "This is secure!" })
+      body: JSON.stringify({ email: 'test@example.com', password: '123456' })
     })
       .then(res => res.json())
       .then(response => console.log("Response:", response))
-      .catch(err => console.error("Error posting data:", err));
+      .catch(err => console.error("Error posting secure data:", err));
   };
 
   return (

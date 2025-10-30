@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import SocialButton from '../components/SocialButton';
+import { useAuth0 } from '@auth0/auth0-react';
+import '../styles/signup.css';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -8,13 +10,14 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Correct env names
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL;   // Backend URL
+  const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL; // Frontend URL
 
+  const { loginWithRedirect } = useAuth0();
+
+  // Local signup with CSRF protection
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -24,28 +27,24 @@ export default function Signup() {
     setError(null);
 
     try {
-      // Get CSRF token first
-      const csrfResponse = await fetch(`${API_BASE_URL}/csrf-token`, {
-        credentials: 'include',
-      });
+      // 1. Get CSRF token
+      const csrfResponse = await fetch(`${API_URL}/csrf-token`, { credentials: 'include' });
       if (!csrfResponse.ok) throw new Error('Failed to get CSRF token');
       const { csrfToken } = await csrfResponse.json();
 
-      // Post signup data securely
-      const signupRes = await fetch(`${API_BASE_URL}/auth/signup`, {
+      // 2. Post signup
+      const signupRes = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'CSRF-Token': csrfToken,
+          'CSRF-Token': csrfToken
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password })
       });
 
       const json = await signupRes.json();
-
       if (signupRes.ok) {
-        // redirect after success
         window.location.href = FRONTEND_URL;
       } else {
         setError(json.error || json.message || 'Signup failed');
@@ -57,10 +56,8 @@ export default function Signup() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    // Correct provider path
-    window.location.href = `${API_BASE_URL}/auth/${provider}`;
-  };
+  // Google login using Auth0 frontend SDK
+  const handleGoogleLogin = () => loginWithRedirect({ connection: 'google-oauth2' });
 
   return (
     <div className="signup-container">
@@ -69,8 +66,8 @@ export default function Signup() {
         {error && <div className="error-message">{error}</div>}
 
         <div className="social-login">
-          <SocialButton provider="google" onClick={() => handleSocialLogin('google')} />
-          <SocialButton provider="apple" onClick={() => handleSocialLogin('apple')} />
+          <SocialButton provider="google" onClick={handleGoogleLogin} />
+          {/* Optional: Apple login if Auth0 Apple connection is configured */}
         </div>
 
         <div className="divider">or</div>
@@ -83,7 +80,6 @@ export default function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
-            autoComplete="email"
           />
           <input
             type="password"
@@ -92,7 +88,6 @@ export default function Signup() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
-            autoComplete="new-password"
           />
           <input
             type="password"
@@ -101,10 +96,9 @@ export default function Signup() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             disabled={loading}
-            autoComplete="new-password"
           />
           <button type="submit" disabled={loading}>
-            {loading ? 'Signing up…' : 'Sign Up'}
+            {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
 
