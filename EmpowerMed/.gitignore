@@ -32,3 +32,4 @@ dist-ssr/
 
 # If you truly never want any *.local files (non-env), uncomment:
 # *.local
+.DS_Store
