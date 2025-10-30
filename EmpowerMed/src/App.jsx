@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -8,11 +7,13 @@ import Membership from './pages/Membership';
 import Products from './pages/Products';
 import Blog from './pages/Blog';
 import Education from './pages/Education';
+import Events from './pages/Events';
 import About from './pages/About';
 import Appointment from './pages/Appointment';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import './App.css';
+import './styles/custom-bootstrap.scss';
 
 const API_URL = "http://localhost:5000";
 
@@ -56,19 +57,18 @@ function App() {
   return (
     <Router>
       <Navbar />
-      <div className="container mt-4 mb-5">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/membership" element={<Membership />} />
           <Route path="/products" element={<Products />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/education" element={<Education />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/about" element={<About />} />
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Routes>
-      </div>
       <Footer />
     </Router>
   );

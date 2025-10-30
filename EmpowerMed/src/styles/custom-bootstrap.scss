@@ -1,0 +1,62 @@
+/********* Custom Bootstrap ***********/
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Aboreto&family=Lexend:wght@300;400;600&display=swap');
+
+/* Colors */
+$primary:   #3D52A0; // main blue
+$secondary: #7091E6; // light blue
+$pale-blue: #ADBBDA;
+$light:     #EDE8F5; // light-purple/off-white
+$dark:      #282828;
+$white:     #FFFFFF; 
+
+/* Typography */
+// $font-family-sans-serif: 'Lexend', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+$font-family-sans-serif: 'Lexend', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+$headings-font-family: 'Aboreto', serif;
+$headings-font-weight: 600;
+
+
+/* Buttons */
+$btn-border-radius: 4px;
+$btn-padding-y: .6rem;
+$btn-padding-x: 1.25rem;
+$btn-font-weight: 600;
+$btn-focus-box-shadow: 0 0 0 .25rem rgba(112,145,230,.35);
+
+/* Links */
+$link-color: $primary;
+$link-hover-color: $dark;
+
+/* Navbar */
+$navbar-padding-y: .65rem;
+$navbar-dark-color: $light;
+$navbar-dark-hover-color: rgba($light, .9);
+$navbar-dark-brand-color: $light;
+$navbar-dark-brand-hover-color: $light;
+
+/* Optional: other theme colors */
+$theme-colors: (
+  "primary":   $primary,
+  "secondary": $secondary,
+  "light":     $light,
+  "success":   #22c55e,
+  "info":      #0ea5e9,
+  "warning":   #f59e0b,
+  "danger":    #ef4444
+);
+
+/* Import Bootstrap */
+@import "bootstrap/scss/bootstrap";
+
+/* Extras */
+.btn-light {
+  color: $primary;
+}
+
+.navbar {
+  font-family: $font-family-sans-serif;
+  box-shadow: 0 8px 24px rgba(61,82,160,.18);
+  background: $secondary;
+}
