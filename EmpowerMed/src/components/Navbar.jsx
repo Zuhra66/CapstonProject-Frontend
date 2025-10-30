@@ -1,13 +1,14 @@
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import '../styles/navbar.css';
+import logo from '../assets/logo.png';
 
 export default function EmpowerMedNavbar() {
   return (
     <Navbar expand="lg" fixed="top" className="empowermed-navbar">
       <Container>
         <Navbar.Brand href="/" className="navbar-logo">
-          <img src="./src/assets/logo.png" alt="EmpowerMEd Logo" className="navbar-logo-img" />
+          <img src={logo} alt="EmpowerMEd Logo" className="navbar-logo-img" />
           <span>EmpowerMEd</span>
         </Navbar.Brand>
 

@@ -56,8 +56,13 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.2, delay: 0.4 }}
               >
-                EmpowerMed blends modern clinical care and mindful wellness to help you feel your best —
-                personalized programs, trusted practitioners, and a community that supports you.
+                EmpowerMEd blends modern clinical care and mindful wellness to help
+                 you feel your best — personalized programs, trusted practitioners
+                , and a community that supports you. Our core mission focuses on 
+                healing and supporting healthcare professionals, "the healers," 
+                while empowering communities. We aim to address comprehensive aspects
+                of health, mental, emotional, spiritual, nutritional, and physical to 
+                foster overall wellness.
               </motion.p>
 
               <div className="hero-ctas d-flex flex-wrap gap-3 mt-3">
