@@ -1,10 +1,12 @@
 import React from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
+// import { Container, Row, Col, Button } from 'react-bootstrap';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import heroImg from '../assets/hero-placeholder.jpg';
-import '../styles/theme.css';
-import '../styles/layout.css';
-import '../styles/buttons.css';
+import dianaImg from '../assets/dr.diana.png';
+import blueberriesImg from '../assets/blueberries-wellness.jpg';
+import arrowImg from '../assets/arrow-decoration.png';
+import leafIcon from '../assets/leaf.png';
+import flowerImg from '../assets/flower-icon.png'
+import '../styles/Global.css';
 
 export default function Home() {
   const { scrollY } = useScroll();
@@ -13,214 +15,266 @@ export default function Home() {
 
   return (
     <main className="home-root" role="main">
-      {/* HERO */}
-      <section
-        className="hero-section text-light d-flex flex-column justify-content-center align-items-center position-relative"
-        style={{
-          backgroundColor: '#EDE8F5',
-          minHeight: '100vh',
-          overflow: 'hidden',
-          position: 'relative',
-          paddingTop: '120px', 
-        }}
-      >
-        <Container fluid className="text-center mb-4" style={{ zIndex: 2 }}>
+      {/* HERO SECTION */}
+      <section className="hero-section">
+        <div className="hero-content text-center px-3">
           <motion.h1
-            className="hero-title display-font mb-4"
+            className="hero-title display-font mb-4 pb-5"
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
             style={{
-              color: '#3D52A0',
+              color: '#ffffff',
               fontSize: 'clamp(2.5rem, 6vw, 4rem)',
               letterSpacing: '2px',
+              fontWeight: 200,
             }}
           >
-            Renew • Restore • Thrive
+            Start Your Wellness<br />Journey
           </motion.h1>
-        </Container>
+          
+          <div className="d-flex justify-content-center gap-4 mt-4">
+            <motion.a
+              href="/membership"
+              className="btn btn-primary"
+              initial={{ opacity: 0, y: -40 }}
+               animate={{ 
+                opacity: 1, 
+                y: 0,
+                transition: { duration: 1.2, ease: 'easeOut', delay: 0.2 }
+              }}
+              whileHover={{
+                scale: 1.05,
+                transition: { duration: 0.3 }
+              }}
+              whileTap={{
+                scale: 0.8,
+                transition: { duration: 0.1 }
+              }}
+            >
+              Become a Member
+            </motion.a>
 
-        <Container>
-          <Row className="align-items-start justify-content-center">
-            <Col md={6} className="d-flex flex-column justify-content-start">
-              <motion.p
-                className="lead-para body-font mb-4"
-                style={{
-                  color: '#3D52A0',
-                  fontSize: '1.1rem',
-                  lineHeight: '1.8',
-                  maxWidth: '90%',
-                  marginTop: '0.5rem',
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, delay: 0.4 }}
-              >
-                EmpowerMed blends modern clinical care and mindful wellness to help you feel your best —
-                personalized programs, trusted practitioners, and a community that supports you.
-              </motion.p>
+            <motion.a
+              href="/appointment"
+              className="btn btn-primary"
+              initial={{ opacity: 0, y: -40 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                transition: { duration: 1.2, ease: 'easeOut', delay: 0.2 }
+              }}
+              whileHover={{
+                scale: 1.05,
+                transition: { duration: 0.2 }
+              }}
+              whileTap={{
+                scale: 0.8,
+                transition: { duration: 0.1 }
+              }}
+              
+            >
+              Book an Appointment
+            </motion.a>
+          </div>
+        </div>
+      </section>
 
-              <div className="hero-ctas d-flex flex-wrap gap-3 mt-3">
-                <Button
-                  href="/membership"
-                  style={{
-                    backgroundColor: '#7091E6',
-                    border: 'none',
-                    color: '#EDE8F5',
-                    fontWeight: 600,
-                    padding: '0.9rem 2rem',
-                    borderRadius: '10px',
-                    boxShadow: '0 6px 15px rgba(61, 82, 160, 0.3)',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onMouseOver={(e) => (e.target.style.backgroundColor = '#3D52A0')}
-                  onMouseOut={(e) => (e.target.style.backgroundColor = '#7091E6')}
-                >
-                  Become a Member
-                </Button>
+      {/* About Section */}
+          <section className="about-section">
+            <div className="container">
+              <div className="about-content">
+                <div className="about-grid">
+                  {/* Left side - Image */}
+                  <motion.div 
+                    className="about-image"
+                    initial={{ opacity: 0, x: -40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                  >
+                    <img src={dianaImg} alt="Dr. Diana Galvan" className="about-img"/>
+                  </motion.div>
 
-                <motion.a
-                  href="/appointment"
-                  style={{
-                    backgroundColor: '#7091E6',
-                    border: 'none',
-                    color: '#EDE8F5',
-                    fontWeight: 600,
-                    padding: '0.9rem 2rem',
-                    borderRadius: '10px',
-                    boxShadow: '0 6px 15px rgba(61, 82, 160, 0.3)',
-                    transition: 'all 0.3s ease',
-                    textDecoration: 'none', // remove underline
-                    display: 'inline-block',
-                  }}
-                  onMouseOver={(e) => (e.target.style.backgroundColor = '#3D52A0')}
-                  onMouseOut={(e) => (e.target.style.backgroundColor = '#7091E6')}
-                >
-                  Book an Appointment
-                </motion.a>
+                  {/* Right side - Text Content */}
+                  <motion.div 
+                    className="about-text-content"
+                    initial={{ opacity: 0, x: 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 1.2, ease: 'easeOut', delay: 0.2 }}
+                  >
+                    <h2 className="about-title">Dr. Diana Galvan</h2>
+                    
+                    <p className="about-description">
+                      It all started with a <strong>passion to help people</strong>. Now, 
+                      I am a <span style={{ color: 'var(--main-blue)', fontWeight: 600 }}>life coach</span> who 
+                      focuses on helping people mentally, emotionally, physically, spiritually, and 
+                      nutritionally by offering <span style={{ color: 'var(--main-blue)', fontWeight: 600 }}>affordable life-coaching</span>.
+                    </p>
+
+                    <div className="about-divider"></div>
+
+                    <motion.a 
+                      href="/about" 
+                      className="btn btn-primary"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Learn More
+                    </motion.a>
+                  </motion.div>
+                </div>
               </div>
-            </Col>
+            </div>
+          </section>
 
-            <Col md={6} className="hero-media-col text-center">
+      {/* Mission Section */}
+      <section 
+        className="mission-section">
+        <div className="container">
+          <div className="mission-content">
+            <div className="mission-box">
               <motion.div
-                className="hero-media"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.3, ease: 'easeOut' }}
+                className="mission-text"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, ease: 'easeOut' }}
               >
-                <img
-                  src={heroImg}
-                  alt="Serene wellness scene"
-                  className="img-fluid rounded-4 shadow-lg hero-img"
-                  style={{
-                    border: '6px solid #ADBBDA',
-                    maxHeight: '80vh',
-                    objectFit: 'cover',
-                  }}
-                />
+                <h2 className="mission-title">Your Partner in Total Wellness</h2>
+                
+                <div className="mission-icon">
+                  <img src={leafIcon} alt="leaf icon" className="leaf-icon"/>
+                </div>
+
+                <p className="mission-description">
+                  At <span className='custom-span'>EmpowerMEd</span>, we aim to help you <strong>achieve balance</strong> in <span className='custom-span'>mind</span>, <span className='custom-span'>body</span>, <span className="custom-span">spirit</span>, <span className='custom-span'>emotions</span>, and <span className='custom-span'>nutrition</span>. Our mission is to <strong>empower you</strong> with the tools to <strong>restore harmony</strong> and <strong>thrive</strong> in every aspect of your life.
+                </p>
               </motion.div>
-            </Col>
-          </Row>
-        </Container>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* SERVICES */}
-      <section className="services-section py-5" style={{ backgroundColor: '#EDE8F5' }}>
-        <Container>
-          <h2
-            className="section-title text-center display-font mb-3"
-            style={{ color: '#3D52A0' }}
-          >
-            Our Services
-          </h2>
-          <p
-            className="section-sub text-center mb-5 body-font"
-            style={{ color: '#7091E6' }}
-          >
-            Designed to support mind, body, and lifestyle — starting where you are.
-          </p>
+      {/* Hours & Availability Section */}
+      <section className="hours-section">
+        <div className="container">
+          <div className="hours-grid">
+            {/* Left side - Hours */}
+            <motion.div 
+              className="hours-content"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <h2 className="hours-title">Hours & Availability</h2>
+              
+              <div className="hours-icon">
+                <img src={flowerImg} alt="flower icon" className="flower-icon" />
+              </div>
 
-          <Row className="g-4">
-            {[
-              { title: 'Primary Care & Telehealth', desc: 'Comprehensive care with continuity and convenience.' },
-              { title: 'Mental Wellness & Therapy', desc: 'Evidence-based therapy and community support.' },
-              { title: 'Nutrition Management', desc: 'Personalized nutrition plans and coaching.' },
-              { title: 'Holistic Treatments', desc: 'Massage, acupuncture, and restorative therapies.' },
-            ].map((s, i) => (
-              <Col md={6} lg={3} key={i}>
-                <motion.article
-                  className="service-card p-4 h-100 rounded-4 shadow-sm"
-                  style={{
-                    backgroundColor: '#ADBBDA',
-                    color: '#3D52A0',
-                    border: '2px solid #8697C4',
-                    transition: 'transform 0.3s ease',
-                  }}
-                  whileHover={{ scale: 1.04 }}
+              <div className="hours-list">
+                <div className="hours-item">
+                  <span className="day">Monday</span>
+                  <span className="time">9:00AM - 11:00AM</span>
+                </div>
+                <div className="hours-item">
+                  <span className="day">Tuesday</span>
+                  <span className="time">9:00AM - 11:00AM</span>
+                  <span className="label">All In Health</span>
+                </div>
+                <div className="hours-item">
+                  <span className="day">Wednesday</span>
+                  <span className="time">1:00PM - 5:00PM</span>
+                </div>
+                <div className="hours-item">
+                  <span className="day">Thursday</span>
+                  <span className="time">9:00AM - 12:00PM</span>
+                  <span className="label">All In Health</span>
+                </div>
+                <div className="hours-item">
+                  <span className="day">Friday</span>
+                  <span className="time">9:00AM - 5:00PM</span>
+                </div>
+                <div className="hours-item">
+                  <span className="day">Saturday</span>
+                  <span className="time">9:00AM - 5:00PM</span>
+                </div>
+                <div className="hours-item">
+                  <span className="day">Sunday</span>
+                  <span className="closed">Closed</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Right side - Circle Image */}
+            <motion.div 
+              className="hours-image"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <img src={arrowImg} alt="" className="arrow-decoration" />
+              <div className="circle-image"></div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Locations Section */}
+      <section className="locations-section">
+        <div className="container">
+          <div className="locations-grid">
+            {/* Left side - Map */}
+            <motion.div 
+              className="locations-map"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50363.89434787654!2d-121.0018!3d37.6391!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x809ac672b28397f9%3A0x921f6aaa74197fdb!2sModesto%2C%20CA!5e0!3m2!1sen!2sus!4v1234567890"
+                width="100%"
+                height="100%"
+                style={{ border: 0, borderRadius: '8px' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Modesto & Turlock Location"
+              ></iframe>
+            </motion.div>
+
+            {/* Right side - Location Info */}
+            <motion.div 
+              className="locations-content"
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+            >
+              <h2 className="locations-title">Locations</h2>
+              
+              <div className="location-info">
+                <h3 className="location-name">Modesto & Turlock</h3>
+                <p className="location-phone">(209) 922-2007</p>
+                <a href="mailto:empowermed.threeinternational.com" className="location-email">
+                  empowermed.threeinternational.com
+                </a>
+                
+                <a 
+                  href="https://maps.google.com/?q=Modesto+Turlock+CA" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="get-directions"
                 >
-                  <h3
-                    className="service-title body-font mb-2"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      fontWeight: '500',
-                    }}
-                  >
-                    <span style={{ color: '#7091E6', fontSize: '1.5rem', lineHeight: '1' }}>•</span>
-                    {s.title}
-                  </h3>
-                  <p className="service-desc mb-4">{s.desc}</p>
-                  <Button
-                    href="/products"
-                    style={{
-                      backgroundColor: '#7091E6',
-                      border: 'none',
-                      color: '#EDE8F5',
-                      fontWeight: 500,
-                      padding: '0.6rem 1.3rem',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    Learn More
-                  </Button>
-                </motion.article>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-
-      {/* PROMO */}
-      <section
-        className="promo-section py-5 text-light"
-        style={{ backgroundColor: '#3D52A0' }}
-      >
-        <Container>
-          <Row className="align-items-center">
-            <Col md={8}>
-              <h3 className="promo-title display-font mb-2">Join Our Wellness Community</h3>
-              <p className="promo-sub body-font mb-0" style={{ color: '#EDE8F5' }}>
-                Members receive guided plans, exclusive content, and priority booking.
-              </p>
-            </Col>
-            <Col md={4} className="text-md-end mt-3 mt-md-0">
-              <Button
-                href="/signup"
-                style={{
-                  backgroundColor: '#EDE8F5',
-                  color: '#3D52A0',
-                  border: 'none',
-                  fontWeight: 600,
-                  padding: '0.85rem 1.75rem',
-                  borderRadius: '10px',
-                }}
-              >
-                Sign Up — It’s Free
-              </Button>
-            </Col>
-          </Row>
-        </Container>
+                  Get Directions
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
     </main>
   );
