@@ -20,16 +20,7 @@ function App() {
   const [data, setData] = useState(null);
   const [csrfToken, setCsrfToken] = useState(null);
 
-  // Example: Fetch profile data if authenticated
-  useEffect(() => {
-    fetch(`${API_URL}/auth/profile`, { credentials: 'include' })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        return res.json();
-      })
-      .then(setData)
-      .catch(err => console.error("Error fetching profile data:", err));
-  }, []);
+
 
   // Get CSRF token
   useEffect(() => {

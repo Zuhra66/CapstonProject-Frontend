@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
-import SocialButton from '../components/SocialButton';
 import { useAuth0 } from '@auth0/auth0-react';
+import SocialButton from '../components/SocialButton';
 import '../styles/signup.css';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function Signup() {
+  const { loginWithRedirect } = useAuth0();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [csrfToken, setCsrfToken] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_BASE_URL;   // Backend URL
-  const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL; // Frontend URL
+  // Fetch CSRF token
+  React.useEffect(() => {
+    fetch(`${API_URL}/csrf-token`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setCsrfToken(data.csrfToken))
+      .catch(err => console.error("CSRF error:", err));
+  }, []);
 
-  const { loginWithRedirect } = useAuth0();
-
-  // Local signup with CSRF protection
+  // Handle local signup
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
@@ -27,13 +35,7 @@ export default function Signup() {
     setError(null);
 
     try {
-      // 1. Get CSRF token
-      const csrfResponse = await fetch(`${API_URL}/csrf-token`, { credentials: 'include' });
-      if (!csrfResponse.ok) throw new Error('Failed to get CSRF token');
-      const { csrfToken } = await csrfResponse.json();
-
-      // 2. Post signup
-      const signupRes = await fetch(`${API_URL}/auth/signup`, {
+      const res = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -43,21 +45,23 @@ export default function Signup() {
         body: JSON.stringify({ email, password })
       });
 
-      const json = await signupRes.json();
-      if (signupRes.ok) {
-        window.location.href = FRONTEND_URL;
+      const json = await res.json();
+      if (res.ok) {
+        window.location.href = '/';
       } else {
-        setError(json.error || json.message || 'Signup failed');
+        setError(json.error || 'Signup failed');
       }
     } catch (err) {
-      setError(err.message || 'Network error. Please try again.');
+      setError(err.message || 'Network error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Google login using Auth0 frontend SDK
-  const handleGoogleLogin = () => loginWithRedirect({ connection: 'google-oauth2' });
+  // Handle Google signup/login via Auth0
+  const handleGoogleLogin = () => {
+    loginWithRedirect({ connection: 'google-oauth2' });
+  };
 
   return (
     <div className="signup-container">
@@ -67,7 +71,6 @@ export default function Signup() {
 
         <div className="social-login">
           <SocialButton provider="google" onClick={handleGoogleLogin} />
-          {/* Optional: Apple login if Auth0 Apple connection is configured */}
         </div>
 
         <div className="divider">or</div>
@@ -78,33 +81,29 @@ export default function Signup() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
             disabled={loading}
+            required
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
             disabled={loading}
+            required
           />
           <input
             type="password"
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            required
             disabled={loading}
+            required
           />
           <button type="submit" disabled={loading}>
             {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
-
-        <p className="login-link">
-          Already have an account? <a href="/login">Log in</a>
-        </p>
       </div>
     </div>
   );
