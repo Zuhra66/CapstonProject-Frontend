@@ -4,6 +4,7 @@ import styles from "../styles/Footer.module.css";
 
 export default function Footer() {
   return (
+
     <footer className={styles.footerSection}>
       <div className="container">
         <div className={styles.footerContent}>
@@ -56,8 +57,8 @@ export default function Footer() {
             </div>
 
             <p className={styles.footerCopyright}>© {new Date().getFullYear()} EmpowerMEd LLC. All rights reserved.</p>
-          </div>
         </div>
+      </div>
       </div>
     </footer>
   );
