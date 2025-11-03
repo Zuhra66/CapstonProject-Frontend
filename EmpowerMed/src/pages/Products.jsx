@@ -1,49 +1,28 @@
-// src/pages/ProductsPage.jsx
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import bannerImg from "../assets/ThreeProducts.jpeg";
-
+import "../styles/Global.css";
 const STORE_URL = "https://empowermed.threeinternational.com/en";
-
-// Demo data – swap to your API later
+// Demo data – replace image URLs when you have real photos
 const ALL_PRODUCTS = [
-  {
-    id: "vitamin-d",
-    name: "Vitamin D3 5000 IU",
-    price: 18.99,
-    image:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop",
-    benefits: ["Immune", "Bone"],
-    category: "Vitamins",
-  },
-  {
-    id: "magnesium",
-    name: "Magnesium Glycinate",
-    price: 22.5,
-    image:
-      "https://images.unsplash.com/photo-1582719478250-71f41c2f6e9b?q=80&w=1200&auto=format&fit=crop",
-    benefits: ["Calm", "Sleep", "Recovery"],
-    category: "Minerals",
-  },
-  {
-    id: "omega-3",
-    name: "Omega-3 Fish Oil",
-    price: 25.0,
-    image:
-      "https://images.unsplash.com/photo-1576092768245-6a4d2f6b0b5a?q=80&w=1200&auto=format&fit=crop",
-    benefits: ["Heart", "Brain"],
-    category: "Oils",
-  },
+  { id: "visage-super-serum", name: "VISAGE SUPER SERUM", price: 89.0, image: "", benefits: ["Firming", "Brightening"], category: "Skincare" },
+  { id: "visage-creme-caviar", name: "VISAGE CRÈME CAVIAR", price: 98.0, image: "", benefits: ["Hydration", "Nourishing"], category: "Skincare" },
+  { id: "eternel", name: "ÉTERNEL", price: 76.0, image: "", benefits: ["Renewal", "Glow"], category: "Skincare" },
+  { id: "kynetik-clean-caffeine", name: "KYNETIK CLEAN CAFFEINE", price: 32.0, image: "", benefits: ["Energy", "Focus"], category: "Beverage" },
+  { id: "vitalite", name: "VITALITÉ", price: 45.0, image: "", benefits: ["Daily Multinutrient"], category: "Supplement" },
+  { id: "collagene", name: "COLLAGÈNE", price: 49.0, image: "", benefits: ["Skin", "Hair", "Nails"], category: "Supplement" },
+  { id: "pure-cleanse", name: "PURE CLEANSE", price: 39.0, image: "", benefits: ["Detox", "Digestive"], category: "Skincare" },
+  { id: "revive", name: "REVÍVÉ", price: 44.0, image: "", benefits: ["Recovery", "Antioxidants"], category: "Supplement" },
+  { id: "purifi", name: "PURIFÍ", price: 42.0, image: "", benefits: ["Gut", "Cleanse"], category: "Supplement" },
+  { id: "imune", name: "IMÚNE", price: 46.0, image: "", benefits: ["Immune Support"], category: "Supplement" },
+  { id: "radiant-toner", name: "RADIANT TONER", price: 36.0, image: "", benefits: ["Balance", "Refine"], category: "Skincare" },
 ];
-
 export default function ProductsPage() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
-
   const categories = useMemo(
     () => ["All", ...new Set(ALL_PRODUCTS.map((p) => p.category))],
     []
   );
-
   const products = useMemo(() => {
     const text = q.trim().toLowerCase();
     return ALL_PRODUCTS.filter((p) => {
@@ -55,46 +34,40 @@ export default function ProductsPage() {
       return matchesText && matchesCat;
     });
   }, [q, cat]);
-
   return (
     <>
-      {/* FULL-WIDTH BANNER — entire image, no cropping */}
-      <section
-        className="
-          relative w-screen -mx-[calc(50vw-50%)]
-          mt-8 mb-10 rounded-b-[2rem] shadow-xl
-        "
-      >
-        <img
-          src={bannerImg}
-          alt="EmpowerMed featured products"
-          className="block w-full h-auto"   // keep natural aspect ratio
-        />
-        {/* overlay */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent" />
-        {/* centered content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-       
-        </div>
-      </section>
+      
+     {/* CENTERED BANNER */}
+{/* CENTERED BANNER (Global.css themed) */}
+<section className="container" style={{ marginTop: "7rem", marginBottom: "4rem" }}>
+  <div className="products-hero">
+    <img src={bannerImg} alt="EmpowerMed Products" />
+    <div className="products-hero__overlay" />
+    <div className="products-hero__title">EmpowerMed Products</div>
+  </div>
+</section>
 
-      {/* CONTENT CONTAINER */}
-      <main className="max-w-6xl mx-auto px-4 py-12">
-        {/* Header */}
+
+      {/* CONTENT */}
+      <main className="max-w-6xl mx-auto px-4 pb-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-3xl font-bold">Products</h2>
-            <p className="text-gray-600">Explore our curated essentials</p>
+            <h2 className="text-3xl font-bold text-indigo-800">PRODUCTS</h2>
+            <p className="text-gray-600">Explore our curated wellness essentials</p>
           </div>
-
           <div className="flex gap-2">
-            <input
-              type="search"
-              placeholder="Search products…"
-              className="rounded-xl border px-4 py-2 outline-none focus:ring w-64"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                type="search"
+                placeholder="Search products…"
+                className="rounded-xl border px-4 py-2 pl-10 outline-none focus:ring w-64"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              <span className="absolute left-3 top-2.5 text-gray-400">
+                <i className="fas fa-search" />
+              </span>
+            </div>
             <a
               href={STORE_URL}
               target="_blank"
@@ -105,7 +78,6 @@ export default function ProductsPage() {
             </a>
           </div>
         </div>
-
         {/* Category chips */}
         <div className="flex flex-wrap gap-2 mb-6">
           {categories.map((c) => (
@@ -120,24 +92,22 @@ export default function ProductsPage() {
             </button>
           ))}
         </div>
-
         {/* Grid */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((p) => (
             <article
               key={p.id}
-              className="group rounded-2xl bg-white/70 shadow hover:shadow-xl transition p-4"
+              className="group rounded-2xl bg-white/80 shadow hover:shadow-xl transition p-4"
             >
               <div className="overflow-hidden rounded-xl">
                 <img
-                  src={p.image}
+                  src={p.image || "/placeholder.png"}
                   alt={p.name}
                   className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
                 />
               </div>
-
-              <h3 className="mt-4 text-lg font-semibold">{p.name}</h3>
+              <h3 className="mt-4 text-lg font-semibold text-gray-800">{p.name}</h3>
               <div className="mt-1 text-gray-600 text-sm flex gap-2 flex-wrap">
                 {p.benefits.map((b) => (
                   <span key={b} className="text-xs bg-indigo-50 px-2 py-1 rounded-full">
@@ -145,9 +115,10 @@ export default function ProductsPage() {
                   </span>
                 ))}
               </div>
-
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-xl font-semibold">${p.price.toFixed(2)}</span>
+                <span className="text-xl font-semibold text-indigo-800">
+                  ${p.price.toFixed(2)}
+                </span>
                 <a
                   href={STORE_URL}
                   target="_blank"
@@ -161,9 +132,11 @@ export default function ProductsPage() {
             </article>
           ))}
         </section>
-
         {products.length === 0 && (
-          <p className="text-gray-500">No products match your search.</p>
+          <div className="text-center mt-6">
+            <img src="/no-results.png" alt="No results" className="mx-auto h-40 w-40" />
+            <p className="text-gray-500 mt-4">No products match your search.</p>
+          </div>
         )}
       </main>
     </>

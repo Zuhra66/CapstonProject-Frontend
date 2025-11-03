@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import SocialButton from '../components/SocialButton';
 import { useAuth0 } from '@auth0/auth0-react';
-import '../styles/signup.css';
+
+import styles from "../styles/Signup.module.css";
+
+
+
 
 export default function Signup() {
   const [email, setEmail] = useState('');
