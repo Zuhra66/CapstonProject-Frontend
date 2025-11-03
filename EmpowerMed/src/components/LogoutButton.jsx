@@ -1,22 +1,17 @@
-// src/components/LogoutButton.jsx
 import React from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Button } from 'react-bootstrap';
 
 export default function LogoutButton() {
   const { logout } = useAuth0();
-  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
-
-  const handleLogout = () => {
-    logout({
-      logoutParams: {
-        returnTo: frontendUrl
-      }
-    });
-  };
 
   return (
-    <button className="btn btn-outline-secondary" onClick={handleLogout}>
+    <Button
+      variant="outline-secondary"
+      onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+      style={{ width: '100%' }}
+    >
       Log out
-    </button>
+    </Button>
   );
 }

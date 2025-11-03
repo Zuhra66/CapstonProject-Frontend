@@ -1,60 +1,23 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Membership from './pages/Membership';
-import Products from './pages/Products';
-import Blog from './pages/Blog';
-import Education from './pages/Education';
-import About from './pages/About';
-import Appointment from './pages/Appointment';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import './App.css';
-
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import Navbar from './components/Navbar.jsx';
+import Footer from './components/Footer.jsx';
+import Home from './pages/Home.jsx';
+import Membership from './pages/Membership.jsx';
+import Products from './pages/Products.jsx';
+import Blog from './pages/Blog.jsx';
+import Education from './pages/Education.jsx';
+import About from './pages/About.jsx';
+import Appointment from './pages/Appointment.jsx';
+import Account from './pages/Account.jsx';
 
 function App() {
-  const [data, setData] = useState(null);
-  const [csrfToken, setCsrfToken] = useState(null);
-
-
-
-  // Get CSRF token
-  useEffect(() => {
-    fetch(`${API_URL}/csrf-token`, { credentials: 'include' })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to get CSRF token');
-        return res.json();
-      })
-      .then(tokenData => {
-        setCsrfToken(tokenData.csrfToken);
-        console.log("CSRF token:", tokenData.csrfToken);
-      })
-      .catch(err => console.error("Error getting CSRF token:", err));
-  }, []);
-
-  // Example: Sending secure POST request
-  const sendSecureData = () => {
-    if (!csrfToken) return;
-    fetch(`${API_URL}/auth/signup`, {   // <-- use a real backend route
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'CSRF-Token': csrfToken
-      },
-      body: JSON.stringify({ email: 'test@example.com', password: '123456' })
-    })
-      .then(res => res.json())
-      .then(response => console.log("Response:", response))
-      .catch(err => console.error("Error posting secure data:", err));
-  };
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
-    <Router>
+    <>
       <Navbar />
       <div className="container mt-4 mb-5">
         <Routes>
@@ -65,12 +28,11 @@ function App() {
           <Route path="/education" element={<Education />} />
           <Route path="/about" element={<About />} />
           <Route path="/appointment" element={<Appointment />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </div>
       <Footer />
-    </Router>
+    </>
   );
 }
 
