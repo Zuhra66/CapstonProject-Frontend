@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { useAuth0 } from '@auth0/auth0-react';
+import useAuthFetch from './hooks/useAuthFetch';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
@@ -15,6 +17,16 @@ import Account from './pages/Account.jsx';
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth0();
+  const authFetch = useAuthFetch();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      authFetch('/auth/sync', { method: 'POST' })
+        .then(() => console.log('User synced successfully'))
+        .catch((err) => console.error('User sync error:', err));
+    }
+  }, [isAuthenticated]);
 
   return (
     <>
