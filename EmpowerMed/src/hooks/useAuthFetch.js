@@ -11,28 +11,34 @@ export default function useAuthFetch() {
       ...opts,
       headers: {
         ...(opts.headers || {}),
-        'Content-Type': opts.body ? 'application/json' : opts.headers?.['Content-Type'] || 'application/json'
-      }
+        'Content-Type': opts.body
+          ? 'application/json'
+          : opts.headers?.['Content-Type'] || 'application/json',
+      },
     };
 
     try {
       const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE }
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
       });
 
       options.headers = {
         ...options.headers,
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       };
 
-      // do NOT include credentials unless your backend explicitly uses cookie sessions
       const response = await fetch(url, options);
+
       if (!response.ok) {
         const text = await response.text();
         throw new Error(`Request failed (${response.status}): ${text}`);
       }
+
       const contentType = response.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) return await response.json();
+      if (contentType.includes('application/json')) {
+        return await response.json();
+      }
+
       return await response.text();
     } catch (err) {
       console.error('authFetch error', err);
