@@ -112,7 +112,7 @@ body {
 /* HERO SECTION */
 .hero-section {
   background: linear-gradient(135deg, var(--light-blue) 0%, var(--main-blue) 100%);
-  min-height: 60vh;
+  min-height: 75vh;
   display: flex;
   align-items: center;
   justify-content: center;

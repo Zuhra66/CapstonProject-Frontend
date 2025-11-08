@@ -4,6 +4,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton.jsx';
 import logo from '../assets/logo.png';
+import logoCropped from '../assets/logo-cropped.png';
 import styles from "../styles/Navbar.module.css";
 
 export default function Navbar() {
@@ -19,7 +20,7 @@ export default function Navbar() {
           {/* Logo + Text (stacked vertically) */}
           <Link to="/" className={styles.navbarBrand}>
             <div className={styles.logoContainer}>
-              <img src={logo} alt="EmpowerMEd Logo" className={styles.navbarLogoImg} />
+              <img src={logoCropped} alt="EmpowerMEd Logo" className={styles.navbarLogoImg} />
               <span className={styles.logoText}>EmpowerMEd</span>
             </div>
           </Link>
@@ -30,9 +31,9 @@ export default function Navbar() {
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Home
             </NavLink>
-            <NavLink to="/membership" className={({ isActive }) =>
+            <NavLink to="/services" className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
-              Membership
+              Services
             </NavLink>
             <NavLink to="/products" className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
@@ -104,7 +105,7 @@ export default function Navbar() {
         <div className={`${styles.mobileNav} ${isOpen ? styles.mobileNavOpen : ''}`}>
           <div className={styles.mobileNavContent}>
             <NavLink to="/" onClick={() => setIsOpen(false)}>Home</NavLink>
-            <NavLink to="/membership" onClick={() => setIsOpen(false)}>Membership</NavLink>
+            <NavLink to="/services" onClick={() => setIsOpen(false)}>Services</NavLink>
             <NavLink to="/products" onClick={() => setIsOpen(false)}>Products</NavLink>
             <NavLink to="/blog" onClick={() => setIsOpen(false)}>Blog</NavLink>
             <NavLink to="/education" onClick={() => setIsOpen(false)}>Education</NavLink>

@@ -1,4 +1,4 @@
-function Home() {
+function Services() {
   return (
     <div className="text-center">
       <h1>Welcome to EmpowerMed</h1>
@@ -7,4 +7,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Services;

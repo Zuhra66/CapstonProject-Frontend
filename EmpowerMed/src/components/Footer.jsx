@@ -20,10 +20,10 @@ export default function Footer() {
         <div className={styles.footerContent}>
           {/* Left side - Branding & Navigation */}
           <div className={styles.footerLeft}>
-            <h3 className={styles.footerBrand}>EmpowerMEd</h3>
+            <h3>EmpowerMEd</h3>
             <nav className={styles.footerNav} aria-label="Footer navigation">
               <Link to="/">Home</Link>
-              <Link to="/membership">Membership</Link>
+              <Link to="/services">Services</Link>
               <Link to="/products">Products</Link>
               <Link to="/blog">Blog</Link>
               <Link to="/education">Educational Hub</Link>
@@ -31,7 +31,7 @@ export default function Footer() {
               <Link to="/about">About</Link>
             </nav>
             <div className={styles.footerSocial}>
-              <a href="mailto:contact@empowermed.com" aria-label="Email us">
+              <a href="mailto:contact@empowermedwellness.com" aria-label="Email us">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                 </svg>

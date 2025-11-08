@@ -5,14 +5,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
-import Membership from './pages/Membership.jsx';
+import Services from './pages/Services.jsx';
+import Events from './pages/Events.jsx';
 import Products from './pages/Products.jsx';
 import Blog from './pages/Blog.jsx';
 import Education from './pages/Education.jsx';
 import About from './pages/About.jsx';
 import Appointment from './pages/Appointment.jsx';
 import Account from './pages/Account.jsx';
-import Events from './pages/Events.jsx';
 
 function App() {
   const location = useLocation();
@@ -24,7 +24,7 @@ function App() {
       <div className="container mt-4 mb-5">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/membership" element={<Membership />} />
+          <Route path="/services" element={<Services />} />
           <Route path="/products" element={<Products />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/education" element={<Education />} />

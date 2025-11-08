@@ -130,7 +130,7 @@ const WellnessDNAAnalyzer = () => {
               </div>
 
               <div className="modal-actions">
-                <button className="btn-primary" onClick={() => window.location.href = '/membership'}>
+                <button className="btn-primary" onClick={() => window.location.href = '/services'}>
                   Start Your Personalized Journey
                 </button>
                 <button className="btn-secondary" onClick={() => setShowResults(false)}>
@@ -176,7 +176,7 @@ export default function Home() {
           </motion.h1>
           <div className="hero-buttons">
             <motion.a
-              href="/membership"
+              href="/services"
               className="btn btn-primary"
               initial={{ opacity: 0, y: -40 }}
               animate={{ opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut', delay: 0.2 } }}
@@ -427,8 +427,8 @@ export default function Home() {
                   3600 Sisk Rd, Suite 2D<br />Modesto, CA 95356
                 </p>
                 <p className="location-phone body-font">(209) 922-2007</p>
-                <a href="mailto:contact@empowermed.com" className="location-email body-font">
-                  contact@empowermed.com
+                <a href="mailto:contact@empowermedwellness.com" className="location-email body-font">
+                  contact@empowermedwellness.com
                 </a>
                 <a
                   href="https://maps.google.com/?q=3600+Sisk+Rd+Suite+2D+Modesto+CA+95356"
