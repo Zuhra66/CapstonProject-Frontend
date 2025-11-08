@@ -1,226 +1,447 @@
-import React from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import heroImg from '../assets/hero-placeholder.jpg';
-import '../styles/theme.css';
-import '../styles/layout.css';
-import '../styles/buttons.css';
+// src/pages/Home.jsx
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import jasmineImg from '../assets/jasmine.png';
+import blueberriesImg from '../assets/blueberries-wellness.jpg';
+import arrowImg from '../assets/arrow-decoration.png';
+import leafIcon from '../assets/leaf.png';
+import flowerImg from '../assets/flower-icon.png';
+import '../styles/Global.css';
+import '../styles/WellnessDNAAnalyzer.css';
 
+// Wellness DNA Analyzer Component
+const WellnessDNAAnalyzer = () => {
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [running, setRunning] = useState(false);
+
+  const wellnessStrands = [
+    { id: 1, color: '#3D52A0', name: 'Mental Clarity', aspect: 'Mind' },
+    { id: 2, color: '#7091E6', name: 'Emotional Balance', aspect: 'Emotions' },
+    { id: 3, color: '#8697C4', name: 'Physical Vitality', aspect: 'Body' },
+    { id: 4, color: '#ADBBDA', name: 'Spiritual Connection', aspect: 'Spirit' },
+    { id: 5, color: '#4ECDC4', name: 'Nutritional Harmony', aspect: 'Nutrition' }
+  ];
+
+  const generateUserProfile = () => {
+    const profile = {
+      mental: Math.floor(Math.random() * 40) + 60,
+      emotional: Math.floor(Math.random() * 40) + 60,
+      physical: Math.floor(Math.random() * 40) + 60,
+      spiritual: Math.floor(Math.random() * 40) + 60,
+      nutritional: Math.floor(Math.random() * 40) + 60,
+      primaryNeed: wellnessStrands[Math.floor(Math.random() * wellnessStrands.length)].name,
+      recommendedPlan: 'Personalized Wellness Journey'
+    };
+    setUserProfile(profile);
+  };
+
+  const startAnalysis = () => {
+    if (running) return;
+    setRunning(true);
+    setAnalysisProgress(0);
+    setShowResults(false);
+    const interval = setInterval(() => {
+      setAnalysisProgress(prev => {
+        const next = Math.min(prev + Math.floor(Math.random() * 15) + 10, 100);
+        if (next >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            generateUserProfile();
+            setShowResults(true);
+            setRunning(false);
+          }, 400);
+        }
+        return next;
+      });
+    }, 400);
+  };
+
+  return (
+    <div className="dna-analyzer-container">
+      {/* Removed interactive five strand cards here (was .dna-strands-container) */}
+      <div className="dna-cta">
+        <p className="body-font">Tap below to decode a quick snapshot of your Wellness DNA.</p>
+        <button
+          className="btn btn-primary"
+          onClick={startAnalysis}
+          disabled={running}
+          aria-busy={running}
+        >
+          {running ? `Analyzing... ${analysisProgress}%` : 'Run Analysis'}
+        </button>
+      </div>
+
+      <motion.div
+        className="analysis-progress"
+        initial={{ width: 0 }}
+        animate={{ width: `${analysisProgress}%` }}
+      >
+        <span>Decoding Your Wellness DNA... {analysisProgress}%</span>
+      </motion.div>
+
+      <AnimatePresence>
+        {showResults && userProfile && (
+          <motion.div
+            className="results-modal"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
+            <div className="modal-content">
+              <h2>Your Wellness DNA Blueprint</h2>
+
+              <div className="profile-stats">
+                {wellnessStrands.map((strand, index) => {
+                  // map strand name to userProfile keys (mental, emotional, physical, spiritual, nutritional)
+                  const key = strand.name.toLowerCase().includes('mental') ? 'mental'
+                    : strand.name.toLowerCase().includes('emotional') ? 'emotional'
+                    : strand.name.toLowerCase().includes('physical') ? 'physical'
+                    : strand.name.toLowerCase().includes('spiritual') ? 'spiritual'
+                    : 'nutritional';
+
+                  const value = userProfile[key];
+
+                  return (
+                    <div key={strand.id} className="stat-item">
+                      <div className="stat-header">
+                        <span className="stat-name">{strand.name}</span>
+                        <span className="stat-value">{value}%</span>
+                      </div>
+                      <div className="stat-bar">
+                        <motion.div
+                          className="stat-fill"
+                          style={{ backgroundColor: strand.color }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${value}%` }}
+                          transition={{ delay: index * 0.1 + 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="key-insights">
+                <h3>Key Insights</h3>
+                <p>Your primary wellness focus should be on <strong>{userProfile.primaryNeed}</strong></p>
+                <p>We recommend starting with our <strong>{userProfile.recommendedPlan}</strong></p>
+              </div>
+
+              <div className="modal-actions">
+                <button className="btn-primary" onClick={() => window.location.href = '/membership'}>
+                  Start Your Personalized Journey
+                </button>
+                <button className="btn-secondary" onClick={() => setShowResults(false)}>
+                  Explore More
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Main Home Component
 export default function Home() {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 300], [0, 60]);
   const opacity = useTransform(scrollY, [0, 200], [1, 0.9]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const mapsUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3176.952357579847!2d-120.996583924294!3d37.63910037207168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80903e2e2a5bffff%3A0x5b5c5b5c5b5c5b5c!2s3600%20Sisk%20Rd%2C%20Modesto%2C%20CA%2095356!5e0!3m2!1sen!2sus!4v1234567890";
 
   return (
     <main className="home-root" role="main">
-      {/* HERO */}
-      <section
-        className="hero-section text-light d-flex flex-column justify-content-center align-items-center position-relative"
-        style={{
-          backgroundColor: '#EDE8F5',
-          minHeight: '100vh',
-          overflow: 'hidden',
-          position: 'relative',
-          paddingTop: '120px', 
-        }}
-      >
-        <Container fluid className="text-center mb-4" style={{ zIndex: 2 }}>
+      {/* HERO SECTION */}
+      <section className="hero-section">
+        <div className="hero-content text-center px-3">
           <motion.h1
-            className="hero-title display-font mb-4"
+            className="hero-title display-font mb-3 pb-3"
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
-            style={{
-              color: '#3D52A0',
-              fontSize: 'clamp(2.5rem, 6vw, 4rem)',
-              letterSpacing: '2px',
-            }}
           >
-            Renew • Restore • Thrive
+            Start Your Wellness<br />Journey
           </motion.h1>
-        </Container>
+          <div className="hero-buttons">
+            <motion.a
+              href="/membership"
+              className="btn btn-primary"
+              initial={{ opacity: 0, y: -40 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut', delay: 0.2 } }}
+              whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+              whileTap={{ scale: 0.95, transition: { duration: 0.1 } }}
+            >
+              Become a Member
+            </motion.a>
+            <motion.a
+              href="/appointment"
+              className="btn btn-secondary"
+              initial={{ opacity: 0, y: -40 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut', delay: 0.3 } }}
+              whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+              whileTap={{ scale: 0.95, transition: { duration: 0.1 } }}
+            >
+              Book an Appointment
+            </motion.a>
+          </div>
+        </div>
+      </section>
 
-        <Container>
-          <Row className="align-items-start justify-content-center">
-            <Col md={6} className="d-flex flex-column justify-content-start">
-              <motion.p
-                className="lead-para body-font mb-4"
-                style={{
-                  color: '#3D52A0',
-                  fontSize: '1.1rem',
-                  lineHeight: '1.8',
-                  maxWidth: '90%',
-                  marginTop: '0.5rem',
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, delay: 0.4 }}
-              >
-                EmpowerMed blends modern clinical care and mindful wellness to help you feel your best —
-                personalized programs, trusted practitioners, and a community that supports you.
-              </motion.p>
-
-              <div className="hero-ctas d-flex flex-wrap gap-3 mt-3">
-                <Button
-                  href="/membership"
-                  style={{
-                    backgroundColor: '#7091E6',
-                    border: 'none',
-                    color: '#EDE8F5',
-                    fontWeight: 600,
-                    padding: '0.9rem 2rem',
-                    borderRadius: '10px',
-                    boxShadow: '0 6px 15px rgba(61, 82, 160, 0.3)',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onMouseOver={(e) => (e.target.style.backgroundColor = '#3D52A0')}
-                  onMouseOut={(e) => (e.target.style.backgroundColor = '#7091E6')}
-                >
-                  Become a Member
-                </Button>
-
-                <motion.a
-                  href="/appointment"
-                  style={{
-                    backgroundColor: '#7091E6',
-                    border: 'none',
-                    color: '#EDE8F5',
-                    fontWeight: 600,
-                    padding: '0.9rem 2rem',
-                    borderRadius: '10px',
-                    boxShadow: '0 6px 15px rgba(61, 82, 160, 0.3)',
-                    transition: 'all 0.3s ease',
-                    textDecoration: 'none', // remove underline
-                    display: 'inline-block',
-                  }}
-                  onMouseOver={(e) => (e.target.style.backgroundColor = '#3D52A0')}
-                  onMouseOut={(e) => (e.target.style.backgroundColor = '#7091E6')}
-                >
-                  Book an Appointment
-                </motion.a>
-              </div>
-            </Col>
-
-            <Col md={6} className="hero-media-col text-center">
+      {/* About Section */}
+      <section className="about-section">
+        <div className="container">
+          <div className="about-content">
+            <div className="about-grid">
               <motion.div
-                className="hero-media"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.3, ease: 'easeOut' }}
+                className="about-image"
+                initial={{ opacity: 0, x: -40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
               >
-                <img
-                  src={heroImg}
-                  alt="Serene wellness scene"
-                  className="img-fluid rounded-4 shadow-lg hero-img"
-                  style={{
-                    border: '6px solid #ADBBDA',
-                    maxHeight: '80vh',
-                    objectFit: 'cover',
-                  }}
-                />
+                <img src={jasmineImg} alt="Dr. Diana Galvan" className="about-img" />
               </motion.div>
-            </Col>
-          </Row>
-        </Container>
-      </section>
-
-      {/* SERVICES */}
-      <section className="services-section py-5" style={{ backgroundColor: '#EDE8F5' }}>
-        <Container>
-          <h2
-            className="section-title text-center display-font mb-3"
-            style={{ color: '#3D52A0' }}
-          >
-            Our Services
-          </h2>
-          <p
-            className="section-sub text-center mb-5 body-font"
-            style={{ color: '#7091E6' }}
-          >
-            Designed to support mind, body, and lifestyle — starting where you are.
-          </p>
-
-          <Row className="g-4">
-            {[
-              { title: 'Primary Care & Telehealth', desc: 'Comprehensive care with continuity and convenience.' },
-              { title: 'Mental Wellness & Therapy', desc: 'Evidence-based therapy and community support.' },
-              { title: 'Nutrition Management', desc: 'Personalized nutrition plans and coaching.' },
-              { title: 'Holistic Treatments', desc: 'Massage, acupuncture, and restorative therapies.' },
-            ].map((s, i) => (
-              <Col md={6} lg={3} key={i}>
-                <motion.article
-                  className="service-card p-4 h-100 rounded-4 shadow-sm"
-                  style={{
-                    backgroundColor: '#ADBBDA',
-                    color: '#3D52A0',
-                    border: '2px solid #8697C4',
-                    transition: 'transform 0.3s ease',
-                  }}
-                  whileHover={{ scale: 1.04 }}
-                >
-                  <h3
-                    className="service-title body-font mb-2"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      fontWeight: '500',
-                    }}
-                  >
-                    <span style={{ color: '#7091E6', fontSize: '1.5rem', lineHeight: '1' }}>•</span>
-                    {s.title}
-                  </h3>
-                  <p className="service-desc mb-4">{s.desc}</p>
-                  <Button
-                    href="/products"
-                    style={{
-                      backgroundColor: '#7091E6',
-                      border: 'none',
-                      color: '#EDE8F5',
-                      fontWeight: 500,
-                      padding: '0.6rem 1.3rem',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    Learn More
-                  </Button>
-                </motion.article>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-
-      {/* PROMO */}
-      <section
-        className="promo-section py-5 text-light"
-        style={{ backgroundColor: '#3D52A0' }}
-      >
-        <Container>
-          <Row className="align-items-center">
-            <Col md={8}>
-              <h3 className="promo-title display-font mb-2">Join Our Wellness Community</h3>
-              <p className="promo-sub body-font mb-0" style={{ color: '#EDE8F5' }}>
-                Members receive guided plans, exclusive content, and priority booking.
-              </p>
-            </Col>
-            <Col md={4} className="text-md-end mt-3 mt-md-0">
-              <Button
-                href="/signup"
-                style={{
-                  backgroundColor: '#EDE8F5',
-                  color: '#3D52A0',
-                  border: 'none',
-                  fontWeight: 600,
-                  padding: '0.85rem 1.75rem',
-                  borderRadius: '10px',
-                }}
+              <motion.div
+                className="about-text-content"
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1.2, ease: 'easeOut', delay: 0.2 }}
               >
-                Sign Up — It’s Free
-              </Button>
-            </Col>
-          </Row>
-        </Container>
+                <h2 className="about-title display-font">Dr. Diana Galvan</h2>
+                <p className="about-description body-font">
+                  It all started with a <strong>passion to help people</strong>. Now, I am a
+                  <span className="highlight"> life coach</span> who focuses on helping people mentally,
+                  emotionally, physically, spiritually, and nutritionally by offering
+                  <span className="highlight"> affordable life-coaching</span>.
+                </p>
+                <div className="about-divider"></div>
+                <motion.a
+                  href="/about"
+                  className="btn btn-primary body-font"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Learn More
+                </motion.a>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WELLNESS DNA ANALYZER SECTION - interactive strands removed, preview cards remain */}
+      <section className="dna-analyzer-section">
+        <div className="container">
+          <div className="dna-header">
+            <motion.h2
+              className="dna-title display-font"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              Discover Your Unique
+              <span className="gradient-text"> Wellness DNA</span>
+            </motion.h2>
+            <p className="dna-subtitle body-font">
+              Unlock the blueprint of your complete wellbeing through our revolutionary program
+            </p>
+          </div>
+
+          <WellnessDNAAnalyzer />
+
+          {/* Preview cards (kept) */}
+          <motion.div
+            className="dna-results-preview"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <h3 className="preview-title">Our Five Personalized Wellness Strands</h3>
+            <div className="preview-grid">
+              <div className="preview-card">
+                <div className="preview-icon">🧠</div>
+                <h4>Mental Patterns</h4>
+                <p>Your unique thought processes and stress responses</p>
+              </div>
+              <div className="preview-card">
+                <div className="preview-icon">💖</div>
+                <h4>Emotional Rhythm</h4>
+                <p>How you process and express emotions naturally</p>
+              </div>
+              <div className="preview-card">
+                <div className="preview-icon">⚡</div>
+                <h4>Energy Flow</h4>
+                <p>Your natural energy peaks and restoration needs</p>
+              </div>
+              <div className="preview-card">
+                <div className="preview-icon">🌌</div>
+                <h4>Spiritual Connection</h4>
+                <p>Your innate sense of purpose and inner peace</p>
+              </div>
+              <div className="preview-card">
+                <div className="preview-icon">🌿</div>
+                <h4>Nutritional Code</h4>
+                <p>What your body truly needs to thrive</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="mission-section">
+        <div className="container">
+          <div className="mission-content">
+            <div className="mission-box" style={{ backgroundImage: `url(${blueberriesImg})` }}>
+              <motion.div
+                className="mission-text"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+              >
+                <h2 className="mission-title display-font">Your Partner in Total Wellness</h2>
+                <div className="mission-icon">
+                  <img src={leafIcon} alt="leaf icon" className="leaf-icon" />
+                </div>
+                <p className="mission-description body-font">
+                  At <span className='brand-name'>EmpowerMEd</span>, we aim to help you <strong>achieve balance</strong> in
+                  <span className='highlight'> mind</span>, <span className='highlight'>body</span>,
+                  <span className="highlight"> spirit</span>, <span className='highlight'>emotions</span>, and
+                  <span className='highlight'> nutrition</span>. Our mission is to <strong>empower you</strong> with the tools to
+                  <strong> restore harmony</strong> and <strong>thrive</strong> in every aspect of your life.
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Hours & Availability Section */}
+      <section className="hours-section">
+        <div className="container">
+          <div className="hours-grid">
+            <motion.div
+              className="hours-content"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <h2 className="hours-title display-font">Hours & Availability</h2>
+              <div className="hours-icon">
+                <img src={flowerImg} alt="flower icon" className="flower-icon" />
+              </div>
+              <div className="hours-list">
+                <div className="hours-item body-font">
+                  <span className="day">Monday</span>
+                  <span className="time">9:00AM - 11:00AM</span>
+                </div>
+                <div className="hours-item body-font">
+                  <span className="day">Tuesday</span>
+                  <span className="time">9:00AM - 11:00AM</span>
+                  <span className="label">All In Health</span>
+                </div>
+                <div className="hours-item body-font">
+                  <span className="day">Wednesday</span>
+                  <span className="time">1:00PM - 5:00PM</span>
+                </div>
+                <div className="hours-item body-font">
+                  <span className="day">Thursday</span>
+                  <span className="time">9:00AM - 12:00PM</span>
+                  <span className="label">All In Health</span>
+                </div>
+                <div className="hours-item body-font">
+                  <span className="day">Friday</span>
+                  <span className="time">9:00AM - 5:00PM</span>
+                </div>
+                <div className="hours-item body-font">
+                  <span className="day">Saturday</span>
+                  <span className="time">9:00AM - 5:00PM</span>
+                </div>
+                <div className="hours-item body-font">
+                  <span className="day">Sunday</span>
+                  <span className="closed">Closed</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="hours-image"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <img src={arrowImg} alt="" className="arrow-decoration" />
+              <div className="circle-image"></div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Locations Section */}
+      <section className="locations-section">
+        <div className="container">
+          <div className="locations-grid">
+            <motion.div
+              className="locations-map"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <iframe
+                src={mapsUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0, borderRadius: '8px' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="EmpowerMEd Location - 3600 Sisk Rd Suite 2D, Modesto CA"
+              ></iframe>
+            </motion.div>
+            <motion.div
+              className="locations-content"
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+            >
+              <h2 className="locations-title display-font">Our Location</h2>
+              <div className="location-info">
+                <h3 className="location-name body-font">Modesto Office</h3>
+                <p className="location-address body-font">
+                  3600 Sisk Rd, Suite 2D<br />Modesto, CA 95356
+                </p>
+                <p className="location-phone body-font">(209) 922-2007</p>
+                <a href="mailto:contact@empowermed.com" className="location-email body-font">
+                  contact@empowermed.com
+                </a>
+                <a
+                  href="https://maps.google.com/?q=3600+Sisk+Rd+Suite+2D+Modesto+CA+95356"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="get-directions body-font"
+                >
+                  Get Directions
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
     </main>
   );

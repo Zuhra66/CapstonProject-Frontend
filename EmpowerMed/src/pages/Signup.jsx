@@ -1,57 +1,54 @@
-import React, { useState } from 'react';
+// src/pages/Signup.jsx
+import React, { useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import SocialButton from '../components/SocialButton';
 
 export default function Signup() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+  const { loginWithRedirect, isLoading } = useAuth0();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (password !== confirmPassword) {
-            alert("Passwords do not match");
-            return;
-        }
-        // Call backend endpoint for secure signup
-    };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loginWithRedirect({
+        screen_hint: 'signup', // forces Universal Signup screen
+      });
+    }, 100); // short delay to avoid flash
+    return () => clearTimeout(timer);
+  }, [loginWithRedirect]);
 
+  const handleGoogleSignup = () => {
+    loginWithRedirect({
+      connection: 'google-oauth2',
+      screen_hint: 'signup',
+    });
+  };
+
+  if (isLoading) {
     return (
-        <div className="signup-container">
-            <div className="signup-card">
-                <h1>Create Your Account</h1>
-                <div className="social-login">
-                    <SocialButton provider="google" />
-                    <SocialButton provider="apple" />
-                </div>
-                <div className="divider">or</div>
-                <form onSubmit={handleSubmit} className="signup-form">
-                    <input 
-                        type="email" 
-                        placeholder="Email" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        required
-                    />
-                    <input 
-                        type="password" 
-                        placeholder="Password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        required
-                    />
-                    <input 
-                        type="password" 
-                        placeholder="Confirm Password" 
-                        value={confirmPassword} 
-                        onChange={(e) => setConfirmPassword(e.target.value)} 
-                        required
-                    />
-                    <button type="submit">Sign Up</button>
-                </form>
-                <p className="login-link">
-                    Already have an account? <a href="/login">Log in</a>
-                </p>
-            </div>
-        </div>
+      <div style={{
+        display: 'flex',
+        height: '100vh',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa'
+      }}>
+        <h2>Loading EmpowerMEd secure signup...</h2>
+      </div>
     );
+  }
+
+  return (
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backgroundColor: '#f8f9fa'
+    }}>
+      <h2>Redirecting to EmpowerMEd secure signup...</h2>
+      <div style={{ marginTop: '20px' }}>
+        <SocialButton provider="google" onClick={handleGoogleSignup} />
+      </div>
+    </div>
+  );
 }

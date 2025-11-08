@@ -1,60 +1,25 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Membership from './pages/Membership';
-import Products from './pages/Products';
-import Blog from './pages/Blog';
-import Education from './pages/Education';
-import About from './pages/About';
-import Appointment from './pages/Appointment';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import './App.css';
 
-const API_URL = "http://localhost:5000";
+import Navbar from './components/Navbar.jsx';
+import Footer from './components/Footer.jsx';
+import Home from './pages/Home.jsx';
+import Membership from './pages/Membership.jsx';
+import Products from './pages/Products.jsx';
+import Blog from './pages/Blog.jsx';
+import Education from './pages/Education.jsx';
+import About from './pages/About.jsx';
+import Appointment from './pages/Appointment.jsx';
+import Account from './pages/Account.jsx';
+import Events from './pages/Events.jsx';
 
 function App() {
-  const [data, setData] = useState(null);
-  const [csrfToken, setCsrfToken] = useState(null);
-
-  useEffect(() => {
-    fetch(`${API_URL}/endpoint`)
-      .then(res => res.json())
-      .then(setData)
-      .catch(err => console.error("Error fetching data:", err));
-  }, []);
-
-  useEffect(() => {
-    fetch(`${API_URL}/csrf-token`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(tokenData => {
-        setCsrfToken(tokenData.csrfToken);
-        console.log("CSRF token:", tokenData.csrfToken);
-      })
-      .catch(err => console.error("Error getting CSRF token:", err));
-  }, []);
-
-  const sendSecureData = () => {
-    if (!csrfToken) return;
-    fetch(`${API_URL}/secure`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'CSRF-Token': csrfToken
-      },
-      body: JSON.stringify({ message: "This is secure!" })
-    })
-      .then(res => res.json())
-      .then(response => console.log("Response:", response))
-      .catch(err => console.error("Error posting data:", err));
-  };
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
-    <Router>
+    <>
       <Navbar />
       <div className="container mt-4 mb-5">
         <Routes>
@@ -65,12 +30,12 @@ function App() {
           <Route path="/education" element={<Education />} />
           <Route path="/about" element={<About />} />
           <Route path="/appointment" element={<Appointment />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/events" element={<Events />} />
         </Routes>
       </div>
       <Footer />
-    </Router>
+    </>
   );
 }
 

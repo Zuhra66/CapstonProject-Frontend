@@ -1,0 +1,217 @@
+/* src/styles/Footer.module.css */
+.footerSection {
+  background: linear-gradient(135deg, #3D52A0 0%, #7091E6 100%);
+  padding: 3rem 0 1rem;
+  color: #FFFFFF;
+  margin-top: auto;
+}
+
+.footerContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.footerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.footerBrand {
+  font-family: 'Aboreto', cursive;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.footerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footerNav a {
+  font-family: 'Lexend', sans-serif;
+  font-size: 1rem;
+  color: #FFFFFF;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 0.25rem 0;
+}
+
+.footerNav a:hover {
+  color: #ADBBDA;
+  transform: translateX(5px);
+}
+
+.footerSocial {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.footerSocial a {
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.footerSocial a:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.footerRight {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 200px;
+}
+
+.newsletter {
+  width: 100%;
+  max-width: 400px;
+}
+
+.newsletterTitle {
+  font-family: 'Lexend', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 0.5rem;
+}
+
+.newsletterDescription {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+}
+
+.newsletterForm {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.newsletterInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.95rem;
+  background: #FFFFFF;
+  color: #333;
+  border: 2px solid transparent;
+}
+
+.newsletterInput:focus {
+  outline: none;
+  border-color: #ADBBDA;
+}
+
+.newsletterButton {
+  padding: 0.75rem 1.5rem;
+  background: #8697C4;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.newsletterButton:hover {
+  background: #ADBBDA;
+  transform: translateY(-1px);
+}
+
+.footerBottom {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footerCopyright {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.footerLegal {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.footerLegal a {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footerLegal a:hover {
+  color: #FFFFFF;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .footerContent {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+
+  .footerRight {
+    align-items: flex-start;
+    min-height: auto;
+    gap: 2rem;
+  }
+
+  .newsletter {
+    max-width: 100%;
+  }
+
+  .newsletterForm {
+    flex-direction: column;
+  }
+
+  .newsletterButton {
+    width: 100%;
+  }
+
+  .footerLegal {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footerSection {
+    padding: 2rem 0 1rem;
+  }
+
+  .footerBrand {
+    font-size: 1.5rem;
+  }
+}

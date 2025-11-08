@@ -1,15 +1,21 @@
 import React from 'react';
+import googleIcon from '../assets/google-icon.svg'; 
+export default function SocialButton({ provider, onClick }) {
+  const getProviderClass = () => {
+    if (provider === 'google') return 'social-btn google';
+    if (provider === 'apple') return 'social-btn apple';
+    return 'social-btn';
+  };
 
+  const getIcon = () => {
+    if (provider === 'google') return <img src={googleIcon} alt="Google" style={{ width: 20, marginRight: 10 }} />;
+    return null;
+  };
 
-export default function SocialButton({ provider }) {
-    const handleSocialLogin = () => {
-        // Redirect to backend for OAuth2 flow
-        window.location.href = `/auth/${provider}`;
-    };
-
-    return (
-        <button className={`social-btn ${provider}`} onClick={handleSocialLogin}>
-            {provider === 'google' ? 'Sign up with Google' : 'Sign up with Apple'}
-        </button>
-    );
+  return (
+    <button className={getProviderClass()} onClick={onClick}>
+      {getIcon()}
+      Sign in with {provider.charAt(0).toUpperCase() + provider.slice(1)}
+    </button>
+  );
 }
