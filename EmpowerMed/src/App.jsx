@@ -12,6 +12,7 @@ import Education from './pages/Education.jsx';
 import About from './pages/About.jsx';
 import Appointment from './pages/Appointment.jsx';
 import Account from './pages/Account.jsx';
+import Events from './pages/Events.jsx';
 
 function App() {
   const location = useLocation();
@@ -30,6 +31,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/events" element={<Events />} />
         </Routes>
       </div>
       <Footer />

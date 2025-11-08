@@ -1,0 +1,365 @@
+/* src/styles/WellnessDNAAnalyzer.css */
+.dna-analyzer-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 6rem 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.dna-analyzer-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(61, 82, 160, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(112, 145, 230, 0.1) 0%, transparent 50%);
+  animation: pulse 8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.dna-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.dna-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #fff 0%, #ADBBDA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #7091E6 0%, #4ECDC4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dna-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* DNA Analyzer Container */
+.dna-analyzer-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* DNA Strands */
+.dna-strands-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.dna-strand {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dna-strand::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.dna-strand:hover::before {
+  left: 100%;
+}
+
+.dna-strand:hover {
+  transform: translateY(-10px);
+  border-color: var(--strand-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.dna-strand.active {
+  border-color: var(--strand-color);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30px var(--strand-color);
+}
+
+.strand-visual {
+  position: relative;
+  height: 80px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.strand-line {
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--strand-color), transparent);
+  position: relative;
+}
+
+.strand-node {
+  width: 20px;
+  height: 20px;
+  background: var(--strand-color);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 20px var(--strand-color);
+}
+
+.strand-glow {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: var(--strand-color);
+  border-radius: 50%;
+  opacity: 0.3;
+  filter: blur(15px);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { opacity: 0.2; transform: scale(0.8); }
+  to { opacity: 0.4; transform: scale(1.2); }
+}
+
+.strand-info h4 {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.strand-info p {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+/* Analysis Progress */
+.analysis-progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin: 2rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.analysis-progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #3D52A0, #7091E6, #4ECDC4);
+  border-radius: 2px;
+  width: var(--progress-width, 0%);
+  transition: width 1s ease;
+}
+
+.analysis-progress span {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Results Modal */
+.results-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 2rem;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 3rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-content h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #fff 0%, #ADBBDA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Profile Stats */
+.profile-stats {
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  margin-bottom: 1.5rem;
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.stat-name {
+  font-weight: 600;
+}
+
+.stat-value {
+  color: #4ECDC4;
+  font-weight: 700;
+}
+
+.stat-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.key-insights {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.key-insights h3 {
+  margin-bottom: 1rem;
+  color: #4ECDC4;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Results Preview */
+.dna-results-preview {
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.preview-title {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.preview-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem 1.5rem;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.preview-card:hover {
+  transform: translateY(-5px);
+  border-color: #7091E6;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.preview-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.preview-card h4 {
+  margin-bottom: 1rem;
+  color: #ADBBDA;
+}
+
+.preview-card p {
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dna-strands-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .modal-content {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .dna-strands-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .dna-strand {
+    padding: 1.5rem 1rem;
+  }
+}

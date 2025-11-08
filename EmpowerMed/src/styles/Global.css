@@ -1,0 +1,600 @@
+/* src/styles/Global.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Aboreto&family=Lexend:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Metallic Chic Color Scheme */
+  --main-blue: #3D52A0;
+  --light-blue: #7091E6;
+  --medium-blue: #8697C4;
+  --pale-blue: #ADBBDA;
+  --light-purple: #EDE8F5;
+  --white: #FFFFFF;
+  --dark-text: #2C3E50;
+  --light-text: #6C757D;
+
+  /* Typography */
+  --body-font: 'Lexend', sans-serif;
+  --heading-font: 'Aboreto', cursive;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semi-bold: 600;
+  --fw-bold: 700;
+
+  /* Spacing */
+  --section-padding: 4rem 0;
+  --container-max-width: 1200px;
+}
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--body-font);
+  background-color: var(--light-purple);
+  color: var(--dark-text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  font-weight: var(--fw-regular);
+}
+
+.home-root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Container */
+.container {
+  width: min(var(--container-max-width), 95%);
+  margin-inline: auto;
+  padding: 0 1rem;
+}
+
+/* Typography */
+.display-font {
+  font-family: var(--heading-font);
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.body-font {
+  font-family: var(--body-font);
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--body-font);
+  font-weight: var(--fw-semi-bold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.btn-primary {
+  background: var(--main-blue);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--light-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(61, 82, 160, 0.3);
+}
+
+.btn-secondary {
+  background: var(--white); 
+  color: var(--main-blue);
+  border: 2px solid var(--main-blue);
+}
+
+.btn-secondary:hover {
+  background: var(--main-blue);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+/* HERO SECTION */
+.hero-section {
+  background: linear-gradient(135deg, var(--light-blue) 0%, var(--main-blue) 100%);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  padding: 9rem 9rem 0rem;
+}
+
+/* optional reset to ensure the page itself has no gap */
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
+
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  color: var(--white);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: 2px;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+/* ABOUT SECTION */
+.about-section {
+  background: var(--white);
+  padding: 6rem 0;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.about-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.about-img {
+  width: 100%;
+  max-width: 500px; 
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+}
+
+.about-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.about-title {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  color: var(--dark-text);
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+
+.about-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--dark-text);
+}
+
+.about-description strong {
+  font-weight: var(--fw-semi-bold);
+  color: var(--main-blue);
+}
+
+.highlight {
+  color: var(--main-blue);
+  font-weight: var(--fw-semi-bold);
+}
+
+.about-divider {
+  width: 80px;
+  height: 3px;
+  background: var(--main-blue);
+  margin: 1rem 0;
+}
+
+/* MISSION SECTION */
+.mission-section {
+  background: var(--medium-blue);
+  padding: 6rem 0;
+  position: relative;
+}
+
+.mission-box {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  max-width: 100%;
+  width: 95%;
+  margin: 0 auto;
+  padding: 5rem 3rem;
+  border-radius: 12px;
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.mission-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6); 
+  border-radius: 12px;
+  z-index: 1;
+}
+
+.mission-content {
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mission-text {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mission-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: var(--white);
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+
+.mission-icon {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.leaf-icon {
+  width: 50px;
+  height: auto;
+}
+
+.mission-description {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.8;
+  color: var(--white);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mission-description strong {
+  font-weight: var(--fw-semi-bold);
+  color: var(--white);
+}
+
+.brand-name {
+  color: var(--light-purple);
+  font-weight: var(--fw-semi-bold);
+}
+
+/* HOURS SECTION */
+.hours-section {
+  background: var(--light-purple);
+  padding: 6rem 0;
+  color: var(--dark-text);
+}
+
+.hours-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.hours-content {
+  padding-right: 2rem;
+}
+
+.hours-title {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  color: var(--dark-text);
+  margin-bottom: 2rem;
+  letter-spacing: 2px;
+}
+
+.hours-icon {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.flower-icon {
+  width: 40px;
+  height: auto;
+}
+
+.hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hours-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 1.1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.hours-item .day {
+  min-width: 120px;
+  font-weight: var(--fw-semi-bold);
+  color: var(--main-blue);
+}
+
+.hours-item .time {
+  font-weight: var(--fw-regular);
+  color: var(--dark-text);
+}
+
+.hours-item .label {
+  font-size: 0.9rem;
+  color: var(--light-text);
+  font-style: italic;
+  margin-left: auto;
+}
+
+.hours-item .closed {
+  font-weight: var(--fw-semi-bold);
+  color: #dc3545;
+}
+
+.hours-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.circle-image {
+  width: 400px;
+  height: 400px;
+  background: var(--white);
+  border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.arrow-decoration {
+  position: absolute;
+  top: 40%;
+  left: 10%;
+  width: 200px;
+  height: auto;
+  z-index: 10;
+  opacity: 0.8;
+}
+
+/* LOCATIONS SECTION */
+.locations-section {
+  background: var(--white);
+  padding: 6rem 0;
+}
+
+.locations-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.locations-map {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.locations-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.locations-title {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  color: var(--dark-text);
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.location-name {
+  font-size: 1.5rem;
+  font-weight: var(--fw-semi-bold);
+  color: var(--main-blue);
+  margin-bottom: 0.5rem;
+}
+
+.location-address,
+.location-phone {
+  font-size: 1.1rem;
+  color: var(--dark-text);
+  line-height: 1.6;
+}
+
+.location-email {
+  font-size: 1.1rem;
+  color: var(--main-blue);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-weight: var(--fw-medium);
+}
+
+.location-email:hover {
+  color: var(--light-blue);
+  text-decoration: underline;
+}
+
+.get-directions {
+  font-size: 1.1rem;
+  font-weight: var(--fw-semi-bold);
+  color: var(--main-blue);
+  text-decoration: none;
+  margin-top: 1rem;
+  display: inline-block;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--main-blue);
+  border-radius: 8px;
+}
+
+.get-directions:hover {
+  background: var(--main-blue);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .about-section {
+    padding: 4rem 0;
+  }
+
+  .about-img {
+    max-width: 420px; 
+  }
+
+  .hours-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .hours-content {
+    padding-right: 0;
+  }
+
+  .circle-image {
+    width: 300px;
+    height: 300px;
+  }
+
+  .locations-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .locations-map {
+    height: 300px;
+  }
+
+  .mission-box {
+    padding: 3rem 1.5rem;
+    min-height: 400px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-buttons .btn {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .hours-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hours-item .day {
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: 60vh;
+    padding: 5rem 0 3rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .about-img {
+    max-width: 350px; 
+  }
+
+  .mission-title,
+  .hours-title,
+  .locations-title,
+  .about-title {
+    font-size: 1.75rem;
+  }
+}
+/* Force Jasmine image to be larger */
+.about-section .about-image .about-img {
+  max-width: 800px !important; 
+  width: 100%;
+  height: auto;
+  transform: scale(1.1); 
+}
+
+/* Override any grid constraints */
+.about-grid {
+  grid-template-columns: 1.3fr 0.7fr !important; 
+}
+
+@media (max-width: 768px) {
+  .about-section .about-image .about-img {
+    max-width: 600px !important; 
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 480px) {
+  .about-section .about-image .about-img {
+    max-width: 450px !important; 
+    transform: scale(1.05);
+  }
+}
