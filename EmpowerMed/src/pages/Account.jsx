@@ -1,41 +1,35 @@
+// src/pages/Account.jsx
+import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useEffect, useState } from 'react';
+import useAuthFetch from '../hooks/useAuthFetch';
 
 export default function Account() {
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
-  const [profile, setProfile] = useState(null);
+  const { user, isAuthenticated } = useAuth0();
+  const authFetch = useAuthFetch();
+  const [appProfile, setAppProfile] = useState(null);
 
-  // Keep profile state in sync with Auth0 user
   useEffect(() => {
-    if (isAuthenticated && user) {
-      setProfile(user);
-    }
-  }, [isAuthenticated, user]);
+    if (!isAuthenticated) return;
+    (async () => {
+      try {
+        const p = await authFetch('/api/profile'); 
+        setAppProfile(p);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [isAuthenticated]);
 
-  if (isLoading) {
-    return <div className="text-center mt-5">Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <div className="text-center mt-5">Please log in to view your account.</div>;
-  }
+  if (!isAuthenticated) return <div>Please login</div>;
 
   return (
-    <div className="text-center mt-5">
-      <h2>My Account</h2>
-      <img
-        src={profile?.picture || '/logo.png'}
-        alt="Profile"
-        style={{
-          borderRadius: '50%',
-          width: '100px',
-          height: '100px',
-          margin: '20px 0',
-          objectFit: 'cover',
-        }}
-      />
-      <h4>{profile?.name || profile?.given_name || 'User'}</h4>
-      <p>{profile?.email}</p>
+    <div>
+      <h2>Account</h2>
+      <h3>Auth0 profile</h3>
+      <pre>{JSON.stringify(user, null, 2)}</pre>
+
+      <h3>Application profile</h3>
+      {appProfile ? <pre>{JSON.stringify(appProfile, null, 2)}</pre> : <p>Loading app profile...</p>}
     </div>
   );
 }

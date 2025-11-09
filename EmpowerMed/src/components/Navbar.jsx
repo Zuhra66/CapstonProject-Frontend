@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth0 } from '@auth0/auth0-react';
@@ -6,12 +5,17 @@ import LogoutButton from './LogoutButton.jsx';
 import logo from '../assets/logo.png';
 import logoCropped from '../assets/logo-cropped.png';
 import styles from "../styles/Navbar.module.css";
+import { UserCog } from "lucide-react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
 
   if (isLoading) return null;
+
+  const displayName = user?.given_name && user?.family_name
+    ? `${user.given_name} ${user.family_name}`
+    : user?.name || user?.email || 'Account';
 
   return (
     <nav className={styles.navbar}>
@@ -72,17 +76,19 @@ export default function Navbar() {
               <div className={styles.userDropdown}>
                 <div className={styles.userInfo}>
                   <img src={user.picture} alt="User avatar" className={styles.userAvatar} />
-                  <span className={styles.userName}>
-                    {user.given_name || user.name || user.nickname || user.email}
-                  </span>
+                  <span className={styles.userName}>{displayName}</span>
                   <div className={styles.dropdownArrow}>▼</div>
                 </div>
                 <div className={styles.dropdownMenu}>
-                  <Link to="/account" className={styles.dropdownItem}>
-                    👤 Account Settings
-                  </Link>
-                  <div className={styles.dropdownItem}>
-                    <LogoutButton />
+                    <Link to="/account" className={styles.dropdownItem}>
+                      <UserCog className={styles.icon} size={18} strokeWidth={1.8} />
+                      Account Settings
+                    </Link>
+                  <div
+                    className={styles.dropdownItem}
+                    onClick={() => logout({ returnTo: window.location.origin })}
+                  >
+                    Logout
                   </div>
                 </div>
               </div>
@@ -120,9 +126,9 @@ export default function Navbar() {
             ) : (
               <div className={styles.mobileUser}>
                 <img src={user.picture} alt="User" />
-                <span>{user.given_name || user.name}</span>
+                <span>{displayName}</span>
                 <Link to="/account" onClick={() => setIsOpen(false)}>Account</Link>
-                <LogoutButton />
+                <button onClick={() => logout({ returnTo: window.location.origin })}>Logout</button>
               </div>
             )}
           </div>
