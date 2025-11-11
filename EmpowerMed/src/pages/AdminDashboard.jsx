@@ -3,10 +3,11 @@ import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
 
 const AdminDashboard = () => {
-  const { getAccessTokenSilently } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, logout, user, getAccessTokenSilently } = useAuth0();
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [memberships, setMemberships] = useState([]);
+  const [csrfToken, setCsrfToken] = useState('');
   const [newMembership, setNewMembership] = useState({
     membership_plan_id: '',
     status: 'active',
@@ -16,20 +17,39 @@ const AdminDashboard = () => {
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
+  // Fetch CSRF token from backend
+  const fetchCsrfToken = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/csrf-token`, { withCredentials: true });
+      setCsrfToken(res.data.csrfToken);
+    } catch (err) {
+      console.error('Error fetching CSRF token:', err);
+    }
+  };
+
+  // Fetch users
   const fetchUsers = async () => {
-    const token = await getAccessTokenSilently();
-    const res = await axios.get(`${API_BASE}/api/admin/users`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setUsers(res.data);
+    try {
+      const res = await axios.get(`${API_BASE}/api/admin/users`, {
+        withCredentials: true,
+        headers: { 'X-XSRF-TOKEN': csrfToken }
+      });
+      setUsers(res.data);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
   };
 
   const fetchMemberships = async (userId) => {
-    const token = await getAccessTokenSilently();
-    const res = await axios.get(`${API_BASE}/api/admin/users/${userId}/memberships`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setMemberships(res.data);
+    try {
+      const res = await axios.get(`${API_BASE}/api/admin/users/${userId}/memberships`, {
+        withCredentials: true,
+        headers: { 'X-XSRF-TOKEN': csrfToken }
+      });
+      setMemberships(res.data);
+    } catch (err) {
+      console.error('Error fetching memberships:', err);
+    }
   };
 
   const handleSelectUser = (user) => {
@@ -38,11 +58,19 @@ const AdminDashboard = () => {
   };
 
   const handleRoleChange = async (userId, role) => {
-    const token = await getAccessTokenSilently();
-    await axios.patch(`${API_BASE}/api/admin/users/${userId}/role`, { role }, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchUsers();
+    try {
+      await axios.patch(
+        `${API_BASE}/api/admin/users/${userId}/role`,
+        { role },
+        {
+          withCredentials: true,
+          headers: { 'X-XSRF-TOKEN': csrfToken }
+        }
+      );
+      fetchUsers();
+    } catch (err) {
+      console.error('Error updating role:', err);
+    }
   };
 
   const handleNewMembershipChange = (e) => {
@@ -52,32 +80,58 @@ const AdminDashboard = () => {
 
   const handleAddMembership = async () => {
     if (!selectedUser) return;
-    const token = await getAccessTokenSilently();
-    await axios.post(`${API_BASE}/api/admin/users/${selectedUser.id}/memberships`, newMembership, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setNewMembership({ membership_plan_id: '', status: 'active', start_date: '', end_date: '' });
-    fetchMemberships(selectedUser.id);
+    try {
+      await axios.post(
+        `${API_BASE}/api/admin/users/${selectedUser.id}/memberships`,
+        newMembership,
+        {
+          withCredentials: true,
+          headers: { 'X-XSRF-TOKEN': csrfToken }
+        }
+      );
+      setNewMembership({ membership_plan_id: '', status: 'active', start_date: '', end_date: '' });
+      fetchMemberships(selectedUser.id);
+    } catch (err) {
+      console.error('Error adding membership:', err);
+    }
   };
 
   const handleDeleteMembership = async (membershipId) => {
     if (!selectedUser) return;
-    const token = await getAccessTokenSilently();
-    await axios.delete(`${API_BASE}/api/admin/users/${selectedUser.id}/memberships/${membershipId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchMemberships(selectedUser.id);
+    try {
+      await axios.delete(`${API_BASE}/api/admin/users/${selectedUser.id}/memberships/${membershipId}`, {
+        withCredentials: true,
+        headers: { 'X-XSRF-TOKEN': csrfToken }
+      });
+      fetchMemberships(selectedUser.id);
+    } catch (err) {
+      console.error('Error deleting membership:', err);
+    }
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (isAuthenticated) {
+      fetchCsrfToken().then(fetchUsers);
+    }
+  }, [isAuthenticated, csrfToken]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container mt-5">
+        <h3>Please log in as an admin to view the dashboard</h3>
+        <button className="btn btn-primary" onClick={() => loginWithRedirect()}>Login</button>
+      </div>
+    );
+  }
 
   return (
     <div className="container my-4">
       <h2>Admin Dashboard</h2>
+      <button className="btn btn-danger float-end" onClick={() => logout({ returnTo: window.location.origin })}>
+        Logout
+      </button>
 
-      <div className="row">
+      <div className="row mt-4">
         <div className="col-md-5">
           <h4>Users</h4>
           <ul className="list-group">
@@ -125,10 +179,7 @@ const AdminDashboard = () => {
                       <td>{m.start_date}</td>
                       <td>{m.end_date}</td>
                       <td>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDeleteMembership(m.id)}
-                        >
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDeleteMembership(m.id)}>
                           Delete
                         </button>
                       </td>
@@ -138,41 +189,11 @@ const AdminDashboard = () => {
               </table>
 
               <h5>Add New Membership</h5>
-              <div className="mb-2">
-                <input
-                  type="text"
-                  name="membership_plan_id"
-                  placeholder="Plan ID"
-                  value={newMembership.membership_plan_id}
-                  onChange={handleNewMembershipChange}
-                  className="form-control mb-2"
-                />
-                <input
-                  type="text"
-                  name="status"
-                  placeholder="Status"
-                  value={newMembership.status}
-                  onChange={handleNewMembershipChange}
-                  className="form-control mb-2"
-                />
-                <input
-                  type="date"
-                  name="start_date"
-                  placeholder="Start Date"
-                  value={newMembership.start_date}
-                  onChange={handleNewMembershipChange}
-                  className="form-control mb-2"
-                />
-                <input
-                  type="date"
-                  name="end_date"
-                  placeholder="End Date"
-                  value={newMembership.end_date}
-                  onChange={handleNewMembershipChange}
-                  className="form-control mb-2"
-                />
-                <button className="btn btn-primary" onClick={handleAddMembership}>Add Membership</button>
-              </div>
+              <input type="text" name="membership_plan_id" placeholder="Plan ID" value={newMembership.membership_plan_id} onChange={handleNewMembershipChange} className="form-control mb-2"/>
+              <input type="text" name="status" placeholder="Status" value={newMembership.status} onChange={handleNewMembershipChange} className="form-control mb-2"/>
+              <input type="date" name="start_date" value={newMembership.start_date} onChange={handleNewMembershipChange} className="form-control mb-2"/>
+              <input type="date" name="end_date" value={newMembership.end_date} onChange={handleNewMembershipChange} className="form-control mb-2"/>
+              <button className="btn btn-primary" onClick={handleAddMembership}>Add Membership</button>
             </>
           )}
         </div>
