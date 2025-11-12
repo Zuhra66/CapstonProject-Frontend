@@ -1,0 +1,146 @@
+/* Import font */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+/* Main container */
+.account-container {
+  max-width: 800px;
+  margin: 180px auto 2rem auto; /* pushed lower below nav bar */
+  padding: 2rem;
+  font-family: 'Lexend', sans-serif;
+  color: white;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(61, 82, 160, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header */
+.account-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.account-header h1 {
+  font-size: 2.2rem;
+  color: #7091E6;
+  margin-bottom: 0.5rem;
+}
+
+.account-header p {
+  color: #ADBBDA;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Card */
+.account-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Profile section */
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.account-avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #7091E6;
+  box-shadow: 0 5px 15px rgba(61, 82, 160, 0.3);
+}
+
+.account-info h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #4ECDC4;
+  font-weight: 600;
+}
+
+.account-email {
+  color: #ADBBDA;
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+/* Details section */
+.account-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem 2rem;
+}
+
+.account-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #7091E6;
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* Footer */
+.account-footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: #ADBBDA;
+  font-size: 0.95rem;
+}
+
+.account-link {
+  color: #4ECDC4;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.account-link:hover {
+  text-decoration: underline;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .account-container {
+    margin: 150px 1rem 2rem 1rem;
+    padding: 1.5rem;
+  }
+
+  .account-details {
+    grid-template-columns: 1fr;
+  }
+
+  .account-avatar {
+    width: 85px;
+    height: 85px;
+  }
+
+  .account-info h2 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-details {
+    grid-template-columns: 1fr;
+  }
+}

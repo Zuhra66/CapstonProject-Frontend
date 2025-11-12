@@ -8,7 +8,7 @@ export default function LogoutButton() {
   return (
     <Button
       variant="outline-secondary"
-      onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+      onClick={() => logout({ logoutParams: { returnTo: import.meta.env.VITE_FRONTEND_URL } })}
       style={{ width: '100%' }}
     >
       Log out

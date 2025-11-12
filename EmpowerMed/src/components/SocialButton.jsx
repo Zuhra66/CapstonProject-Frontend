@@ -3,7 +3,6 @@ import googleIcon from '../assets/google-icon.svg';
 export default function SocialButton({ provider, onClick }) {
   const getProviderClass = () => {
     if (provider === 'google') return 'social-btn google';
-    if (provider === 'apple') return 'social-btn apple';
     return 'social-btn';
   };
 

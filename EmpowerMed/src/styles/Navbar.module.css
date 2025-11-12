@@ -44,8 +44,8 @@
 }
 
 .navbarLogoImg {
-  width: 95px !important;
-  height: 95px !important;
+  width: 170px !important;
+  height: 170px !important;
   min-width: 95px !important;
   min-height: 95px !important;
   border-radius: 10px;
@@ -53,7 +53,7 @@
 }
 
 .logoText {
-  font-family: 'Aboreto', cursive !important;
+  font-family: 'Lexend', cursive !important;
   font-size: 1.6rem !important;
   font-weight: 700;
   color: #3D52A0;
