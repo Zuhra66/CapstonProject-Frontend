@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import useAuthFetch from '../hooks/useAuthFetch';
 
+
 export default function AdminDashboard() {
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0();
   const { authFetch } = useAuthFetch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,41 +14,55 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    checkAdminAccess();
-  }, [isAuthenticated]);
+    if (isAuthenticated && !isLoading) {
+      checkAdminAccess();
+    }
+  }, [isAuthenticated, isLoading]);
 
   const checkAdminAccess = async () => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Try to access admin endpoint - if it works, user is admin
-      await authFetch('/api/admin/dashboard-stats');
+      // Simply try to access an admin endpoint
+      // The backend will handle the actual authorization
+      const data = await authFetch('/api/admin/dashboard-stats');
       setIsAdmin(true);
-      fetchDashboardStats();
+      setStats(data);
     } catch (err) {
+      console.error('Admin access check failed:', err);
       if (err.message.includes('403') || err.message.includes('Admin access required')) {
-        setError('Access denied. Admin privileges required.');
+        setError('Access denied. Administrator privileges required.');
+      } else if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+        setError('Please log in to access the admin dashboard.');
       } else {
-        console.error('Error checking admin access:', err);
-        setError('Failed to verify admin access');
+        setError('Failed to verify admin access. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchDashboardStats = async () => {
-    try {
-      const data = await authFetch('/api/admin/dashboard-stats');
-      setStats(data);
-    } catch (err) {
-      console.error('Error fetching dashboard stats:', err);
-      setError('Failed to load dashboard statistics');
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="container mt-4">
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container mt-4">
+        <div className="alert alert-warning text-center">
+          <h4>Authentication Required</h4>
+          <p>Please log in to access the admin dashboard.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -62,21 +77,15 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="container mt-4">
-        <div className="alert alert-warning text-center">
-          Please log in to access the admin dashboard.
-        </div>
-      </div>
-    );
-  }
-
   if (!isAdmin) {
     return (
       <div className="container mt-4">
         <div className="alert alert-danger text-center">
-          {error || 'You do not have permission to access this area.'}
+          <h4>Access Denied</h4>
+          <p>{error || 'You do not have permission to access this area.'}</p>
+          <small className="text-muted">
+            Logged in as: {user?.email}
+          </small>
         </div>
       </div>
     );
