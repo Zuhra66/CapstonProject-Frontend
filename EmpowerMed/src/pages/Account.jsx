@@ -75,7 +75,7 @@ export default function Account() {
       <div className="account-footer">
         <p>
           Need help managing your account?{' '}
-          <a href="/contact" className="account-link">
+          <a href="/About" className="account-link">
             Contact support
           </a>
         </p>
