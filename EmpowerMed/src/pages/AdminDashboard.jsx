@@ -1,5 +1,7 @@
 // src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
+// src/pages/AdminDashboard.jsx
+import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import useAuthFetch from '../hooks/useAuthFetch';
 
@@ -382,8 +384,61 @@ function UsersTab() {
       alert('Failed to update user status: ' + err.message);
     }
   };
+      console.error('Error updating user status:', err);
+      alert('Failed to update user status: ' + err.message);
+    }
+  };
 
   return (
+    <div>
+      <div className="card">
+        <div className="card-header">
+          <h5 className="mb-0">User Management</h5>
+        </div>
+        <div className="card-body">
+          {/* Filters */}
+          <div className="row mb-3">
+            <div className="col-md-4">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search users..."
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
+              />
+            </div>
+            <div className="col-md-3">
+              <select
+                className="form-select"
+                value={filters.role}
+                onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value, page: 1 }))}
+              >
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="provider">Provider</option>
+                <option value="member">Member</option>
+              </select>
+            </div>
+            <div className="col-md-3">
+              <select
+                className="form-select"
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value, page: 1 }))}
+              >
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="col-md-2">
+              <button 
+                className="btn btn-outline-secondary w-100"
+                onClick={fetchUsers}
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
     <div>
       <div className="card">
         <div className="card-header">
@@ -502,12 +557,176 @@ function UsersTab() {
                   </ul>
                 </nav>
               )}
+          {/* Users Table */}
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="table-responsive">
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Last Login</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(user => (
+                      <UserRow 
+                        key={user.id}
+                        user={user}
+                        onUpdateRole={updateUserRole}
+                        onUpdateStatus={updateUserStatus}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <nav>
+                  <ul className="pagination justify-content-center">
+                    <li className={`page-item ${!pagination.hasPrev ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                        disabled={!pagination.hasPrev}
+                      >
+                        Previous
+                      </button>
+                    </li>
+                    {[...Array(pagination.totalPages)].map((_, i) => (
+                      <li key={i} className={`page-item ${filters.page === i + 1 ? 'active' : ''}`}>
+                        <button
+                          className="page-link"
+                          onClick={() => setFilters(prev => ({ ...prev, page: i + 1 }))}
+                        >
+                          {i + 1}
+                        </button>
+                      </li>
+                    ))}
+                    <li className={`page-item ${!pagination.hasNext ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                        disabled={!pagination.hasNext}
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              )}
             </>
           )}
         </div>
       </div>
     </div>
   );
+}
+
+// User Row Component - FIXED VERSION
+function UserRow({ user, onUpdateRole, onUpdateStatus }) {
+  const getRoleBadgeColor = (role) => {
+    switch (role) {
+      case 'admin': return 'danger';
+      case 'provider': return 'warning';
+      case 'member': return 'primary';
+      default: return 'secondary';
+    }
+  };
+
+  return (
+    <tr>
+      <td>
+        <div>
+          <strong>{user.first_name} {user.last_name}</strong>
+          {user.name && user.name !== `${user.first_name} ${user.last_name}` && (
+            <><br /><small className="text-muted">({user.name})</small></>
+          )}
+          <br />
+          <small className="text-muted">{user.email}</small>
+          <br />
+          <small className="text-muted">
+            Joined: {new Date(user.created_at).toLocaleDateString()}
+          </small>
+        </div>
+      </td>
+      <td>
+        <select
+          className={`form-select form-select-sm border-${getRoleBadgeColor(user.role)}`}
+          value={user.role}
+          onChange={(e) => onUpdateRole(user.id, e.target.value)}
+          style={{ width: 'auto', display: 'inline-block' }}
+        >
+          <option value="member">Member</option>
+          <option value="provider">Provider</option>
+          <option value="admin">Admin</option>
+        </select>
+      </td>
+      <td>
+        <span className={`badge bg-${user.is_active ? 'success' : 'danger'}`}>
+          {user.is_active ? 'Active' : 'Inactive'}
+        </span>
+        <button
+          className="btn btn-sm btn-outline-secondary ms-2"
+          onClick={() => onUpdateStatus(user.id, !user.is_active)}
+        >
+          {user.is_active ? 'Deactivate' : 'Activate'}
+        </button>
+      </td>
+      <td>
+        {user.last_login 
+          ? new Date(user.last_login).toLocaleDateString()
+          : 'Never'
+        }
+      </td>
+      <td>
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => {/* Add view details functionality */}}
+        >
+          View
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+// Placeholder Components for other tabs
+function AppointmentsTab() {
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h5 className="mb-0">Appointment Management</h5>
+      </div>
+      <div className="card-body">
+        <p>Appointment management interface coming soon...</p>
+      </div>
+    </div>
+  );
+}
+
+function AuditTab() {
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h5 className="mb-0">Audit Logs</h5>
+      </div>
+      <div className="card-body">
+        <p>Audit log interface coming soon...</p>
+      </div>
+    </div>
+  );
+}
 }
 
 // User Row Component - FIXED VERSION
