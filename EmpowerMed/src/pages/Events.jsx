@@ -1,6 +1,10 @@
+<<<<<<< HEAD:EmpowerMed/src/pages/Membership.jsx
 import "../styles/Membership.css";
 
 function Membership() {
+=======
+function Events() {
+>>>>>>> 8b38515e5a8a0510b55b11665764e075fafab12a:EmpowerMed/src/pages/Events.jsx
   return (
     <div className="membership-page">
 
@@ -68,4 +72,8 @@ function Membership() {
   );
 }
 
+<<<<<<< HEAD:EmpowerMed/src/pages/Membership.jsx
 export default Membership;
+=======
+export default Events;
+>>>>>>> 8b38515e5a8a0510b55b11665764e075fafab12a:EmpowerMed/src/pages/Events.jsx
