@@ -55,6 +55,7 @@ export default function EmpowerMedNavbar() {
             <LinkContainer to="/blog"><Nav.Link>Blog</Nav.Link></LinkContainer>
             <LinkContainer to="/education"><Nav.Link>Educational Hub</Nav.Link></LinkContainer>
             <LinkContainer to="/about"><Nav.Link>About</Nav.Link></LinkContainer>
+            <LinkContainer to="/services"><Nav.Link>Services</Nav.Link></LinkContainer>
 
             <div className="nav-buttons">
               {!isAuthenticated && (
