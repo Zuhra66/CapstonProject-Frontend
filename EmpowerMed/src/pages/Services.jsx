@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import "../styles/services.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -141,18 +140,4 @@ function Services() {
   );
 }
 
-=======
-function Services() {
-  return (
-    <div className="page-content services-section text-center">
-      <h1>Welcome to EmpowerMed</h1>
-      <p>This is the home page placeholder.</p>
-      <p>This is the home page placeholder.</p>
-      <p>This is the home page placeholder.</p>
-      <p>This is the home page placeholder.</p>
-      <p>This is the home page placeholder.</p>
-    </div>
-  );
-}
->>>>>>> 8b38515e5a8a0510b55b11665764e075fafab12a
 export default Services;
