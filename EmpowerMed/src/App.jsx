@@ -12,12 +12,10 @@ import Education from './pages/Education.jsx';
 import About from './pages/About.jsx';
 import Appointment from './pages/Appointment.jsx';
 import Account from './pages/Account.jsx';
-<<<<<<< HEAD
 import Booking from './pages/Booking.jsx';
 import Services from './pages/Services.jsx';
 =======
 import AdminDashboard from './pages/AdminDashboard.jsx';
->>>>>>> 8b38515e5a8a0510b55b11665764e075fafab12a
 
 function App() {
   return (
