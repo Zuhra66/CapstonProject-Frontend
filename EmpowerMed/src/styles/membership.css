@@ -1,0 +1,122 @@
+/* PAGE SPACING */
+.membership-page {
+  padding-top: 140px;
+}
+
+/* OUTER LARGE CARD */
+.membership-card {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 50px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  backdrop-filter: blur(4px);
+}
+
+/* HEADER */
+.membership-header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.membership-header h1 {
+  font-size: 2.3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.membership-header p {
+  font-size: 1.25rem;
+}
+
+.price {
+  font-weight: 600;
+}
+
+.membership-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 35px;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-bottom: 40px;
+}
+
+@media (min-width: 992px) {
+  .membership-info-box {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.membership-image img {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 14px;
+  display: block;
+  margin: 0 auto;
+}
+
+.membership-features {
+  flex-grow: 1;
+}
+
+.membership-features h2 {
+  font-size: 1.7rem;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.membership-features ul {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  padding-left: 20px;
+}
+
+.membership-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+@media (min-width: 768px) {
+  .membership-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.btn {
+  padding: 14px 30px;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.2s ease-in-out;
+}
+
+/* Student Button */
+.student-btn {
+  background-color: #3D52A0;
+  color: white;
+}
+
+.student-btn:hover {
+  background-color: #8697C4;
+  color: white;
+}
+
+/* Main Membership Button */
+.main-btn {
+  background-color: #3D52A0;
+  color: white;
+}
+
+.main-btn:hover {
+  background-color: #8697C4;
+  color: white;
+}

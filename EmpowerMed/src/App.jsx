@@ -8,10 +8,13 @@ import Services from './pages/Services.jsx';
 import Events from './pages/Events.jsx';
 import Products from './pages/Products.jsx';
 import Blog from './pages/Blog.jsx';
-import Education from './pages/Education.jsx';
+import Education from './pages/EducationalHub';
+import EducationAdmin from "./pages/EducationAdmin";
 import About from './pages/About.jsx';
 import Appointment from './pages/Appointment.jsx';
 import Account from './pages/Account.jsx';
+import Booking from './pages/Booking.jsx';
+import Membership from './pages/Membership.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 
 function App() {
@@ -30,6 +33,9 @@ function App() {
             <Route path="/appointment" element={<Appointment />} />
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/membership" element={<Membership />} /> 
+            <Route path="/education/admin" element={<EducationAdmin />} /> 
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </div>
@@ -40,3 +46,7 @@ function App() {
 }
 
 export default App;
+
+
+
+
