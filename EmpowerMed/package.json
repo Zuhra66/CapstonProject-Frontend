@@ -11,12 +11,16 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.8.0",
+    "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "crypto-js": "^4.2.0",
+    "express-jwt": "^8.5.1",
     "framer-motion": "^12.23.24",
+    "jwks-rsa": "^3.2.0",
     "lucide-react": "^0.552.0",
     "react": "^19.1.1",
     "react-bootstrap": "^2.10.10",
+    "react-calendar": "^6.0.0",
     "react-dom": "^19.1.1",
     "react-router-bootstrap": "^0.26.3",
     "react-router-dom": "^7.9.4"

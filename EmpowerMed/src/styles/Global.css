@@ -46,10 +46,19 @@ body {
   font-weight: var(--fw-regular);
 }
 
-.home-root {
-  width: 100%;
-  min-height: 100vh;
+main, 
+section,
+.page-root, 
+.home-section,
+.services-section,
+.products-section,
+.account-section,
+.blog-section,
+.about-section {
+  scroll-margin-top: 80px;
+  padding-top: 80px;
 }
+
 
 /* Container */
 .container {
@@ -112,13 +121,12 @@ body {
 /* HERO SECTION */
 .hero-section {
   background: linear-gradient(135deg, var(--light-blue) 0%, var(--main-blue) 100%);
-  min-height: 60vh;
+  min-height: 65vh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   position: relative;
-  padding: 9rem 9rem 0rem;
 }
 
 /* optional reset to ensure the page itself has no gap */
@@ -596,5 +604,16 @@ body, html {
   .about-section .about-image .about-img {
     max-width: 450px !important; 
     transform: scale(1.05);
+  }
+}
+.page-content {
+  padding-top: 90px; 
+  min-height: calc(100vh - 200px); 
+}
+
+/* optional responsive tweak */
+@media (max-width: 768px) {
+  .page-content {
+    padding-top: 70px;
   }
 }
