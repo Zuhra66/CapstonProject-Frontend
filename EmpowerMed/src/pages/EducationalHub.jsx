@@ -1,9 +1,17 @@
-// src/pages/EducationalHub.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import s from "../styles/EducationalHub.module.css";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
-const TAGS = ["All", "New to EmpowerMed", "Hydration", "IV Therapy", "Skincare", "Routines", "Supplements", "Wellness"];
+const TAGS = [
+  "All",
+  "New to EmpowerMed",
+  "Hydration",
+  "IV Therapy",
+  "Skincare",
+  "Routines",
+  "Supplements",
+  "Wellness",
+];
 
 export default function EducationalHub() {
   const [articles, setArticles] = useState([]);
@@ -14,10 +22,12 @@ export default function EducationalHub() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // Load from backend whenever q/tag changes
+  // Load content whenever q/tag changes
   useEffect(() => {
     let alive = true;
-    setLoading(true); setErr("");
+    setLoading(true);
+    setErr("");
+
     (async () => {
       try {
         const url = new URL(`${API_BASE}/api/education`);
@@ -27,6 +37,7 @@ export default function EducationalHub() {
         const res = await fetch(url.toString(), { credentials: "include" });
         if (!res.ok) throw new Error(`Education ${res.status}`);
         const data = await res.json();
+
         if (!alive) return;
         setArticles(data.articles || []);
         setVideos(data.videos || []);
@@ -38,15 +49,20 @@ export default function EducationalHub() {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+
+    return () => {
+      alive = false;
+    };
   }, [q, tag]);
 
   const filteredArticles = useMemo(() => {
     if (!articles.length) return [];
     if (!q && (tag === "All" || !tag)) return articles;
+
     return articles.filter((a) => {
-      const byTag = tag === "All" || (a.tags || []).includes(tag);
-      const hay = `${a.title} ${a.summary} ${(a.tags || []).join(" ")}`.toLowerCase();
+      const tags = a.tags || [];
+      const byTag = tag === "All" || tags.includes(tag);
+      const hay = `${a.title ?? ""} ${a.summary ?? ""} ${tags.join(" ")}`.toLowerCase();
       const byQ = q ? hay.includes(q.toLowerCase()) : true;
       return byTag && byQ;
     });
@@ -70,6 +86,7 @@ export default function EducationalHub() {
                 aria-label="Search education content"
               />
             </div>
+
             <div className={s.tags}>
               {TAGS.map((t) => (
                 <button
@@ -98,18 +115,32 @@ export default function EducationalHub() {
             {filteredArticles.map((a) => (
               <article key={a.id} className={s.card}>
                 <a href={a.href} target="_blank" rel="noopener noreferrer">
-                  <img className={s.thumb} src={a.cover} alt={a.title} />
+                  {/* API uses cover_url */}
+                  {a.cover_url ? (
+                    <img className={s.thumb} src={a.cover_url} alt={a.title} />
+                  ) : (
+                    <div className={s.thumb} aria-label="No image available" />
+                  )}
                 </a>
                 <div className={s.cardBody}>
-                  <a className={s.cardTitle} href={a.href} target="_blank" rel="noopener noreferrer">
+                  <a
+                    className={s.cardTitle}
+                    href={a.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {a.title}
                   </a>
                   <p className={s.cardSummary}>{a.summary}</p>
                   <div className={s.metaRow}>
-                    <span className={s.meta}>{a.minutes || 3} min read</span>
+                    <span className={s.meta}>
+                      {(a.minutes ?? 3)} min read
+                    </span>
                     <div className={s.tagRow}>
                       {(a.tags || []).map((t) => (
-                        <span key={t} className={s.tag}>{t}</span>
+                        <span key={t} className={s.tag}>
+                          {t}
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -129,8 +160,19 @@ export default function EducationalHub() {
           <h2 className={s.sectionTitle}>Video Guides</h2>
           <div className={s.gridSmall}>
             {videos.map((v) => (
-              <a key={v.id} className={s.videoCard} href={v.href} target="_blank" rel="noopener noreferrer">
-                <img className={s.videoThumb} src={v.thumb} alt={v.title} />
+              <a
+                key={v.id}
+                className={s.videoCard}
+                href={v.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {/* API uses thumb_url */}
+                {v.thumb_url ? (
+                  <img className={s.videoThumb} src={v.thumb_url} alt={v.title} />
+                ) : (
+                  <div className={s.videoThumb} aria-label="No thumbnail" />
+                )}
                 <div className={s.videoBody}>
                   <div className={s.videoTitle}>{v.title}</div>
                   <div className={s.videoMeta}>
@@ -155,9 +197,12 @@ export default function EducationalHub() {
               <li key={d.id} className={s.downloadItem}>
                 <div>
                   <div className={s.dlTitle}>{d.title}</div>
-                  <div className={s.muted}>{d.size}</div>
+                  {/* API uses file_size */}
+                  <div className={s.muted}>{d.file_size}</div>
                 </div>
-                <a className={s.dlBtn} href={d.href} download>Download</a>
+                <a className={s.dlBtn} href={d.href} download>
+                  Download
+                </a>
               </li>
             ))}
             {!downloads.length && <div className={s.muted}>No downloads yet.</div>}
