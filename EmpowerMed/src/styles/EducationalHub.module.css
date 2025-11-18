@@ -115,3 +115,11 @@
 .btn{
   background:#111; color:#fff; border:none; border-radius:10px; padding:10px 14px; font-weight:800;
 }
+/* EducationalHub.module.css */
+.thumb {
+  width: 100%;
+  height: 180px;          /* or whatever your design uses */
+  object-fit: cover;
+  display: block;         /* avoid inline-gap quirks */
+  background: #f5f7fb;    /* subtle placeholder backdrop */
+}
