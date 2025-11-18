@@ -1,15 +1,23 @@
-// src/components/ProductCard.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React from "react";
 import styles from "../styles/Products.module.css";
 
-// Image-only, large hero slideshow (fade + subtle zoom)
+function formatCents(cents) {
+  if (cents == null) return "$0.00";
+  const dollars = (Number(cents) / 100).toFixed(2);
+  return `$${dollars}`;
+}
+
+/* ---------------- Hero slideshow (image-only) ---------------- */
 export function HeroCarousel({ items = [], intervalMs = 4000 }) {
   const slides = React.useMemo(
-    () => (items || []).filter(p => !!p?.image).map(p => ({
-      id: p.id,
-      src: p.image,
-      alt: p.name || "slide",
-    })),
+    () =>
+      (items || [])
+        .map((p) => ({
+          id: p.id,
+          src: p.image_url || p.image, // support either field
+          alt: p.name || "slide",
+        }))
+        .filter((s) => !!s.src),
     [items]
   );
 
@@ -18,7 +26,10 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
 
   React.useEffect(() => {
     if (!slides.length) return;
-    timer.current = setInterval(() => setI(n => (n + 1) % slides.length), intervalMs);
+    timer.current = setInterval(
+      () => setI((n) => (n + 1) % slides.length),
+      intervalMs
+    );
     return () => clearInterval(timer.current);
   }, [slides.length, intervalMs]);
 
@@ -47,13 +58,17 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
           className={`${styles.heroArrow} ${styles.heroArrowLeft}`}
           aria-label="Previous slide"
           onClick={() => go(-1)}
-        >‹</button>
+        >
+          ‹
+        </button>
 
         <button
           className={`${styles.heroArrow} ${styles.heroArrowRight}`}
           aria-label="Next slide"
           onClick={() => go(+1)}
-        >›</button>
+        >
+          ›
+        </button>
 
         <div className={styles.heroDots}>
           {slides.map((_, idx) => (
@@ -61,7 +76,10 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
               key={idx}
               className={`${styles.heroDot} ${idx === i ? styles.heroDotActive : ""}`}
               aria-label={`Go to slide ${idx + 1}`}
-              onClick={() => { clearInterval(timer.current); setI(idx); }}
+              onClick={() => {
+                clearInterval(timer.current);
+                setI(idx);
+              }}
             />
           ))}
         </div>
@@ -70,18 +88,35 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
   );
 }
 
-
-/* ------------------------------------------------------------------
-   PRODUCT CARD (default export)
-------------------------------------------------------------------- */
+/* ---------------- Product Card ---------------- */
 export default function ProductCard({ product }) {
-  const { name, price = 0, image, badges = [], externalUrl } = product || {};
-  const href = externalUrl || "https://empowermed.threeinternational.com/en";
+  const {
+    name,
+    price_cents,                // preferred (from API)
+    price,                      // fallback if API ever returns dollars
+    image_url,
+    image,
+    tags = [],
+    external_url,
+    externalUrl,                // fallback
+  } = product || {};
+
+  const img = image_url || image;
+  const href = external_url || externalUrl || "https://empowermed.threeinternational.com/en";
+
+  const displayPrice =
+    price_cents != null ? formatCents(price_cents) :
+    price != null       ? `$${Number(price).toFixed(2)}` :
+                          "$0.00";
 
   return (
     <article className={styles.card}>
       <a href={href} target="_blank" rel="noopener noreferrer">
-        <img className={styles.thumb} src={image} alt={name} />
+        {img ? (
+          <img className={styles.thumb} src={img} alt={name} />
+        ) : (
+          <div className={styles.thumb} aria-label="No image available" />
+        )}
       </a>
 
       <div className={styles.body}>
@@ -95,11 +130,11 @@ export default function ProductCard({ product }) {
           {name}
         </a>
 
-        {!!badges.length && (
+        {!!tags.length && (
           <div className={styles.tags}>
-            {badges.map((b) => (
-              <span key={b} className={styles.tag}>
-                {b}
+            {tags.map((t) => (
+              <span key={t} className={styles.tag}>
+                {t}
               </span>
             ))}
           </div>
@@ -107,7 +142,7 @@ export default function ProductCard({ product }) {
 
         <div className={styles.priceRow}>
           <div>
-            <div className={styles.price}>${Number(price).toFixed(2)}</div>
+            <div className={styles.price}>{displayPrice}</div>
             <div className={styles.muted}>Ships from THREE</div>
           </div>
           <a href={href} target="_blank" rel="noopener noreferrer" className={styles.cta}>
