@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Products.module.css";
 import ProductCard, { HeroCarousel } from "../components/ProductCard";
@@ -7,14 +6,14 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([{ name: "All", slug: "All" }]);
+  const [categories, setCategories] = useState([{ name: "All", slug: "all" }]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("All");
+  const [cat, setCat] = useState("all"); // normalized
 
-  // Load categories (for filter pills)
+  // Load categories
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -23,11 +22,22 @@ export default function Products() {
           credentials: "include",
         });
         if (!res.ok) throw new Error(`Categories ${res.status}`);
-        const rows = await res.json();
+        let rows = await res.json(); // expect [{name, slug}]
         if (!alive) return;
-        setCategories([{ name: "All", slug: "All" }, ...rows]);
+
+        // normalize: ensure lowercase slug and fallback if missing
+        rows = (rows || []).map((c) => {
+          const name = c.name ?? c.slug ?? "Unknown";
+          const slug = (c.slug ?? name)
+            ?.toString()
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "-");
+          return { name, slug };
+        });
+
+        setCategories([{ name: "All", slug: "all" }, ...rows]);
       } catch (e) {
-        // fallback: still render "All" only
         console.warn("Categories load failed:", e);
       }
     })();
@@ -36,7 +46,7 @@ export default function Products() {
     };
   }, []);
 
-  // Load products from backend (respects q/category via query params)
+  // Load products (server-side filter)
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -45,16 +55,13 @@ export default function Products() {
       try {
         const url = new URL(`${API_BASE}/api/products`);
         if (q) url.searchParams.set("q", q);
-        if (cat && cat !== "All") url.searchParams.set("category", cat);
+        if (cat && cat !== "all") url.searchParams.set("category", cat); // already lowercase
 
         const res = await fetch(url.toString(), { credentials: "include" });
         if (!res.ok) throw new Error(`Products ${res.status}`);
         const rows = await res.json();
-
-        // rows come shaped like:
-        // { id, name, slug, price, image, externalUrl, isActive, category:{name,slug}, tags:[...] }
         if (!alive) return;
-        setProducts(rows);
+        setProducts(rows || []);
       } catch (e) {
         console.error(e);
         if (!alive) return;
@@ -69,16 +76,30 @@ export default function Products() {
     };
   }, [q, cat]);
 
-  // Client-side filtering (lightweight), in case you want it in addition to server filters
+  // Client-side filter (handles category as string OR object)
   const filtered = useMemo(() => {
     const list = products || [];
-    if (!q && (cat === "All" || !cat)) return list;
+    const ql = q.trim().toLowerCase();
+    const cl = (cat || "all").toLowerCase();
+
+    if (!ql && cl === "all") return list;
 
     return list.filter((p) => {
-      const hay = `${p.name} ${(p.tags || []).join(" ")}`.toLowerCase();
-      const matchesQ = q ? hay.includes(q.toLowerCase()) : true;
-      const matchesCat =
-        cat === "All" ? true : p?.category?.slug === cat || p?.category?.name === cat;
+      const hay = `${p.name ?? ""} ${(p.tags || []).join(" ")}`.toLowerCase();
+      const matchesQ = ql ? hay.includes(ql) : true;
+
+      let matchesCat = true;
+      if (cl !== "all") {
+        const pc = p?.category;
+        if (typeof pc === "string") {
+          matchesCat = pc.toLowerCase() === cl;
+        } else {
+          const prodSlug = pc?.slug?.toLowerCase();
+          const prodName = pc?.name?.toLowerCase();
+          matchesCat = prodSlug === cl || prodName === cl;
+        }
+      }
+
       return matchesQ && matchesCat;
     });
   }, [products, q, cat]);
@@ -108,7 +129,7 @@ export default function Products() {
             {categories.map((c) => (
               <button
                 key={c.slug}
-                onClick={() => setCat(c.slug)}
+                onClick={() => setCat(c.slug)} // slug is normalized (lowercase)
                 className={`${styles.pill} ${cat === c.slug ? styles.pillActive : ""}`}
               >
                 {c.name}
@@ -123,13 +144,17 @@ export default function Products() {
         {!loading && !err && (
           <section className={styles.grid}>
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={{
-                name: p.name,
-                price: p.price,
-                image: p.image,
-                badges: p.tags,
-                externalUrl: p.externalUrl
-              }} />
+              <ProductCard
+                key={p.id}
+                product={{
+                  id: p.id,
+                  name: p.name,
+                  price_cents: p.price_cents,
+                  image_url: p.image_url,
+                  tags: p.tags,
+                  external_url: p.external_url,
+                }}
+              />
             ))}
             {!filtered.length && (
               <div className={styles.muted}>No products match your search.</div>

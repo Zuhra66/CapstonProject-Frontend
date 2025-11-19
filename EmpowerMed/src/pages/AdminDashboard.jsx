@@ -11,14 +11,17 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
- /**  useEffect(() => {
+
+  useEffect(() => {
+
     if (!isLoading && isAuthenticated) {
       setIsAdmin(true);
       setStats({}); // dummy stats
       setLoading(false);
     }
-}, [isLoading, isAuthenticated]);**/
-  useEffect(() => {
+
+}, [isLoading, isAuthenticated]);
+  /**useEffect(() => {
     if (!isLoading) {
       const fetchAdminData = async () => {
         try {
@@ -56,10 +59,7 @@ export default function AdminDashboard() {
 
       fetchAdminData();
     }
-  }, [isLoading, isAuthenticated]);
-
-
-
+  }, [isLoading, isAuthenticated]);**/
 
   if (loading || isLoading) {
     return (
