@@ -1,21 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { useAuth0 } from '@auth0/auth0-react';
-import LogoutButton from './LogoutButton.jsx';
-import logo from '../assets/logo.png';
-import logoCropped from '../assets/logo-cropped.png';
+import { useAuth0 } from "@auth0/auth0-react";
+import LogoutButton from "./LogoutButton.jsx";
+import logo from "../assets/logo.png";
+import logoCropped from "../assets/logo-cropped.png";
 import styles from "../styles/Navbar.module.css";
 import { UserCog } from "lucide-react";
+
+const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
 
+  // hydrate admin flags from backend
+  const [me, setMe] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${API}/auth/me`, { credentials: "include" });
+        const data = await r.json();
+        if (!alive) return;
+        setMe(data?.user ?? null);
+      } catch {
+        if (!alive) return;
+        setMe(null);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
   if (isLoading) return null;
 
-  const displayName = user?.given_name && user?.family_name
-    ? `${user.given_name} ${user.family_name}`
-    : user?.name || user?.email || 'Account';
+  const displayName =
+    (user?.given_name && user?.family_name
+      ? `${user.given_name} ${user.family_name}`
+      : user?.name || user?.email) || "Account";
+
+  const isAdmin = !!(me?.is_admin || me?.role === "admin");
 
   return (
     <nav className={styles.navbar}>
@@ -31,39 +54,83 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className={styles.navbarNav}>
-            <NavLink to="/" end className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Home
             </NavLink>
-            <NavLink to="/services" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/services"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Services
             </NavLink>
-            <NavLink to="/membership" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/membership"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Membership
             </NavLink>
-            <NavLink to="/products" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/products"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Products
             </NavLink>
-            <NavLink to="/blog" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/blog"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Blog
             </NavLink>
-            <NavLink to="/education" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/education"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Education
             </NavLink>
-            <NavLink to="/events" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/events"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               Events
             </NavLink>
-          
-            <NavLink to="/about" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
               About
             </NavLink>
+
+            {/* Admin (desktop) */}
+            {isAdmin && (
+              <NavLink
+                to="/admin/products"
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+                }
+              >
+                Admin
+              </NavLink>
+            )}
           </div>
 
           {/* Auth Section */}
@@ -73,7 +140,10 @@ export default function Navbar() {
                 <button className={styles.loginBtn} onClick={() => loginWithRedirect()}>
                   Login
                 </button>
-                <button className={styles.signupBtn} onClick={() => loginWithRedirect({ screen_hint: 'signup' })}>
+                <button
+                  className={styles.signupBtn}
+                  onClick={() => loginWithRedirect({ screen_hint: "signup" })}
+                >
                   Sign Up
                 </button>
               </div>
@@ -85,10 +155,19 @@ export default function Navbar() {
                   <div className={styles.dropdownArrow}>▼</div>
                 </div>
                 <div className={styles.dropdownMenu}>
-                    <Link to="/account" className={styles.dropdownItem}>
+                  <Link to="/account" className={styles.dropdownItem}>
+                    <UserCog className={styles.icon} size={18} strokeWidth={1.8} />
+                    Account Settings
+                  </Link>
+
+                  {/* Admin (dropdown) */}
+                  {isAdmin && (
+                    <Link to="/admin/products" className={styles.dropdownItem}>
                       <UserCog className={styles.icon} size={18} strokeWidth={1.8} />
-                      Account Settings
+                      Admin Dashboard
                     </Link>
+                  )}
+
                   <div
                     className={styles.dropdownItem}
                     onClick={() => logout({ returnTo: window.location.origin })}
@@ -106,35 +185,64 @@ export default function Navbar() {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation"
           >
-            <span className={isOpen ? styles.toggleOpen : ''}></span>
-            <span className={isOpen ? styles.toggleOpen : ''}></span>
-            <span className={isOpen ? styles.toggleOpen : ''}></span>
+            <span className={isOpen ? styles.toggleOpen : ""}></span>
+            <span className={isOpen ? styles.toggleOpen : ""}></span>
+            <span className={isOpen ? styles.toggleOpen : ""}></span>
           </button>
         </div>
 
         {/* Mobile Nav */}
-        <div className={`${styles.mobileNav} ${isOpen ? styles.mobileNavOpen : ''}`}>
+        <div className={`${styles.mobileNav} ${isOpen ? styles.mobileNavOpen : ""}`}>
           <div className={styles.mobileNavContent}>
-            <NavLink to="/" onClick={() => setIsOpen(false)}>Home</NavLink>
-            <NavLink to="/services" onClick={() => setIsOpen(false)}>Services</NavLink>
-            <NavLink to="/membership" onClick={() => setIsOpen(false)}>Membership</NavLink>
-            <NavLink to="/products" onClick={() => setIsOpen(false)}>Products</NavLink>
-            <NavLink to="/blog" onClick={() => setIsOpen(false)}>Blog</NavLink>
-            <NavLink to="/education" onClick={() => setIsOpen(false)}>Education</NavLink>
-            <NavLink to="/events" onClick={() => setIsOpen(false)}>Events</NavLink>
-            <NavLink to="/about" onClick={() => setIsOpen(false)}>About</NavLink>
+            <NavLink to="/" onClick={() => setIsOpen(false)}>
+              Home
+            </NavLink>
+            <NavLink to="/services" onClick={() => setIsOpen(false)}>
+              Services
+            </NavLink>
+            <NavLink to="/membership" onClick={() => setIsOpen(false)}>
+              Membership
+            </NavLink>
+            <NavLink to="/products" onClick={() => setIsOpen(false)}>
+              Products
+            </NavLink>
+            <NavLink to="/blog" onClick={() => setIsOpen(false)}>
+              Blog
+            </NavLink>
+            <NavLink to="/education" onClick={() => setIsOpen(false)}>
+              Education
+            </NavLink>
+            <NavLink to="/events" onClick={() => setIsOpen(false)}>
+              Events
+            </NavLink>
+            <NavLink to="/about" onClick={() => setIsOpen(false)}>
+              About
+            </NavLink>
+
+            {/* Admin (mobile) */}
+            {isAdmin && (
+              <NavLink to="/admin/products" onClick={() => setIsOpen(false)}>
+                Admin
+              </NavLink>
+            )}
 
             {!isAuthenticated ? (
               <div className={styles.mobileAuth}>
                 <button onClick={() => loginWithRedirect()}>Login</button>
-                <button onClick={() => loginWithRedirect({ screen_hint: 'signup' })}>Sign Up</button>
+                <button onClick={() => loginWithRedirect({ screen_hint: "signup" })}>
+                  Sign Up
+                </button>
               </div>
             ) : (
               <div className={styles.mobileUser}>
                 <img src={user.picture} alt="User" />
                 <span>{displayName}</span>
-                <Link to="/account" onClick={() => setIsOpen(false)}>Account</Link>
-                <button onClick={() => logout({ returnTo: window.location.origin })}>Logout</button>
+                <Link to="/account" onClick={() => setIsOpen(false)}>
+                  Account
+                </Link>
+                <button onClick={() => logout({ returnTo: window.location.origin })}>
+                  Logout
+                </button>
               </div>
             )}
           </div>
