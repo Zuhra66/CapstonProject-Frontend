@@ -23,10 +23,10 @@ root.render(
         audience={import.meta.env.VITE_AUTH0_AUDIENCE}
         authorizationParams={{
           redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
-          scope: 'openid profile email offline_access',
+          scope: 'openid profile email',
         }}
-        cacheLocation="localstorage"
-        useRefreshTokens={true}
+          useRefreshTokens={true}  
+          cacheLocation="localstorage"
         onRedirectCallback={onRedirectCallback}
       >
         <App />
