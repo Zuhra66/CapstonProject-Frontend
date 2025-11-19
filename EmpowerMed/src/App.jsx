@@ -1,4 +1,6 @@
 import React from 'react';
+import AdminRoute from "./lib/AdminRoute";
+import AdminProducts from "./pages/AdminProducts";
 import { Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from './components/Navbar.jsx';
@@ -37,6 +39,14 @@ function App() {
             <Route path="/membership" element={<Membership />} /> 
             <Route path="/education/admin" element={<EducationAdmin />} /> 
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route
+  path="/admin/products"
+  element={
+    <AdminRoute>
+      <AdminProducts />
+    </AdminRoute>
+  }
+/>
           </Routes>
         </div>
       </main>
