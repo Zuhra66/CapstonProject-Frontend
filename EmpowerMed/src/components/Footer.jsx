@@ -89,7 +89,7 @@ export default function Footer() {
               <Link to="/about">About</Link>
             </nav>
             <div className={styles.footerSocial}>
-              <a href="mailto:contact@empowermedwellness.com" aria-label="Email us">
+              <a href="mailto:DrG2023@yahoo.com" aria-label="Email us">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                 </svg>
@@ -267,7 +267,7 @@ export default function Footer() {
           </p>
 
           <p style={{ textAlign: 'center', marginTop: '2rem', fontStyle: 'italic' }}>
-            <strong>EmpowerMEd Wellness © All Rights Reserved | Jeremiah 29:11</strong>
+            <strong>EmpowerMEd Wellness © All Rights Reserved</strong>
           </p>
         </div>
         <button 
@@ -288,8 +288,6 @@ export default function Footer() {
           <p style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <strong>Effective Date: November 2025</strong><br />
             <strong>EmpowerMEd Wellness</strong><br />
-            Website: https://www.empowermedwellness.com<br />
-            Contact: drg2023@yahoo.com | (209) 922-2007
           </p>
 
           <h3>1. Introduction</h3>

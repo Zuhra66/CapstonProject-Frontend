@@ -1,39 +1,34 @@
-// src/hooks/useAuthFetch.js
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth0 } from "@auth0/auth0-react";
+import axios from "axios";
+import { useCallback } from "react";
 
+// Custom hook to fetch API with Auth0 token
 export default function useAuthFetch() {
   const { getAccessTokenSilently } = useAuth0();
-  const apiBase = import.meta.env.VITE_API_BASE_URL; // ensure this points to your backend
 
-  async function authFetch(path, opts = {}) {
-    const url = `${apiBase}${path}`;
-    const options = {
-      ...opts,
-      headers: {
-        ...(opts.headers || {}),
-        'Content-Type': opts.body ? 'application/json' : 'application/json',
-      },
-    };
+  const authFetch = useCallback(async (url, options = {}) => {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: "openid profile email" // same as provider
+        },
+      });
 
-    const token = await getAccessTokenSilently({
-      authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-    });
+      const res = await axios(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    options.headers = {
-      ...options.headers,
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Request failed (${response.status}): ${text}`);
+      return res;
+    } catch (err) {
+      console.error("AuthFetch failed", err);
+      throw err;
     }
-
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) return await response.json();
-    return await response.text();
-  }
+  }, [getAccessTokenSilently]);
 
   return authFetch;
 }

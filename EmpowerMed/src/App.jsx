@@ -16,6 +16,7 @@ import Account from './pages/Account.jsx';
 import Booking from './pages/Booking.jsx';
 import Membership from './pages/Membership.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path="/membership" element={<Membership />} /> 
             <Route path="/education/admin" element={<EducationAdmin />} /> 
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="*" element={<NotFound />} /> {/* Catch-all */}
           </Routes>
         </div>
       </main>
@@ -46,7 +48,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
