@@ -39,6 +39,10 @@ export default function Navbar() {
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Services
             </NavLink>
+             <NavLink to="/membership" className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
+              Membership
+            </NavLink>
             <NavLink to="/products" className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Products
