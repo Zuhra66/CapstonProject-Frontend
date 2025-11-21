@@ -39,10 +39,6 @@ export default function Navbar() {
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Services
             </NavLink>
-            <NavLink to="/membership" className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
-              Membership
-            </NavLink>
             <NavLink to="/products" className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Products
@@ -59,7 +55,6 @@ export default function Navbar() {
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Events
             </NavLink>
-          
             <NavLink to="/about" className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               About
@@ -117,7 +112,6 @@ export default function Navbar() {
           <div className={styles.mobileNavContent}>
             <NavLink to="/" onClick={() => setIsOpen(false)}>Home</NavLink>
             <NavLink to="/services" onClick={() => setIsOpen(false)}>Services</NavLink>
-            <NavLink to="/membership" onClick={() => setIsOpen(false)}>Membership</NavLink>
             <NavLink to="/products" onClick={() => setIsOpen(false)}>Products</NavLink>
             <NavLink to="/blog" onClick={() => setIsOpen(false)}>Blog</NavLink>
             <NavLink to="/education" onClick={() => setIsOpen(false)}>Education</NavLink>
