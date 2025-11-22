@@ -71,12 +71,8 @@ export default function Navbar() {
             >
               Services
             </NavLink>
-            <NavLink
-              to="/membership"
-              className={({ isActive }) =>
-                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
-              }
-            >
+             <NavLink to="/membership" className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               Membership
             </NavLink>
             <NavLink
@@ -111,12 +107,8 @@ export default function Navbar() {
             >
               Events
             </NavLink>
-            <NavLink
-              to="/about"
-              className={({ isActive }) =>
-                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
-              }
-            >
+            <NavLink to="/about" className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
               About
             </NavLink>
 
@@ -194,37 +186,13 @@ export default function Navbar() {
         {/* Mobile Nav */}
         <div className={`${styles.mobileNav} ${isOpen ? styles.mobileNavOpen : ""}`}>
           <div className={styles.mobileNavContent}>
-            <NavLink to="/" onClick={() => setIsOpen(false)}>
-              Home
-            </NavLink>
-            <NavLink to="/services" onClick={() => setIsOpen(false)}>
-              Services
-            </NavLink>
-            <NavLink to="/membership" onClick={() => setIsOpen(false)}>
-              Membership
-            </NavLink>
-            <NavLink to="/products" onClick={() => setIsOpen(false)}>
-              Products
-            </NavLink>
-            <NavLink to="/blog" onClick={() => setIsOpen(false)}>
-              Blog
-            </NavLink>
-            <NavLink to="/education" onClick={() => setIsOpen(false)}>
-              Education
-            </NavLink>
-            <NavLink to="/events" onClick={() => setIsOpen(false)}>
-              Events
-            </NavLink>
-            <NavLink to="/about" onClick={() => setIsOpen(false)}>
-              About
-            </NavLink>
-
-            {/* Admin (mobile) */}
-            {isAdmin && (
-              <NavLink to="/admin/products" onClick={() => setIsOpen(false)}>
-                Admin
-              </NavLink>
-            )}
+            <NavLink to="/" onClick={() => setIsOpen(false)}>Home</NavLink>
+            <NavLink to="/services" onClick={() => setIsOpen(false)}>Services</NavLink>
+            <NavLink to="/products" onClick={() => setIsOpen(false)}>Products</NavLink>
+            <NavLink to="/blog" onClick={() => setIsOpen(false)}>Blog</NavLink>
+            <NavLink to="/education" onClick={() => setIsOpen(false)}>Education</NavLink>
+            <NavLink to="/events" onClick={() => setIsOpen(false)}>Events</NavLink>
+            <NavLink to="/about" onClick={() => setIsOpen(false)}>About</NavLink>
 
             {!isAuthenticated ? (
               <div className={styles.mobileAuth}>

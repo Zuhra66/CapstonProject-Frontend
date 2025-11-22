@@ -59,7 +59,7 @@ section,
 .blog-section,
 .about-section {
   scroll-margin-top: 80px;
-  padding-top: 80px;
+  padding-top: 5px;
 }
 
 
@@ -112,12 +112,13 @@ section,
 .btn-secondary {
   background: var(--white); 
   color: var(--main-blue);
-  border: 2px solid var(--main-blue);
+  border: none;
 }
 
 .btn-secondary:hover {
   background: var(--main-blue);
   color: var(--white);
+  border: none;
   transform: translateY(-2px);
 }
 
