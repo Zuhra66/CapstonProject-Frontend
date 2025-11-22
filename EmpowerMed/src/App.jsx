@@ -1,8 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
+
 import Home from './pages/Home.jsx';
 import Services from './pages/Services.jsx';
 import Events from './pages/Events.jsx';
@@ -20,12 +22,16 @@ import Membership from './pages/Membership.jsx';
 
 
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminProducts from './pages/AdminProducts.jsx';
+import AdminRoute from './lib/AdminRoute.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 
 function App() {
   return (
     <>
       <Navbar />
+
       <main className="page-content">
         <div className="container mb-5">
           <Routes>
@@ -41,19 +47,27 @@ function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/events/:slug" element={<EventDetail />} />
             <Route path="/booking" element={<Booking />} />
-            <Route path="/membership" element={<Membership />} /> 
-            <Route path="/education/admin" element={<EducationAdmin />} /> 
+            <Route path="/membership" element={<Membership />} />
+            <Route path="/education/admin" element={<EducationAdmin />} />
             <Route path="/admin" element={<AdminDashboard />} />
+
+            <Route
+              path="/admin/products"
+              element={
+                <AdminRoute>
+                  <AdminProducts />
+                </AdminRoute>
+              }
+            />
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </main>
+
       <Footer />
     </>
   );
 }
 
 export default App;
-
-
-
-
