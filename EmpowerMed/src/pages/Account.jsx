@@ -83,7 +83,7 @@ export default function Account() {
             <button 
               onClick={() => setIsContactModalOpen(true)}
           
-              style={{ background: 'none', border: 'none', color: '#000000', cursor: 'pointer', textDecoration: 'underline' }}
+              style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', textDecoration: 'underline' }}
             >
               Contact Us
             </button>

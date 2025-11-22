@@ -7,7 +7,7 @@ import logoCropped from "../assets/logo-cropped.png";
 import styles from "../styles/Navbar.module.css";
 import { UserCog } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,10 +33,10 @@ export default function Navbar() {
 
   if (isLoading) return null;
 
-  const displayName =
-    (user?.given_name && user?.family_name
-      ? `${user.given_name} ${user.family_name}`
-      : user?.name || user?.email) || "Account";
+const displayName =
+  (user?.given_name
+    ? `${user.given_name} ${user.family_name ? user.family_name[0] + "." : ""}`
+    : user?.name || user?.email) || "Account";
 
   const isAdmin = !!(me?.is_admin || me?.role === "admin");
 
@@ -219,3 +219,4 @@ export default function Navbar() {
     </nav>
   );
 }
+

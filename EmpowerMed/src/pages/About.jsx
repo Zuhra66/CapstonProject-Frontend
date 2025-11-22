@@ -17,11 +17,7 @@ export default function About() {
       {/* HERO */}
       <section
         className="hero-section"
-        style={{
-          minHeight: '50vh',
-          paddingTop: '8.5rem',
-          paddingBottom: '2.25rem' 
-        }}
+
       >
         <div className="hero-content text-center px-3">
           <motion.h1
