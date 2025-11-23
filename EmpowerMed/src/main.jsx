@@ -1,3 +1,4 @@
+// src/main.jsx (or src/index.jsx)
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -16,21 +17,21 @@ const onRedirectCallback = (appState) => {
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Auth0Provider
-        domain={import.meta.env.VITE_AUTH0_DOMAIN}
-        clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
-        audience={import.meta.env.VITE_AUTH0_AUDIENCE}
-        authorizationParams={{
-          redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
-          scope: 'openid profile email',
-        }}
-          useRefreshTokens={true}  
-          cacheLocation="localstorage"
-        onRedirectCallback={onRedirectCallback}
-      >
+    <Auth0Provider
+      domain={import.meta.env.VITE_AUTH0_DOMAIN}
+      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+      authorizationParams={{
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,          // ✅ must be here
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin,
+        scope: 'openid profile email',
+      }}
+      useRefreshTokens={true}
+      cacheLocation="localstorage"
+      onRedirectCallback={onRedirectCallback}
+    >
+      <BrowserRouter>
         <App />
-      </Auth0Provider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </Auth0Provider>
   </React.StrictMode>
 );

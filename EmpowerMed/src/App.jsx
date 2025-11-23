@@ -1,10 +1,11 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import RedirectAfterLogin from './components/RedirectAfterLogin.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
-
+import LoginRedirect from "./pages/LoginRedirect.jsx";
 import Home from './pages/Home.jsx';
 import Services from './pages/Services.jsx';
 import Events from './pages/Events.jsx';
@@ -26,10 +27,13 @@ function App() {
   return (
     <>
       <Navbar />
+      {/* Auto-redirect admins to /admin/dashboard after login */}
+      <RedirectAfterLogin />
 
       <main className="page-content">
         <div className="container mb-5">
           <Routes>
+            <Route path="/login" element={<LoginRedirect />} />
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />
             <Route path="/products" element={<Products />} />
@@ -42,8 +46,17 @@ function App() {
             <Route path="/booking" element={<Booking />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
-            <Route path="/admin" element={<AdminDashboard />} />
 
+            {/* Admin */}
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
             <Route
               path="/admin/products"
               element={
