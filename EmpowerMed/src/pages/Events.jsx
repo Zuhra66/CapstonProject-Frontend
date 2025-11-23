@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/Events.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 function extractSlug(page) {
   const slugProp = page.properties["Slug (URL text)"];
   return slugProp?.rich_text?.[0]?.plain_text || "";
@@ -25,7 +27,7 @@ export default function Events() {
   useEffect(() => {
     async function loadEvents() {
       try {
-        const res = await fetch("http://localhost:3001/api/events");
+        const res = await fetch(`${API_BASE_URL}/api/events`);
         if (!res.ok) throw new Error("Failed to load events");
         const data = await res.json();
         setEvents(data);
