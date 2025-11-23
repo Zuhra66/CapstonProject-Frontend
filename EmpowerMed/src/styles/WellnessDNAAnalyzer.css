@@ -1,11 +1,8 @@
 /* src/styles/WellnessDNAAnalyzer.css */
 .dna-analyzer-section {
-  /* background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); */
-  background: linear-gradient(135deg, #ffffff 0%, #fafafa 70%, #f0f0f0 100%);
-
-
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   padding: 6rem 0;
-  color: 000000;
+  color: white;
   position: relative;
   overflow: hidden;
 }
@@ -69,7 +66,6 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
-  justify-content: center;
 }
 
 .dna-strand {
@@ -312,8 +308,7 @@
   background: rgba(255, 255, 255, 0.05);
   padding: 2rem 1.5rem;
   border-radius: 15px;
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
-  border: 1px solid #7091E6;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
