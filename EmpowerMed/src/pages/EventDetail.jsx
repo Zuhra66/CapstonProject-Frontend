@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import "../styles/Events.css";
 
+// ✅ Use backend env variable (Render) or localhost (dev)
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 function extractTitle(page) {
   const t = page?.properties?.Name?.title?.[0]?.plain_text;
   return t || "Event";
@@ -18,7 +21,6 @@ function extractDate(page) {
   });
 }
 
-// pull ALL image blocks from the body
 function extractBodyImages(blocks = []) {
   return blocks
     .filter((b) => b.type === "image")
@@ -31,7 +33,6 @@ function extractBodyImages(blocks = []) {
     .filter(Boolean);
 }
 
-// optional: basic text paragraphs (if you add any later)
 function extractParagraphs(blocks = []) {
   return blocks
     .filter((b) => b.type === "paragraph")
@@ -57,7 +58,8 @@ export default function EventDetail() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`http://localhost:3001/api/events/${slug}`);
+        // ✅ FIXED: use API_BASE_URL instead of localhost
+        const res = await fetch(`${API_BASE_URL}/api/events/${slug}`);
         if (!res.ok) throw new Error("Failed to fetch event");
 
         const data = await res.json();
