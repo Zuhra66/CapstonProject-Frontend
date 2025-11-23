@@ -1,0 +1,133 @@
+/* src/styles/Events.css */
+
+.events-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 5rem 1rem 4rem;
+}
+
+.events-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.events-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #3d52a0;
+  margin: 0;
+}
+
+.event-detail-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #3d52a0;
+  margin: 0;
+}
+
+.events-subtitle {
+  margin-top: 0.6rem;
+  color: #6b7280;
+  font-size: 0.98rem;
+}
+
+/* grid of small rectangular cards */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.75rem;
+}
+
+.event-card-link {
+  text-decoration: none;
+}
+
+.event-card {
+  /* background: #ffffff; */
+  border-radius: 18px;
+  padding: 0.75rem;
+  /* box-shadow: 0 10px 24px rgba(61, 82, 160, 0.16); */
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-card:hover {
+  transform: translateY(-6px);
+  /* box-shadow: 0 16px 32px rgba(61, 82, 160, 0.22); */
+}
+
+/* smaller rectangular preview image */
+.event-card-image {
+  width: 100%;
+  height: 500px;
+  border-radius: 14px;
+  object-fit:contain;
+  display: block;
+}
+
+/* optional tiny error style */
+.events-error {
+  color: #dc2626;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* --- Event detail images / gallery --- */
+
+.event-detail-image-main {
+  margin-bottom: 1.5rem;
+}
+
+.event-detail-image img {
+    height: 50%;
+}
+.event-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.event-gallery-image {
+  flex: 1 1 220px;
+  max-width: 320px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Reduce the giant white space at the top of the event detail page */
+.event-detail {
+  padding-top: 1rem !important;   /* was probably 4rem */
+}
+
+/* Optional: tighten the top of the inner card so the title isn't pushed down */
+.event-detail-card {
+  padding-top: 1.5rem;
+}
+
+
+
+@media (max-width: 640px) {
+  .event-gallery {
+    flex-direction: column;
+  }
+
+  .event-gallery-image {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .event-card-image {
+    height: 140px;
+  }
+
+  .events-title {
+    font-size: 2.2rem;
+  }
+}

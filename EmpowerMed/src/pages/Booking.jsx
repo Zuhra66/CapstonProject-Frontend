@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Spinner } from "react-bootstrap";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
+//import Calendar from "react-calendar";
+//import "react-calendar/dist/Calendar.css";
 
 export default function Booking() {
   const [selectedType, setSelectedType] = useState(null);
