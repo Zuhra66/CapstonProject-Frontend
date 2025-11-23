@@ -428,7 +428,7 @@ export default function Home() {
                 </p>
                 <p className="location-phone body-font">(209) 922-2007</p>
                 <a href="mailto:contact@empowermedwellness.com" className="location-email body-font">
-                  DrG2023@yahoo.com
+                  contact@empowermedwellness.com
                 </a>
                 <a
                   href="https://maps.google.com/?q=3600+Sisk+Rd+Suite+2D+Modesto+CA+95356"

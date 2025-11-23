@@ -7,30 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies & build outputs
-node_modules/
-dist/
-dist-ssr/
+node_modules
+dist
+dist-ssr
+*.local
 
-# Local machine files
-.DS_Store
-
-# Editor settings
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# Environment files (keep examples!)
-.env
-.env.local
-.env.*.local
-
-# If you truly never want any *.local files (non-env), uncomment:
-# *.local
-.DS_Store
-.DS_Store
+node_modules/
+dist/
+.env*

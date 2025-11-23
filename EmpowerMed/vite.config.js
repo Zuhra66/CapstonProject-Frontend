@@ -1,3 +1,4 @@
+
 // vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -11,7 +12,6 @@ export default defineConfig({
     },
   },
   server: {
-    https: false, // use false for local dev to avoid blank page
     port: 5173,
     strictPort: true,
   },
@@ -22,4 +22,4 @@ export default defineConfig({
     global: 'window',
     'process.env': {},
   },
-})
+});

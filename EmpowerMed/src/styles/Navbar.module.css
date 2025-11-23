@@ -23,8 +23,7 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 3rem;
-  /* padding: 1.2rem 0; */
-  padding: 0.8rem;
+  padding: 1.2rem 0;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -45,17 +44,17 @@
 }
 
 .navbarLogoImg {
-  width: 50px !important;
-  height: 50px !important;
-  min-width: 50px !important;
-  min-height: 50px !important;
-  border-radius: 8px;
+  width: 170px !important;
+  height: 170px !important;
+  min-width: 95px !important;
+  min-height: 95px !important;
+  border-radius: 10px;
   object-fit: contain;
 }
 
 .logoText {
   font-family: 'Lexend', cursive !important;
-  font-size: 0.7rem !important;
+  font-size: 1.6rem !important;
   font-weight: 700;
   color: #3D52A0;
   letter-spacing: 1px;
@@ -220,12 +219,16 @@
 }
 
 .signupBtn {
-  background:  none;
+  background: linear-gradient(135deg, #7091E6, #3D52A0);
   color: white;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 15px rgba(61, 82, 160, 0.3);
 }
 
 .signupBtn:hover {
-  color: #3D52A0;
+  background: linear-gradient(135deg, #3D52A0, #7091E6);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(61, 82, 160, 0.4);
 }
 
 .btnText {

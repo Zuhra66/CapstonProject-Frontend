@@ -1,4 +1,4 @@
-function Events() {
+function Education() {
   return (
     <div className="text-center">
       <h1>Welcome to EmpowerMed</h1>
@@ -7,4 +7,4 @@ function Events() {
   );
 }
 
-export default Events;
+export default Education;
