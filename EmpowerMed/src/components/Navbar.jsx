@@ -31,12 +31,25 @@ export default function Navbar() {
     return () => { alive = false; };
   }, []);
 
+  // Prevent body scroll when mobile nav is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (isLoading) return null;
 
-const displayName =
-  (user?.given_name
-    ? `${user.given_name} ${user.family_name ? user.family_name[0] + "." : ""}`
-    : user?.name || user?.email) || "Account";
+  const displayName =
+    (user?.given_name
+      ? `${user.given_name} ${user.family_name ? user.family_name[0] + "." : ""}`
+      : user?.name || user?.email) || "Account";
 
   const isAdmin = !!(me?.is_admin || me?.role === "admin");
 
@@ -188,35 +201,62 @@ const displayName =
           <div className={styles.mobileNavContent}>
             <NavLink to="/" onClick={() => setIsOpen(false)}>Home</NavLink>
             <NavLink to="/services" onClick={() => setIsOpen(false)}>Services</NavLink>
+            <NavLink to="/membership" onClick={() => setIsOpen(false)}>Membership</NavLink>
             <NavLink to="/products" onClick={() => setIsOpen(false)}>Products</NavLink>
             <NavLink to="/blog" onClick={() => setIsOpen(false)}>Blog</NavLink>
             <NavLink to="/education" onClick={() => setIsOpen(false)}>Education</NavLink>
             <NavLink to="/events" onClick={() => setIsOpen(false)}>Events</NavLink>
             <NavLink to="/about" onClick={() => setIsOpen(false)}>About</NavLink>
 
-            {!isAuthenticated ? (
-              <div className={styles.mobileAuth}>
-                <button onClick={() => loginWithRedirect()}>Login</button>
-                <button onClick={() => loginWithRedirect({ screen_hint: "signup" })}>
-                  Sign Up
-                </button>
-              </div>
-            ) : (
-              <div className={styles.mobileUser}>
-                <img src={user.picture} alt="User" />
-                <span>{displayName}</span>
-                <Link to="/account" onClick={() => setIsOpen(false)}>
-                  Account
-                </Link>
-                <button onClick={() => logout({ returnTo: window.location.origin })}>
-                  Logout
-                </button>
-              </div>
+            {/* Admin (mobile) */}
+            {isAdmin && (
+              <NavLink to="/admin/products" onClick={() => setIsOpen(false)}>
+                Admin Dashboard
+              </NavLink>
             )}
+
+            {/* Mobile Auth Section - Always visible and scrollable */}
+            <div className={styles.mobileAuthSection}>
+              {!isAuthenticated ? (
+                <div className={styles.mobileAuth}>
+                  <button 
+                    className={styles.mobileLoginBtn} 
+                    onClick={() => loginWithRedirect()}
+                  >
+                    Login
+                  </button>
+                  <button 
+                    className={styles.mobileSignupBtn}
+                    onClick={() => loginWithRedirect({ screen_hint: "signup" })}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.mobileUser}>
+                  <div className={styles.mobileUserInfo}>
+                    <img src={user.picture} alt="User" className={styles.mobileUserAvatar} />
+                    <span className={styles.mobileUserName}>{displayName}</span>
+                  </div>
+                  <Link 
+                    to="/account" 
+                    className={styles.mobileAccountBtn}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Account Settings
+                  </Link>
+                  <button 
+                    className={styles.mobileLogoutBtn}
+                    onClick={() => logout({ returnTo: window.location.origin })}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </nav>
   );
 }
-
