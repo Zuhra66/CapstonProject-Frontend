@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/Blog.css";
 
+// ✅ Use env var in production, localhost for local dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 function Blog() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +14,7 @@ function Blog() {
   useEffect(() => {
     async function loadPosts() {
       try {
-        const res = await fetch("http://localhost:3001/api/blog");
+        const res = await fetch(`${API_BASE_URL}/api/blog`);
 
         if (!res.ok) {
           const text = await res.text();
@@ -72,7 +75,8 @@ function Blog() {
       <div className="blog-inner">
         <h1 className="blog-title">EmpowerMEd Blog</h1>
         <p className="blog-subtitle">
-          This blog shares easy-to-understand wellness insights, practical health tips, and empowering information to support your well-being.
+          This blog shares easy-to-understand wellness insights, practical
+          health tips, and empowering information to support your well-being.
         </p>
 
         <div className="blog-grid">
@@ -88,21 +92,16 @@ function Blog() {
             const publishDateProp = props["Publish Date"];
             const publishDate = publishDateProp?.date?.start;
 
-            // Optional preview text from a Notion property if you add one
             const preview =
               props.Summary?.rich_text?.[0]?.plain_text ||
               props.Description?.rich_text?.[0]?.plain_text ||
               props.Excerpt?.rich_text?.[0]?.plain_text ||
               "Click to read the full article.";
 
-            if (!slug) return null; // don't show posts without a slug
+            if (!slug) return null;
 
             return (
-              <Link
-                key={page.id}
-                to={`/blog/${slug}`}
-                className="blog-card"
-              >
+              <Link key={page.id} to={`/blog/${slug}`} className="blog-card">
                 <div className="blog-card-header">
                   <span className="blog-card-tag">Wellness</span>
                   {publishDate && (

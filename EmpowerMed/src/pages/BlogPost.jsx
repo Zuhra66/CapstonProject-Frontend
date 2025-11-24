@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "../styles/Blog.css"; 
 
+// ✅ Use env var in production, localhost in dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 function BlogPost() {
   const { slug } = useParams();
   const [page, setPage] = useState(null);
@@ -13,7 +16,7 @@ function BlogPost() {
   useEffect(() => {
     async function loadPost() {
       try {
-        const res = await fetch(`http://localhost:3001/api/blog/${slug}`);
+        const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`);
 
         if (!res.ok) {
           const text = await res.text();
@@ -128,32 +131,29 @@ function BlockRenderer({ block }) {
       );
 
     case "image": {
-        const image = value;
-        let src = "";
+      const image = value;
+      let src = "";
 
-        if (image.type === "external") {
-            src = image.external?.url;
-        } else if (image.type === "file") {
-            src = image.file?.url;
-        }
+      if (image.type === "external") {
+        src = image.external?.url;
+      } else if (image.type === "file") {
+        src = image.file?.url;
+      }
 
-        // only use caption if it actually exists
-        const alt = image.caption?.[0]?.plain_text || "";
+      const alt = image.caption?.[0]?.plain_text || "";
+      if (!src) return null;
 
-        if (!src) return null;
-
-        return (
-            <figure className="bp-image-wrapper">
-            <img src={src} alt={alt} className="bp-image" />
-            {alt && (
-                <figcaption className="bp-image-caption">{alt}</figcaption>
-            )}
-            </figure>
-        );
+      return (
+        <figure className="bp-image-wrapper">
+          <img src={src} alt={alt} className="bp-image" />
+          {alt && (
+            <figcaption className="bp-image-caption">{alt}</figcaption>
+          )}
+        </figure>
+      );
     }
 
     default:
-      // For unsupported block types, just skip for now
       return null;
   }
 }
