@@ -1,19 +1,23 @@
-// src/pages/AdminProducts.jsx
 import { useEffect, useMemo, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   adminCreateProduct,
   adminUpdateProduct,
   adminDeleteProduct,
 } from "../lib/api";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API = import.meta.env.VITE_API_URL || "/api";
 
 export default function AdminProducts() {
+  const { getAccessTokenSilently } = useAuth0();
+
   const [list, setList] = useState([]);
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editPriceCents, setEditPriceCents] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -23,6 +27,11 @@ export default function AdminProducts() {
     category_id: null,
     is_active: true,
   });
+
+  // Ensure CSRF cookie exists once (index.js serves /csrf-token)
+  useEffect(() => {
+    fetch("/csrf-token", { credentials: "include" }).catch(() => {});
+  }, []);
 
   async function loadAll() {
     try {
@@ -51,7 +60,6 @@ export default function AdminProducts() {
   const validForm = useMemo(() => {
     if (!form.name.trim()) return false;
     if (!Number.isFinite(+form.price_cents) || +form.price_cents < 0) return false;
-    // category_id optional; image/external optional
     return true;
   }, [form]);
 
@@ -63,15 +71,20 @@ export default function AdminProducts() {
     if (!validForm) return;
     try {
       setBusy(true);
-      await adminCreateProduct({
-        ...form,
-        price_cents: Number(form.price_cents) | 0,
-        category_id:
-          form.category_id === "" || form.category_id === null
-            ? null
-            : Number(form.category_id),
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
       });
-      // reset
+      await adminCreateProduct(
+        {
+          ...form,
+          price_cents: Number(form.price_cents) | 0,
+          category_id:
+            form.category_id === "" || form.category_id === null
+              ? null
+              : Number(form.category_id),
+        },
+        token
+      );
       setForm({
         name: "",
         price_cents: 0,
@@ -91,7 +104,10 @@ export default function AdminProducts() {
   async function quickToggleActive(p) {
     try {
       setBusy(true);
-      await adminUpdateProduct(p.id, { is_active: !p.is_active });
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      });
+      await adminUpdateProduct(p.id, { is_active: !p.is_active }, token);
       await loadAll();
     } catch (e) {
       alert(e?.message || "Update failed");
@@ -104,7 +120,10 @@ export default function AdminProducts() {
     if (!confirm("Delete product?")) return;
     try {
       setBusy(true);
-      await adminDeleteProduct(id);
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      });
+      await adminDeleteProduct(id, token);
       await loadAll();
     } catch (e) {
       alert(e?.message || "Delete failed");
@@ -113,200 +132,290 @@ export default function AdminProducts() {
     }
   }
 
+  // Inline edit helpers
+  function startEdit(p) {
+    setEditingId(p.id);
+    setEditPriceCents(String(p.price_cents ?? 0));
+  }
+  function cancelEdit() {
+    setEditingId(null);
+    setEditPriceCents("");
+  }
+  async function saveEdit(id) {
+    try {
+      setBusy(true);
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      });
+      await adminUpdateProduct(id, { price_cents: Number(editPriceCents) | 0 }, token);
+      setEditingId(null);
+      await loadAll();
+    } catch (e) {
+      alert(e?.message || "Save failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const fmtUSD = (cents) =>
+    typeof cents === "number"
+      ? (cents / 100).toLocaleString(undefined, { style: "currency", currency: "USD" })
+      : "—";
+
   return (
-    <div className="admin-wrap" style={{ padding: "1rem" }}>
-      <h2 style={{ marginBottom: "1rem" }}>Products (Admin)</h2>
+    <main className="page-content" style={{ paddingTop: 90 }}>
+      <div className="container">
+        <h2 style={{ marginBottom: "1rem" }}>Products (Admin)</h2>
 
-      {loading && <div>Loading…</div>}
-      {error && (
-        <div style={{ color: "crimson", marginBottom: "1rem" }}>{error}</div>
-      )}
+        {loading && <div>Loading…</div>}
+        {error && <div style={{ color: "crimson", marginBottom: "1rem" }}>{error}</div>}
 
-      {/* Create card */}
-      <div
-        className="card"
-        style={{
-          border: "1px solid #e5e7eb",
-          padding: "1rem",
-          borderRadius: 8,
-          marginBottom: "1.25rem",
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>Create product</h3>
-
+        {/* Create card */}
         <div
+          className="card"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 180px",
-            gap: "0.75rem 1rem",
-            alignItems: "center",
-            maxWidth: 800,
+            border: "1px solid #e5e7eb",
+            padding: "1rem",
+            borderRadius: 8,
+            marginBottom: "1.25rem",
+            background: "#fff",
           }}
         >
-          <label>
-            <div>Name</div>
-            <input
-              value={form.name}
-              onChange={(e) => updateForm("name", e.target.value)}
-              placeholder="Visage Super Serum"
-              style={{ width: "100%" }}
-            />
-          </label>
+          <h3 style={{ marginTop: 0 }}>Create product</h3>
 
-          <label>
-            <div>Price (cents)</div>
-            <input
-              type="number"
-              min={0}
-              value={form.price_cents}
-              onChange={(e) => updateForm("price_cents", e.target.value)}
-              placeholder="15900"
-              style={{ width: "100%" }}
-            />
-          </label>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 180px",
+              gap: "0.75rem 1rem",
+              alignItems: "center",
+              maxWidth: 800,
+            }}
+          >
+            <label>
+              <div>Name</div>
+              <input
+                value={form.name}
+                onChange={(e) => updateForm("name", e.target.value)}
+                placeholder="Visage Super Serum"
+                style={{ width: "100%" }}
+              />
+            </label>
 
-          <label style={{ gridColumn: "1 / -1" }}>
-            <div>Image URL</div>
-            <input
-              value={form.image_url}
-              onChange={(e) => updateForm("image_url", e.target.value)}
-              placeholder="/images/visage.jpg or https://…"
-              style={{ width: "100%" }}
-            />
-          </label>
+            <label>
+              <div>Price (cents)</div>
+              <input
+                type="number"
+                min={0}
+                value={form.price_cents}
+                onChange={(e) => updateForm("price_cents", e.target.value)}
+                placeholder="15900"
+                style={{ width: "100%" }}
+              />
+            </label>
 
-          <label style={{ gridColumn: "1 / -1" }}>
-            <div>External URL</div>
-            <input
-              value={form.external_url}
-              onChange={(e) => updateForm("external_url", e.target.value)}
-              placeholder="https://threeinternational.com/…"
-              style={{ width: "100%" }}
-            />
-          </label>
+            <label style={{ gridColumn: "1 / -1" }}>
+              <div>Image URL</div>
+              <input
+                value={form.image_url}
+                onChange={(e) => updateForm("image_url", e.target.value)}
+                placeholder="/images/visage.jpg or https://…"
+                style={{ width: "100%" }}
+              />
+            </label>
 
-          <label>
-            <div>Category</div>
-            <select
-              value={form.category_id ?? ""}
-              onChange={(e) =>
-                updateForm(
-                  "category_id",
-                  e.target.value ? Number(e.target.value) : null
-                )
-              }
-              style={{ width: "100%" }}
-            >
-              <option value="">— none —</option>
-              {cats.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label style={{ gridColumn: "1 / -1" }}>
+              <div>External URL</div>
+              <input
+                value={form.external_url}
+                onChange={(e) => updateForm("external_url", e.target.value)}
+                placeholder="https://threeinternational.com/…"
+                style={{ width: "100%" }}
+              />
+            </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={!!form.is_active}
-              onChange={(e) => updateForm("is_active", e.target.checked)}
-            />
-            Active
-          </label>
+            <label>
+              <div>Category</div>
+              <select
+                value={form.category_id ?? ""}
+                onChange={(e) =>
+                  updateForm("category_id", e.target.value ? Number(e.target.value) : null)
+                }
+                style={{ width: "100%" }}
+              >
+                <option value="">— none —</option>
+                {cats.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <div style={{ gridColumn: "1 / -1" }}>
-            <button
-              onClick={create}
-              disabled={!validForm || busy}
-              style={{
-                padding: "0.5rem 0.9rem",
-                borderRadius: 6,
-                background: validForm && !busy ? "#0ea5e9" : "#93c5fd",
-                color: "white",
-                border: "none",
-                cursor: validForm && !busy ? "pointer" : "not-allowed",
-              }}
-            >
-              {busy ? "Saving…" : "Create"}
-            </button>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={!!form.is_active}
+                onChange={(e) => updateForm("is_active", e.target.checked)}
+              />
+              Active
+            </label>
+
+            <div style={{ gridColumn: "1 / -1" }}>
+              <button
+                onClick={create}
+                disabled={!validForm || busy}
+                style={{
+                  padding: "0.5rem 0.9rem",
+                  borderRadius: 6,
+                  background: validForm && !busy ? "#0ea5e9" : "#93c5fd",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                {busy ? "Saving…" : "Create"}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* List */}
+        <div
+          className="card"
+          style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "1rem", background: "#fff" }}
+        >
+          <h3 style={{ marginTop: 0 }}>Existing products</h3>
+          {!list.length && <div>No products found.</div>}
+
+          <ul className="list" style={{ listStyle: "none", paddingLeft: 0 }}>
+            {list.map((p) => {
+              const isEditing = editingId === p.id;
+              return (
+                <li
+                  key={p.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(220px,1fr) 160px 140px 120px 110px 110px",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "0.5rem 0",
+                    borderBottom: "1px solid #f1f5f9",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{p.name}</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>
+                      {p.category?.name ?? "—"} • {p.is_active ? "active" : "inactive"}
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div>
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        min={0}
+                        value={editPriceCents}
+                        onChange={(e) => setEditPriceCents(e.target.value)}
+                        style={{ width: 140 }}
+                      />
+                    ) : (
+                      <span>{fmtUSD(p.price_cents)}</span>
+                    )}
+                  </div>
+
+                  {/* External link */}
+                  <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {p.external_url ? (
+                      <a href={p.external_url} target="_blank" rel="noreferrer">
+                        External link ↗
+                      </a>
+                    ) : (
+                      <span style={{ color: "#94a3b8" }}>no link</span>
+                    )}
+                  </div>
+
+                  {/* Edit/Save */}
+                  <div>
+                    {isEditing ? (
+                      <>
+                        <button
+                          disabled={busy}
+                          onClick={() => saveEdit(p.id)}
+                          style={{
+                            padding: "0.35rem 0.6rem",
+                            borderRadius: 6,
+                            border: "1px solid #22c55e",
+                            background: "#dcfce7",
+                            color: "#166534",
+                            marginRight: 6,
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          disabled={busy}
+                          onClick={cancelEdit}
+                          style={{
+                            padding: "0.35rem 0.6rem",
+                            borderRadius: 6,
+                            border: "1px solid #cbd5e1",
+                            background: "#fff",
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        disabled={busy}
+                        onClick={() => startEdit(p)}
+                        style={{
+                          padding: "0.35rem 0.6rem",
+                          borderRadius: 6,
+                          border: "1px solid #cbd5e1",
+                          background: "#fff",
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Activate/Deactivate */}
+                  <button
+                    disabled={busy}
+                    onClick={() => quickToggleActive(p)}
+                    style={{
+                      padding: "0.35rem 0.6rem",
+                      borderRadius: 6,
+                      border: "1px solid #cbd5e1",
+                      background: "#fff",
+                    }}
+                  >
+                    {p.is_active ? "Deactivate" : "Activate"}
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    disabled={busy}
+                    onClick={() => remove(p.id)}
+                    style={{
+                      padding: "0.35rem 0.6rem",
+                      borderRadius: 6,
+                      border: "1px solid #ef4444",
+                      background: "#fee2e2",
+                      color: "#b91c1c",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
-
-      {/* List */}
-      <div
-        className="card"
-        style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "1rem" }}
-      >
-        <h3 style={{ marginTop: 0 }}>Existing products</h3>
-        {!list.length && <div>No products found.</div>}
-
-        <ul className="list" style={{ listStyle: "none", paddingLeft: 0 }}>
-          {list.map((p) => (
-            <li
-              key={p.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(200px,1fr) 120px 140px 110px 110px",
-                alignItems: "center",
-                gap: 12,
-                padding: "0.5rem 0",
-                borderBottom: "1px solid #f1f5f9",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 600 }}>{p.name}</div>
-                <div style={{ fontSize: 12, color: "#64748b" }}>
-                  {p.category ? p.category : "—"} •{" "}
-                  {p.is_active ? "active" : "inactive"}
-                </div>
-              </div>
-
-              <div>${(p.price_cents / 100).toFixed(2)}</div>
-
-              <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                {p.external_url ? (
-                  <a href={p.external_url} target="_blank" rel="noreferrer">
-                    External link ↗
-                  </a>
-                ) : (
-                  <span style={{ color: "#94a3b8" }}>no link</span>
-                )}
-              </div>
-
-              <button
-                disabled={busy}
-                onClick={() => quickToggleActive(p)}
-                style={{
-                  padding: "0.35rem 0.6rem",
-                  borderRadius: 6,
-                  border: "1px solid #cbd5e1",
-                  background: "#fff",
-                  cursor: busy ? "not-allowed" : "pointer",
-                }}
-              >
-                {p.is_active ? "Deactivate" : "Activate"}
-              </button>
-
-              <button
-                disabled={busy}
-                onClick={() => remove(p.id)}
-                style={{
-                  padding: "0.35rem 0.6rem",
-                  borderRadius: 6,
-                  border: "1px solid #ef4444",
-                  background: "#fee2e2",
-                  color: "#b91c1c",
-                  cursor: busy ? "not-allowed" : "pointer",
-                }}
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    </main>
   );
 }

@@ -1,5 +1,7 @@
 // src/lib/api.js
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+// Prefer same-origin so CSRF + cookies work without extra CORS hassle.
+// If you deploy behind a different origin, set VITE_API_URL to that full URL.
+const BASE = import.meta.env.VITE_API_URL ?? "";
 
 /* ---------- CSRF handling ---------- */
 let _csrf = null;
@@ -17,6 +19,7 @@ async function ensureCsrf() {
     _csrf = c;
     return _csrf;
   }
+  // same-origin path (BASE may be empty or a full URL; both work)
   const r = await fetch(`${BASE}/csrf-token`, { credentials: "include" });
   const data = await r.json().catch(() => ({}));
   _csrf = data?.csrfToken || readCookie("XSRF-TOKEN") || null;
@@ -29,7 +32,7 @@ const NEEDS_CSRF = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 /**
  * authedJson(path, { method, body, headers }, getToken?)
  * - getToken: optional async () => string that returns a Bearer token
- *   (e.g., Auth0's getAccessTokenSilently or your backend /auth/session fetcher)
+ *   (e.g., Auth0's getAccessTokenSilently)
  */
 export async function authedJson(
   path,
@@ -79,32 +82,22 @@ export const postJson = (path, body, getToken, headers) => authedJson(path, { me
 export const putJson  = (path, body, getToken, headers) => authedJson(path, { method: "PUT", body, headers }, getToken);
 export const delJson  = (path, getToken, headers) => authedJson(path, { method: "DELETE", headers }, getToken);
 
-/* ---------- Token via your backend (optional helper) ----------
-   If you aren’t using Auth0’s getAccessTokenSilently in the component,
-   you can pass this function as getToken to the calls below. */
-export async function getSessionAccessToken() {
-  const r = await fetch(`${BASE}/auth/session`, { credentials: "include" });
-  if (!r.ok) throw new Error("Not authenticated");
-  const { accessToken } = await r.json();
-  return accessToken;
-}
-
 /* ---------- Admin: Products ---------- */
 // Create product
-export async function adminCreateProduct(payload, getToken = getSessionAccessToken) {
+export async function adminCreateProduct(payload, getToken) {
   return postJson(`/api/admin/products`, payload, getToken);
 }
 
-// Update product (partial)
-export async function adminUpdateProduct(id, patch, getToken = getSessionAccessToken) {
-  return authedJson(`/api/admin/products/${id}`, { method: "PATCH", body: patch }, getToken);
+// Update product (backend expects PUT, not PATCH)
+export async function adminUpdateProduct(id, patch, getToken) {
+  return putJson(`/api/admin/products/${id}`, patch, getToken);
 }
 
 // Delete product
-export async function adminDeleteProduct(id, getToken = getSessionAccessToken) {
+export async function adminDeleteProduct(id, getToken) {
   return delJson(`/api/admin/products/${id}`, getToken);
 }
 
-/* ---------- Public catalog (optional) ---------- */
+/* ---------- Public catalog ---------- */
 export const fetchProducts   = (params = "", getToken) => getJson(`/api/products${params}`, getToken);
 export const fetchCategories = (_ = "", getToken) => getJson(`/api/categories`, getToken);

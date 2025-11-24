@@ -179,3 +179,41 @@ footer a {
 footer a:hover {
   color: #EDE8F5;
 } */
+
+/* Admin shell (optional, keeps your soft lilac background) */
+.admin-main {
+  background: var(--light-purple);
+  color: #1f2544; /* dark ink for headings */
+}
+
+/* Card look driven by your palette */
+.dashboard-card {
+  background: linear-gradient(135deg, var(--light-blue), var(--main-blue));
+  color: var(--white);
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(61, 82, 160, 0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(61, 82, 160, 0.25);
+  filter: brightness(1.03);
+}
+
+/* Make the number pop */
+.dashboard-card .fs-4,
+.dashboard-card .value {
+  color: var(--white);
+}
+
+/* Remove underline/blue link color on the full-card link */
+.dashboard-card .stretched-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dashboard-card .stretched-link:hover {
+  text-decoration: none;
+}
