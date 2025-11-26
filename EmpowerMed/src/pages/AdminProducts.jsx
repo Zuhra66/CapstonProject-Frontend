@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+// src/pages/AdminProducts.jsx
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   adminCreateProduct,
@@ -6,10 +7,21 @@ import {
   adminDeleteProduct,
 } from "../lib/api";
 
-const API = import.meta.env.VITE_API_URL || "/api";
+// Same-origin by default (works with your Vite proxy). If you deploy the API
+// elsewhere, set VITE_API_URL to that full origin. We'll just prefix it.
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 export default function AdminProducts() {
   const { getAccessTokenSilently } = useAuth0();
+
+  // Provide a token *getter* (function), not the token string
+  const tokenGetter = useCallback(
+    () =>
+      getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      }),
+    [getAccessTokenSilently]
+  );
 
   const [list, setList] = useState([]);
   const [cats, setCats] = useState([]);
@@ -28,9 +40,9 @@ export default function AdminProducts() {
     is_active: true,
   });
 
-  // Ensure CSRF cookie exists once (index.js serves /csrf-token)
+  // Ensure CSRF cookie exists (server serves /csrf-token)
   useEffect(() => {
-    fetch("/csrf-token", { credentials: "include" }).catch(() => {});
+    fetch(`${API_BASE}/csrf-token`, { credentials: "include" }).catch(() => {});
   }, []);
 
   async function loadAll() {
@@ -38,8 +50,8 @@ export default function AdminProducts() {
       setLoading(true);
       setError("");
       const [pRes, cRes] = await Promise.all([
-        fetch(`${API}/api/products`, { credentials: "include" }),
-        fetch(`${API}/api/categories`, { credentials: "include" }),
+        fetch(`${API_BASE}/api/products`, { credentials: "include" }),
+        fetch(`${API_BASE}/api/categories`, { credentials: "include" }),
       ]);
       if (!pRes.ok) throw new Error(`Products ${pRes.status}`);
       if (!cRes.ok) throw new Error(`Categories ${cRes.status}`);
@@ -71,9 +83,6 @@ export default function AdminProducts() {
     if (!validForm) return;
     try {
       setBusy(true);
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
       await adminCreateProduct(
         {
           ...form,
@@ -83,7 +92,7 @@ export default function AdminProducts() {
               ? null
               : Number(form.category_id),
         },
-        token
+        tokenGetter
       );
       setForm({
         name: "",
@@ -104,10 +113,7 @@ export default function AdminProducts() {
   async function quickToggleActive(p) {
     try {
       setBusy(true);
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
-      await adminUpdateProduct(p.id, { is_active: !p.is_active }, token);
+      await adminUpdateProduct(p.id, { is_active: !p.is_active }, tokenGetter);
       await loadAll();
     } catch (e) {
       alert(e?.message || "Update failed");
@@ -120,10 +126,7 @@ export default function AdminProducts() {
     if (!confirm("Delete product?")) return;
     try {
       setBusy(true);
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
-      await adminDeleteProduct(id, token);
+      await adminDeleteProduct(id, tokenGetter);
       await loadAll();
     } catch (e) {
       alert(e?.message || "Delete failed");
@@ -144,10 +147,7 @@ export default function AdminProducts() {
   async function saveEdit(id) {
     try {
       setBusy(true);
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
-      await adminUpdateProduct(id, { price_cents: Number(editPriceCents) | 0 }, token);
+      await adminUpdateProduct(id, { price_cents: Number(editPriceCents) | 0 }, tokenGetter);
       setEditingId(null);
       await loadAll();
     } catch (e) {
@@ -295,7 +295,8 @@ export default function AdminProducts() {
                   key={p.id}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "minmax(220px,1fr) 160px 140px 120px 110px 110px",
+                    gridTemplateColumns:
+                      "minmax(220px,1fr) 160px 140px 120px 110px 110px",
                     alignItems: "center",
                     gap: 12,
                     padding: "0.5rem 0",
