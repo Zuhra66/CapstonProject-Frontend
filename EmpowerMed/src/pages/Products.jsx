@@ -1,8 +1,23 @@
+// src/pages/Products.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Products.module.css";
 import ProductCard, { HeroCarousel } from "../components/ProductCard";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+/** Normalize API base:
+ *  - If VITE_API_URL is empty => use same-origin ("" so we fetch "/api/...")
+ *  - If it's the Render backend over HTTP, force HTTPS
+ *  - Strip trailing slashes
+ */
+const RAW_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE =
+  RAW_BASE === ""
+    ? ""
+    : RAW_BASE
+        .replace(
+          "http://empowermed-backend.onrender.com",
+          "https://empowermed-backend.onrender.com"
+        )
+        .replace(/\/+$/, "");
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -13,12 +28,15 @@ export default function Products() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all"); // normalized
 
+  // Resolve a base to use with new URL (must be absolute)
+  const urlBase = API_BASE || window.location.origin;
+
   // Load categories
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/categories`, {
+        const res = await fetch(`${API_BASE}/api/categories` || "/api/categories", {
           credentials: "include",
         });
         if (!res.ok) throw new Error(`Categories ${res.status}`);
@@ -53,7 +71,8 @@ export default function Products() {
     setErr("");
     (async () => {
       try {
-        const url = new URL(`${API_BASE}/api/products`);
+        // Build URL against absolute base (handles same-origin or remote API)
+        const url = new URL("/api/products", urlBase);
         if (q) url.searchParams.set("q", q);
         if (cat && cat !== "all") url.searchParams.set("category", cat); // already lowercase
 
@@ -74,7 +93,7 @@ export default function Products() {
     return () => {
       alive = false;
     };
-  }, [q, cat]);
+  }, [q, cat, urlBase]);
 
   // Client-side filter (handles category as string OR object)
   const filtered = useMemo(() => {
@@ -130,7 +149,9 @@ export default function Products() {
               <button
                 key={c.slug}
                 onClick={() => setCat(c.slug)} // slug is normalized (lowercase)
-                className={`${styles.pill} ${cat === c.slug ? styles.pillActive : ""}`}
+                className={`${styles.pill} ${
+                  cat === c.slug ? styles.pillActive : ""
+                }`}
               >
                 {c.name}
               </button>

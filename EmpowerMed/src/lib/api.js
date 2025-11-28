@@ -1,7 +1,10 @@
 // src/lib/api.js
-// Prefer same-origin so CSRF + cookies work without extra CORS hassle.
-// If you deploy behind a different origin, set VITE_API_URL to that full URL.
-const BASE = import.meta.env.VITE_API_URL ?? "";
+
+// In dev, always use same-origin so cookies + CSRF work cleanly.
+// In production, you can set VITE_API_URL if the API is on a different origin.
+const BASE = import.meta.env.DEV
+  ? ""
+  : (import.meta.env.VITE_API_URL || "");
 
 /* ---------- CSRF handling ---------- */
 let _csrf = null;
@@ -19,7 +22,7 @@ async function ensureCsrf() {
     _csrf = c;
     return _csrf;
   }
-  // same-origin path (BASE may be empty or a full URL; both work)
+
   const r = await fetch(`${BASE}/csrf-token`, { credentials: "include" });
   const data = await r.json().catch(() => ({}));
   _csrf = data?.csrfToken || readCookie("XSRF-TOKEN") || null;
@@ -29,11 +32,6 @@ async function ensureCsrf() {
 const NEEDS_CSRF = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /* ---------- Core helper ---------- */
-/**
- * authedJson(path, { method, body, headers }, getToken?)
- * - getToken: optional async () => string that returns a Bearer token
- *   (e.g., Auth0's getAccessTokenSilently)
- */
 export async function authedJson(
   path,
   { method = "GET", body, headers = {} } = {},
@@ -48,7 +46,7 @@ export async function authedJson(
     if (token) csrfHeader = { "X-XSRF-TOKEN": token };
   }
 
-  // Optional Bearer auth
+  // Optional Bearer auth (getToken is async function)
   let bearerHeader = {};
   if (typeof getToken === "function") {
     const t = await getToken();
@@ -77,27 +75,30 @@ export async function authedJson(
 }
 
 /* ---------- Convenience wrappers ---------- */
-export const getJson  = (path, getToken, headers) => authedJson(path, { method: "GET", headers }, getToken);
-export const postJson = (path, body, getToken, headers) => authedJson(path, { method: "POST", body, headers }, getToken);
-export const putJson  = (path, body, getToken, headers) => authedJson(path, { method: "PUT", body, headers }, getToken);
-export const delJson  = (path, getToken, headers) => authedJson(path, { method: "DELETE", headers }, getToken);
+export const getJson  = (path, getToken, headers) =>
+  authedJson(path, { method: "GET", headers }, getToken);
+export const postJson = (path, body, getToken, headers) =>
+  authedJson(path, { method: "POST", body, headers }, getToken);
+export const putJson  = (path, body, getToken, headers) =>
+  authedJson(path, { method: "PUT", body, headers }, getToken);
+export const delJson  = (path, getToken, headers) =>
+  authedJson(path, { method: "DELETE", headers }, getToken);
 
 /* ---------- Admin: Products ---------- */
-// Create product
 export async function adminCreateProduct(payload, getToken) {
   return postJson(`/api/admin/products`, payload, getToken);
 }
 
-// Update product (backend expects PUT, not PATCH)
 export async function adminUpdateProduct(id, patch, getToken) {
   return putJson(`/api/admin/products/${id}`, patch, getToken);
 }
 
-// Delete product
 export async function adminDeleteProduct(id, getToken) {
   return delJson(`/api/admin/products/${id}`, getToken);
 }
 
 /* ---------- Public catalog ---------- */
-export const fetchProducts   = (params = "", getToken) => getJson(`/api/products${params}`, getToken);
-export const fetchCategories = (_ = "", getToken) => getJson(`/api/categories`, getToken);
+export const fetchProducts   = (params = "", getToken) =>
+  getJson(`/api/products${params}`, getToken);
+export const fetchCategories = (_ = "", getToken) =>
+  getJson(`/api/categories`, getToken);
