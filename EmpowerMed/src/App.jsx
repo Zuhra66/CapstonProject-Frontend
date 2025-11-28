@@ -1,8 +1,8 @@
+// src/App.jsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import RedirectAfterLogin from './components/RedirectAfterLogin.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import LoginRedirect from "./pages/LoginRedirect.jsx";
@@ -21,20 +21,16 @@ import Account from './pages/Account.jsx';
 import Booking from './pages/Booking.jsx';
 import Membership from './pages/Membership.jsx';
 
-
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminProducts from './pages/AdminProducts.jsx';
 import AdminRoute from './lib/AdminRoute.jsx';
 import NotFound from './pages/NotFound.jsx';
 
-
 function App() {
   return (
     <>
       <Navbar />
-      {/* Auto-redirect admins to /admin/dashboard after login */}
-      <RedirectAfterLogin />
-
+      
       <main className="page-content">
         <div className="container mb-5">
           <Routes>
@@ -54,7 +50,7 @@ function App() {
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
 
-            {/* Admin */}
+            {/* Admin Routes */}
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route
               path="/admin/dashboard"
