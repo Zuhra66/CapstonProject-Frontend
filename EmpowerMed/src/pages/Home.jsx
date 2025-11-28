@@ -8,8 +8,9 @@ import leafIcon from '../assets/leaf.png';
 import flowerImg from '../assets/flower-icon.png';
 import '../styles/Global.css';
 import '../styles/WellnessDNAAnalyzer.css';
+import lightImg from '../assets/light.png';
 
-// Wellness DNA Analyzer Component
+// Wellness DNA Analyzer Component - Simplified without CTA
 const WellnessDNAAnalyzer = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [showResults, setShowResults] = useState(false);
@@ -60,18 +61,7 @@ const WellnessDNAAnalyzer = () => {
 
   return (
     <div className="dna-analyzer-container">
-      {/* Removed interactive five strand cards here (was .dna-strands-container) */}
-      <div className="dna-cta">
-        <p className="body-font">Tap below to decode a quick snapshot of your Wellness DNA.</p>
-        <button
-          className="btn btn-primary"
-          onClick={startAnalysis}
-          disabled={running}
-          aria-busy={running}
-        >
-          {running ? `Analyzing... ${analysisProgress}%` : 'Run Analysis'}
-        </button>
-      </div>
+      {/* CTA section removed as requested */}
 
       <motion.div
         className="analysis-progress"
@@ -94,7 +84,6 @@ const WellnessDNAAnalyzer = () => {
 
               <div className="profile-stats">
                 {wellnessStrands.map((strand, index) => {
-                  // map strand name to userProfile keys (mental, emotional, physical, spiritual, nutritional)
                   const key = strand.name.toLowerCase().includes('mental') ? 'mental'
                     : strand.name.toLowerCase().includes('emotional') ? 'emotional'
                     : strand.name.toLowerCase().includes('physical') ? 'physical'
@@ -159,7 +148,7 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const mapsUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3176.952357579847!2d-120.996583924294!3d37.63910037207168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80903e2e2a5bffff%3A0x5b5c5b5c5b5c5b5c!2s3600%20Sisk%20Rd%2C%20Modesto%2C%20CA%2095356!5e0!3m2!1sen!2sus!4v1234567890";
+  const mapsUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3176.952357579847!2d-120.996583924294!3d37.63910037207168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80903e2e2a5bffff%3A0x5b5c5b5c5b5c5b5c!2s3600%20Sisk%20Rd%2C%20Modesto%20CA%2095356!5e0!3m2!1sen!2sus!4v1234567890";
 
   return (
     <main className="home-root" role="main">
@@ -203,44 +192,123 @@ export default function Home() {
       <section className="about-section">
         <div className="container">
           <div className="about-content">
-            <div className="about-grid">
+            <motion.div
+              className="about-header"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            >
+              <h2 className="about-title display-font">WELCOME TO EMPOWERMED</h2>
+              <p className="about-subtitle body-font">
+                Transforming wellness from the inside out — mentally, emotionally, spiritually, physically, and nutritionally
+              </p>
+            </motion.div>
+
+            {/* Intro Section */}
+            <div className="about-main-grid">
               <motion.div
-                className="about-image"
+                className="about-image-main"
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 1.2, ease: 'easeOut' }}
               >
-                <img src={jasmineImg} alt="Dr. Diana Galvan" className="about-img" />
+                <img src={jasmineImg} alt="Wellness and coaching" className="about-img" />
               </motion.div>
+
               <motion.div
-                className="about-text-content"
+                className="about-text-block"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 1.2, ease: 'easeOut', delay: 0.2 }}
               >
-                <h2 className="about-title display-font">Dr. Diana Galvan</h2>
-                <p className="about-description body-font">
-                  It all started with a <strong>passion to help people</strong>. Now, I am a
-                  <span className="highlight"> life coach</span> who focuses on helping people mentally,
-                  emotionally, physically, spiritually, and nutritionally by offering
-                  <span className="highlight"> affordable life-coaching</span>.
-                </p>
-                <div className="about-divider"></div>
-                <motion.a
-                  href="/about"
-                  className="btn btn-primary body-font"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Learn More
-                </motion.a>
+                <div className="text-content">
+                  <p className="about-description body-font">
+                    EmpowerMEd is a holistic wellness and coaching practice dedicated to helping physicians, 
+                    professionals, and families find balance, clarity, and renewal.
+                  </p>
+                  <p className="about-description body-font">
+                    Founded by Dr. Diana Galván, we combine evidence-based strategies, 
+                    faith-centered encouragement, and personalized guidance to promote healing and lasting change. 
+                    Whether you are seeking emotional clarity, career direction, lifestyle transformation, 
+                    or resilience against burnout, EmpowerMEd is here to support you every step of the way.
+                  </p>
+                </div>
               </motion.div>
             </div>
+
+            {/* Philosophy Section */}
+            <div className="philosophy-section">
+              <div className="philosophy-grid">
+                <motion.div
+                  className="philosophy-content"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+                >
+                  <h3 className="philosophy-title body-font">OUR PHILOSOPHY</h3>
+                  <div className="philosophy-list">
+                    <div className="philosophy-item">
+                      <span className="philosophy-icon">💛</span>
+                      <div className="philosophy-text">
+                        <h4>Whole-Person Wellness</h4>
+                        <p>Addressing all aspects of your wellbeing - mind, body, and spirit</p>
+                      </div>
+                    </div>
+                    <div className="philosophy-item">
+                      <span className="philosophy-icon">💛</span>
+                      <div className="philosophy-text">
+                        <h4>Faith-Led Guidance</h4>
+                        <p>Evidence-based strategies with spiritual foundation and encouragement</p>
+                      </div>
+                    </div>
+                    <div className="philosophy-item">
+                      <span className="philosophy-icon">💛</span>
+                      <div className="philosophy-text">
+                        <h4>Empowering Coaching</h4>
+                        <p>Support that builds confidence and independence, not dependency</p>
+                      </div>
+                    </div>
+                    <div className="philosophy-item">
+                      <span className="philosophy-icon">💛</span>
+                      <div className="philosophy-text">
+                        <h4>Safe Space</h4>
+                        <p>Where every story is heard, valued, and respected</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  className="philosophy-image"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+                >
+                  <img src={lightImg} alt="Wellness light" className="circle-img" />
+                </motion.div>
+              </div>
+            </div>
+
+            <motion.div
+              className="about-cta"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: 'easeOut', delay: 0.7 }}
+            >
+              <motion.a
+                href="/about"
+                className="btn btn-primary body-font"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Learn More About Our Approach
+              </motion.a>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* WELLNESS DNA ANALYZER SECTION - interactive strands removed, preview cards remain */}
+      {/* WELLNESS DNA ANALYZER SECTION */}
       <section className="dna-analyzer-section">
         <div className="container">
           <div className="dna-header">
@@ -258,9 +326,7 @@ export default function Home() {
             </p>
           </div>
 
-          <WellnessDNAAnalyzer />
-
-          {/* Preview cards (kept) */}
+          {/* Preview cards only - no interactive analyzer */}
           <motion.div
             className="dna-results-preview"
             initial={{ opacity: 0 }}
@@ -427,7 +493,7 @@ export default function Home() {
                   3600 Sisk Rd, Suite 2D<br />Modesto, CA 95356
                 </p>
                 <p className="location-phone body-font">(209) 922-2007</p>
-                <a href="mailto:contact@empowermedwellness.com" className="location-email body-font">
+                <a href="mailto:drg2023@yahoo.com" className="location-email body-font">
                   DrG2023@yahoo.com
                 </a>
                 <a

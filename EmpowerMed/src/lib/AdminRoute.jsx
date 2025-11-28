@@ -1,68 +1,111 @@
 // src/lib/AdminRoute.jsx
-import React, { useEffect, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 
-/**
- * Wrap admin pages with <AdminRoute>...</AdminRoute>
- * - If not authenticated -> start Auth0 login (return to current path)
- * - If authenticated -> call /api/admin/dashboard-stats
- * - If 200 -> render children (admin)
- * - If 401/403/other -> navigate to home with a gentle message (no /login loops)
- */
-export default function AdminRoute({ children }) {
-  const { isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0();
-  const [checking, setChecking] = useState(true);
-  const [allowed, setAllowed] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const AdminRoute = ({ children }) => {
+  const { 
+    isAuthenticated, 
+    isLoading: auth0Loading, 
+    user, 
+    getAccessTokenSilently // ADD THIS
+  } = useAuth0();
+  const [backendUser, setBackendUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+
+  // Fetch backend user data
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
 
-    const run = async () => {
-      if (isLoading) return; // wait for Auth0
+    const fetchBackendUser = async () => {
       if (!isAuthenticated) {
-        await loginWithRedirect({
-          appState: { returnTo: location.pathname },
-          authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-        });
+        console.log('❌ Not authenticated, skipping backend user fetch');
+        setBackendUser(null);
+        setUserLoading(false);
         return;
       }
 
       try {
+        console.log('🔄 Fetching backend user data...');
+        setUserLoading(true);
+        
+        // Get the access token from Auth0
         const token = await getAccessTokenSilently({
-          authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-        });
-        const res = await fetch("/api/admin/dashboard-stats", {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          }
         });
 
-        if (cancelled) return;
+        const response = await fetch(`${API}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+        });
 
-        if (res.ok) {
-          setAllowed(true);
+        if (!alive) return;
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Backend user data:', data.user);
+          setBackendUser(data.user);
         } else {
-          // Not an admin or token issue -> go home (avoid /login to prevent loops)
-          navigate("/", { replace: true, state: { msg: "Admin access required." } });
+          console.log('❌ Backend user fetch failed with status:', response.status);
+          setBackendUser(null);
         }
-      } catch (e) {
-        if (!cancelled) {
-          navigate("/", { replace: true, state: { msg: "Admin access required." } });
-        }
+      } catch (error) {
+        console.error('❌ Failed to fetch backend user:', error);
+        setBackendUser(null);
       } finally {
-        if (!cancelled) setChecking(false);
+        if (alive) setUserLoading(false);
       }
     };
 
-    run();
-    return () => { cancelled = true; };
-  }, [isAuthenticated, isLoading, getAccessTokenSilently, loginWithRedirect, location.pathname, navigate]);
+    fetchBackendUser();
 
-  if (isLoading || checking) {
-    return <div style={{ padding: 24 }}>Checking admin access…</div>;
+    return () => {
+      alive = false;
+    };
+  }, [isAuthenticated, getAccessTokenSilently]); // Add dependency
+
+  const isAdmin = !!(backendUser?.is_admin || backendUser?.role === 'Administrator');
+  const isLoading = auth0Loading || userLoading;
+
+  console.log('🔍 AdminRoute Debug:', {
+    isAuthenticated,
+    auth0Loading,
+    userLoading,
+    backendUser,
+    isAdmin,
+    user: user?.email
+  });
+
+  if (isLoading) {
+    console.log('⏳ AdminRoute: Still loading...');
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
-  return allowed ? children : null;
-}
+  if (!isAuthenticated) {
+    console.log('🚫 AdminRoute: Not authenticated, redirecting to home');
+    return <Navigate to="/" replace />;
+  }
+
+  if (!isAdmin) {
+    console.log('🚫 AdminRoute: Not admin, redirecting to home. User role:', backendUser?.role, 'is_admin:', backendUser?.is_admin);
+    return <Navigate to="/" replace />;
+  }
+
+  console.log('✅ AdminRoute: User is admin, rendering children');
+  return children;
+};
+
+export default AdminRoute;
