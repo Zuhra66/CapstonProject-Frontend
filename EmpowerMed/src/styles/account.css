@@ -1,11 +1,9 @@
-/* Import font */
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
 
-/* Main container */
 .account-container {
-  max-width: 800px;
-  margin: 180px auto 2rem auto; /* pushed lower below nav bar */
-  padding: 2rem;
+  max-width: 900px;
+  margin: 120px auto 2rem auto;
+  padding: 1.5rem;
   font-family: 'Lexend', sans-serif;
   color: white;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -15,34 +13,33 @@
   overflow: hidden;
 }
 
-/* Header */
 .account-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .account-header h1 {
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: #7091E6;
   margin-bottom: 0.5rem;
+  line-height: 1.2;
 }
 
 .account-header p {
   color: #ADBBDA;
   font-size: 1rem;
   opacity: 0.8;
+  line-height: 1.4;
 }
 
-/* Card */
 .account-card {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.5rem;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Profile section */
 .account-profile {
   display: flex;
   align-items: center;
@@ -53,30 +50,87 @@
 }
 
 .account-avatar {
-  width: 110px;
-  height: 110px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #7091E6;
   box-shadow: 0 5px 15px rgba(61, 82, 160, 0.3);
+  flex-shrink: 0;
+}
+
+.account-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .account-info h2 {
-  margin: 0;
-  font-size: 1.6rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.4rem;
   color: #4ECDC4;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .account-email {
   color: #ADBBDA;
-  margin-top: 0.3rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
   opacity: 0.8;
 }
 
-/* Details section */
-.account-details {
+.account-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-admin {
+  background: linear-gradient(135deg, #FF6B6B, #EE5A52);
+  color: white;
+}
+
+.badge-role {
+  background: linear-gradient(135deg, #4ECDC4, #44A08D);
+  color: white;
+}
+
+.badge-status.active {
+  background: linear-gradient(135deg, #51CF66, #40C057);
+  color: white;
+}
+
+.badge-status.inactive {
+  background: linear-gradient(135deg, #868E96, #495057);
+  color: white;
+}
+
+.detail-group {
+  margin-bottom: 2rem;
+}
+
+.detail-group:last-child {
+  margin-bottom: 0;
+}
+
+.detail-group-title {
+  font-size: 1.1rem;
+  color: #7091E6;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.2rem 2rem;
@@ -91,56 +145,162 @@
   font-weight: 600;
   color: #7091E6;
   margin-bottom: 0.3rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.3;
 }
 
 .detail-value {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #fff;
   opacity: 0.9;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-/* Footer */
+.status-indicator {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-indicator.active {
+  background: rgba(81, 207, 102, 0.2);
+  color: #51CF66;
+  border: 1px solid #51CF66;
+}
+
+.status-indicator.inactive {
+  background: rgba(134, 142, 150, 0.2);
+  color: #868E96;
+  border: 1px solid #868E96;
+}
+
+.time-ago {
+  font-size: 0.8rem;
+  color: #ADBBDA;
+  margin-left: 0.5rem;
+  opacity: 0.7;
+}
+
 .account-footer {
   margin-top: 2rem;
   text-align: center;
   color: #ADBBDA;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-.account-link {
+.contact-button {
+  background: none;
+  border: none;
   color: #4ECDC4;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.account-link:hover {
+  cursor: pointer;
   text-decoration: underline;
+  font: inherit;
+  padding: 0;
+  margin: 0;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
+.contact-button:hover {
+  color: #7091E6;
+}
+
+.account-loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #7091E6;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(112, 145, 230, 0.3);
+  border-top: 3px solid #7091E6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.not-authenticated {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.not-authenticated h2 {
+  color: #7091E6;
+  margin-bottom: 1rem;
+}
+
+.not-authenticated p {
+  color: #ADBBDA;
+}
+
+@media (max-width: 1024px) {
   .account-container {
-    margin: 150px 1rem 2rem 1rem;
+    margin: 120px 1.5rem 2rem 1.5rem;
     padding: 1.5rem;
   }
+  
+  .account-header h1 {
+    font-size: 1.8rem;
+  }
+}
 
-  .account-details {
+@media (max-width: 768px) {
+  .account-container {
+    margin: 100px 1rem 2rem 1rem;
+    padding: 1.25rem;
+  }
+
+  .detail-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  .account-avatar {
-    width: 85px;
-    height: 85px;
+  .account-profile {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
   }
 
-  .account-info h2 {
-    font-size: 1.3rem;
+  .account-badges {
+    justify-content: center;
+  }
+
+  .detail-group {
+    margin-bottom: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .account-details {
-    grid-template-columns: 1fr;
+  .account-container {
+    margin: 90px 0.75rem 1.5rem 0.75rem;
+    padding: 1rem;
+  }
+
+  .account-card {
+    padding: 1rem;
+  }
+
+  .account-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .account-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
   }
 }
