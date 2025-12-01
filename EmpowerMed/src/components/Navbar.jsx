@@ -154,7 +154,6 @@ export default function Navbar() {
               </div>
             </Link>
             <div className={styles.navbarAuth}>
-              <div>Loading...</div>
             </div>
           </div>
         </div>
@@ -233,7 +232,20 @@ export default function Navbar() {
               {!isAuthenticated ? (
                 <div className={styles.authButtons}>
                   <button className={styles.loginBtn} onClick={handleLogin}>Login</button>
-                  <button className={styles.signupBtn} onClick={handleSignup}>Sign Up</button>
+            <a
+              style={{ color: 'black', textDecoration: 'none', cursor: 'pointer' }}
+              onClick={(e) => {
+                e.preventDefault();
+                loginWithRedirect({
+                  authorizationParams: {
+                    screen_hint: 'signup'
+                  }
+                });
+              }}
+            >
+              New User?
+              <p>Sign Up</p> 
+            </a>
                 </div>
               ) : (
                 <div className={styles.userDropdown}>

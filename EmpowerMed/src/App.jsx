@@ -20,7 +20,7 @@ import Appointment from './pages/Appointment.jsx';
 import Account from './pages/Account.jsx';
 import Booking from './pages/Booking.jsx';
 import Membership from './pages/Membership.jsx';
-
+import AdminUsers from './pages/AdminUsers.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminProducts from './pages/AdminProducts.jsx';
 import AdminRoute from './lib/AdminRoute.jsx';
@@ -68,7 +68,14 @@ function App() {
                 </AdminRoute>
               }
             />
-
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
+                </AdminRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

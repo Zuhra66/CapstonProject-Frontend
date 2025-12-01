@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
@@ -26,8 +25,6 @@ export default function AdminDashboard() {
           authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE }
         });
 
-        console.log('🔄 Fetching dashboard stats...');
-        
         const res = await fetch(`${API}/api/admin/dashboard-stats`, {
           headers: { 
             "Authorization": `Bearer ${token}`,
@@ -37,17 +34,13 @@ export default function AdminDashboard() {
         });
 
         if (!res.ok) {
-          const errorText = await res.text();
-          console.error('❌ Stats fetch failed:', res.status, errorText);
           setStats(getFallbackStats());
           return;
         }
 
         const data = await res.json();
-        console.log('✅ Dashboard stats received:', data);
         setStats(data);
       } catch (err) {
-        console.error("❌ Dashboard error:", err);
         setStats(getFallbackStats());
       } finally {
         if (alive) setLoading(false);
@@ -74,7 +67,6 @@ export default function AdminDashboard() {
     return () => { alive = false; };
   }, [isAuthenticated, isLoading, getAccessTokenSilently]);
 
-  // Main stats cards using your existing CSS classes
   const mainCards = [
     { 
       icon: FiUsers, 
@@ -100,7 +92,7 @@ export default function AdminDashboard() {
       icon: FiShoppingBag, 
       title: "Products", 
       value: stats?.products?.total,
-      gradient: "card-purple",
+      gradient: "card-orange",
       link: "/admin/products"
     },
     { 
@@ -118,7 +110,6 @@ export default function AdminDashboard() {
     },
   ];
 
-  // Additional stats for detailed view
   const detailStats = [
     { label: "New Users This Month", value: stats?.users?.newThisMonth },
     { label: "Pending Appointments", value: stats?.appointments?.pending },
@@ -177,7 +168,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard-wrapper">
-      {/* Sidebar */}
       <aside className="admin-sidebar">
         <h2 className="sidebar-title display-font">Admin Panel</h2>
         <nav className="sidebar-nav">
@@ -230,17 +220,16 @@ export default function AdminDashboard() {
 
         <button 
           onClick={() => logout({ returnTo: window.location.origin })} 
-          className="btn btn-secondary logout-btn"
+          className="btn btn-secondary logout-btn btn-sm"
+          style={{padding: '0.375rem 0.75rem', fontSize: '0.875rem'}}
         >
-          <FiLogOut className="me-2" />
+          <FiLogOut className="me-1" />
           Logout
         </button>
       </aside>
 
-      {/* Main Content */}
       <main className="admin-main page-content">
         <div className="container">
-          {/* Header */}
           <div className="about-header mb-4">
             <h1 className="display-font about-title">Administrator Dashboard</h1>
             <p className="about-subtitle body-font">
@@ -251,10 +240,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Main Stats Cards */}
-          <div className="dashboard-cards-row">
+          <div className="row mb-4">
             {mainCards.map(({ icon: Icon, title, value, gradient, link }, index) => (
-              <div key={index}>
+              <div key={index} className="col-md-4 col-6 mb-3">
                 {link ? (
                   <NavLink to={link} className="text-decoration-none">
                     <StatCard 
@@ -277,7 +265,6 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Detailed Stats Section */}
           <div className="about-section">
             <div className="about-header">
               <h2 className="display-font about-title">Detailed Statistics</h2>
@@ -297,7 +284,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* User Roles Breakdown */}
           {stats?.users?.roles && (
             <div className="about-section">
               <div className="about-header">
@@ -319,15 +305,14 @@ export default function AdminDashboard() {
   );
 }
 
-// Reusable Stat Card Component using your existing CSS
 const StatCard = ({ icon: Icon, title, value, gradient = "card-blue", clickable = false }) => {
   return (
-    <div className={`dashboard-card ${gradient} ${clickable ? 'clickable' : ''}`}>
+    <div className={`dashboard-card ${gradient} ${clickable ? 'clickable' : ''}`} style={{minHeight: '140px', padding: '1.5rem'}}>
       <div className="dashboard-icon">
-        <Icon size={32} />
+        <Icon size={20} />
       </div>
-      <h2 className="display-font">{title}</h2>
-      <p className="body-font">{value ?? 0}</p>
+      <h2 className="display-font" style={{fontSize: '1rem', margin: '0.5rem 0', lineHeight: '1.2'}}>{title}</h2>
+      <p className="body-font" style={{fontSize: '1.5rem', fontWeight: 'var(--fw-bold)', margin: 0}}>{value ?? 0}</p>
     </div>
   );
 };
