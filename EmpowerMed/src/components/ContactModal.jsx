@@ -9,7 +9,7 @@ export default function ContactModal({ isOpen, onClose }) {
   };
 
   const handleEmail = () => {
-    window.location.href = 'mailto:DrG2023@yahoo.com';
+    window.location.href = 'mailto:EmpowerMEddev@gmail.com';
   };
 
   return (
@@ -45,7 +45,7 @@ export default function ContactModal({ isOpen, onClose }) {
             <div className={styles.contactIcon}>✉️</div>
             <div className={styles.contactDetails}>
               <h3 className="display-font">Email</h3>
-              <p>DrG2023@yahoo.com</p>
+              <p>EmpowerMEddev@gmail.com</p>
             </div>
           </div>
 

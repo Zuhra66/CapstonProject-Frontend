@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
@@ -11,7 +10,6 @@ import {
   FiShoppingBag,
   FiTag,
   FiBookOpen,
-  FiMessageCircle,
   FiUserCheck,
 } from "react-icons/fi";
 
@@ -248,7 +246,6 @@ export default function AdminDashboard() {
   // Main dashboard
   return (
     <div className="admin-dashboard-wrapper">
-      {/* Sidebar */}
       <aside className="admin-sidebar">
         <h2 className="sidebar-title display-font">Admin Panel</h2>
         <nav className="sidebar-nav">
@@ -303,20 +300,18 @@ export default function AdminDashboard() {
           onClick={() => logout({ returnTo: window.location.origin })}
           className="btn btn-secondary logout-btn"
         >
-          <FiLogOut className="me-2" />
+          <FiLogOut className="me-1" />
           Logout
         </button>
       </aside>
 
-      {/* Main Content */}
       <main className="admin-main page-content">
         <div className="container">
-          {/* Header */}
           <div className="about-header mb-4">
             <h1 className="display-font about-title">Administrator Dashboard</h1>
             <p className="about-subtitle body-font">
-              Welcome back! Here&apos;s what&apos;s happening with your business
-              today.
+              Welcome back! Here&apos;s what&apos;s happening with your
+              business today.
             </p>
             <div className="text-muted small body-font">
               Last updated: {new Date().toLocaleTimeString()}
@@ -351,7 +346,6 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Detailed Stats Section */}
           <div className="about-section">
             <div className="about-header">
               <h2 className="display-font about-title">Detailed Statistics</h2>
@@ -371,7 +365,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* User Roles Breakdown */}
           {stats?.users?.roles && (
             <div className="about-section">
               <div className="about-header">
@@ -413,12 +406,27 @@ const StatCard = ({
       className={`dashboard-card ${gradient} ${
         clickable ? "clickable" : ""
       }`.trim()}
+      style={{ minHeight: "140px", padding: "1.5rem" }}
     >
       <div className="dashboard-icon">
-        <Icon size={32} />
+        <Icon size={20} />
       </div>
-      <h2 className="display-font">{title}</h2>
-      <p className="body-font">{value ?? 0}</p>
+      <h2
+        className="display-font"
+        style={{ fontSize: "1rem", margin: "0.5rem 0", lineHeight: "1.2" }}
+      >
+        {title}
+      </h2>
+      <p
+        className="body-font"
+        style={{
+          fontSize: "1.5rem",
+          fontWeight: "var(--fw-bold)",
+          margin: 0,
+        }}
+      >
+        {value ?? 0}
+      </p>
     </div>
   );
 };

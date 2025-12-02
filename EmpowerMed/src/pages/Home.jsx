@@ -200,8 +200,11 @@ export default function Home() {
             >
               <h2 className="about-title display-font">WELCOME TO EMPOWERMED</h2>
               <p className="about-subtitle body-font">
-                Transforming wellness from the inside out — mentally, emotionally, spiritually, physically, and nutritionally
+                Transforming wellness from the inside out:
               </p>
+              <p className="about-subtitle body-font">
+                Mentally, Emotionally, Spiritually, Physically, and Nutritionally
+              </p>              
             </motion.div>
 
             {/* Intro Section */}
@@ -493,8 +496,8 @@ export default function Home() {
                   3600 Sisk Rd, Suite 2D<br />Modesto, CA 95356
                 </p>
                 <p className="location-phone body-font">(209) 922-2007</p>
-                <a href="mailto:drg2023@yahoo.com" className="location-email body-font">
-                  DrG2023@yahoo.com
+                <a href="mailto:EmpowerMEddev@gmail.com" className="location-email body-font">
+                  EmpowerMEddev@gmail.com
                 </a>
                 <a
                   href="https://maps.google.com/?q=3600+Sisk+Rd+Suite+2D+Modesto+CA+95356"
