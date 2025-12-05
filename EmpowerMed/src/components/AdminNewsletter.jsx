@@ -12,7 +12,8 @@ import {
   FiFileText,
   FiCalendar,
   FiTrendingUp,
-  FiActivity
+  FiActivity,
+  FiClock
 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -94,19 +95,22 @@ export default function AdminNewsletter() {
       
       const [subscribersData, statsData] = await Promise.all([
         authedJson(
-          `/api/newsletter/subscribers?page=${pagination.currentPage}&search=${searchTerm}&status=${statusFilter}`,
+          `/api/newsletter/admin/subscribers?page=${pagination.currentPage}&search=${searchTerm}&status=${statusFilter}`,  // ADDED /admin/
           { method: "GET" },
           tokenGetter
         ),
         authedJson(
-          '/api/newsletter/stats',
+          '/api/newsletter/admin/stats',  // ADDED /admin/
           { method: "GET" },
           tokenGetter
         )
       ]);
       
+      // Check if statsData has nested stats object
+      const statsToUse = statsData.stats ? statsData : { stats: statsData };
+      
       setSubscribers(subscribersData.subscribers || []);
-      setStats(statsData);
+      setStats(statsToUse);
       setPagination(subscribersData.pagination || {
         currentPage: 1,
         totalPages: 1,
@@ -130,7 +134,7 @@ export default function AdminNewsletter() {
       setBusy(true);
       
       const token = await tokenGetter();
-      const response = await fetch(`${API}/api/newsletter/export?status=${statusFilter}`, {
+      const response = await fetch(`${API}/api/newsletter/admin/export?status=${statusFilter}`, {  // ADDED /admin/
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -174,7 +178,7 @@ export default function AdminNewsletter() {
       setBusy(true);
       
       await authedJson(
-        `/api/newsletter/subscribers/${id}`,
+        `/api/newsletter/admin/subscribers/${id}`,  // Already has /admin/
         {
           method: "DELETE"
         },
@@ -209,8 +213,10 @@ export default function AdminNewsletter() {
     }
   };
 
-  const getStatusBadge = (active) => {
-    if (active) {
+  const getStatusBadge = (subscriber) => {
+    const { active, verified_at } = subscriber;
+    
+    if (active && verified_at) {
       return (
         <span className="badge" style={{ 
           padding: '0.25em 0.5em', 
@@ -220,22 +226,36 @@ export default function AdminNewsletter() {
           color: 'black'
         }}>
           <FiUserCheck className="me-1" size={10} />
-          Active
+          Verified
+        </span>
+      );
+    } else if (!verified_at) {
+      return (
+        <span className="badge" style={{ 
+          padding: '0.25em 0.5em', 
+          fontSize: '0.7em',
+          fontWeight: '600',
+          background: '#FFA500',
+          color: 'black'
+        }}>
+          <FiClock className="me-1" size={10} />
+          Pending
+        </span>
+      );
+    } else {
+      return (
+        <span className="badge" style={{ 
+          padding: '0.25em 0.5em', 
+          fontSize: '0.7em',
+          fontWeight: '600',
+          background: '#FF0000',
+          color: 'white'
+        }}>
+          <FiUserX className="me-1" size={10} />
+          Inactive
         </span>
       );
     }
-    return (
-      <span className="badge" style={{ 
-        padding: '0.25em 0.5em', 
-        fontSize: '0.7em',
-        fontWeight: '600',
-        background: '#FF0000',
-        color: 'white'
-      }}>
-        <FiUserX className="me-1" size={10} />
-        Inactive
-      </span>
-    );
   };
 
   const getSourceBadge = (source) => {
@@ -292,7 +312,7 @@ export default function AdminNewsletter() {
                 <FiMail size={24} className="mb-2" />
                 <h6 className="card-title mb-1 fw-semibold">Total Subscribers</h6>
                 <h3 className="mb-0 fw-bold" style={{ color: 'black' }}>
-                  {stats?.totals?.total?.toLocaleString() || 0}
+                  {stats?.stats?.totals?.total?.toLocaleString() || 0}
                 </h3>
               </div>
             </div>
@@ -303,7 +323,7 @@ export default function AdminNewsletter() {
                 <FiUserCheck size={24} className="mb-2" />
                 <h6 className="card-title mb-1 fw-semibold">Active</h6>
                 <h3 className="mb-0 fw-bold" style={{ color: 'black' }}>
-                  {stats?.totals?.active?.toLocaleString() || 0}
+                  {stats?.stats?.totals?.active?.toLocaleString() || 0}
                 </h3>
               </div>
             </div>
@@ -314,7 +334,7 @@ export default function AdminNewsletter() {
                 <FiUserX size={24} className="mb-2" />
                 <h6 className="card-title mb-1 fw-semibold">Inactive</h6>
                 <h3 className="mb-0 fw-bold">
-                  {stats?.totals?.inactive?.toLocaleString() || 0}
+                  {stats?.stats?.totals?.inactive?.toLocaleString() || 0}
                 </h3>
               </div>
             </div>
@@ -325,7 +345,7 @@ export default function AdminNewsletter() {
                 <FiTrendingUp size={24} className="mb-2" />
                 <h6 className="card-title mb-1 fw-semibold">This Month</h6>
                 <h3 className="mb-0 fw-bold">
-                  {stats?.monthlyGrowth?.length > 0 ? stats.monthlyGrowth[0].new_subscribers : 0}
+                  {stats?.stats?.totals?.this_month?.toLocaleString() || 0}
                 </h3>
               </div>
             </div>
@@ -367,6 +387,7 @@ export default function AdminNewsletter() {
                   <option value="all">All Status</option>
                   <option value="active">Active Only</option>
                   <option value="inactive">Inactive Only</option>
+                  <option value="pending">Pending Verification</option>
                 </select>
               </div>
               <div className="col-md-3">
@@ -436,13 +457,14 @@ export default function AdminNewsletter() {
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Subscribed</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Source</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Status</th>
+                    <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Verified</th>
                     <th className="text-center" style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {subscribers.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="text-center py-5" style={{ color: '#3D52A0' }}>
+                      <td colSpan="6" className="text-center py-5" style={{ color: '#3D52A0' }}>
                         <FiMail size={48} className="mb-3" style={{ color: '#8697C4' }} />
                         <p className="mb-0">
                           {searchTerm || statusFilter !== 'all' 
@@ -458,6 +480,11 @@ export default function AdminNewsletter() {
                           <div className="fw-semibold" style={{ color: 'black', fontSize: '0.8rem' }}>
                             {subscriber.email}
                           </div>
+                          {subscriber.name && (
+                            <div className="text-muted small" style={{ fontSize: '0.7rem' }}>
+                              {subscriber.name}
+                            </div>
+                          )}
                         </td>
                         <td style={{ color: 'black', fontSize: '0.8rem', padding: '0.5rem' }}>
                           {formatDate(subscriber.subscribed_at)}
@@ -466,7 +493,10 @@ export default function AdminNewsletter() {
                           {getSourceBadge(subscriber.source)}
                         </td>
                         <td style={{ padding: '0.5rem' }}>
-                          {getStatusBadge(subscriber.active)}
+                          {getStatusBadge(subscriber)}
+                        </td>
+                        <td style={{ color: 'black', fontSize: '0.8rem', padding: '0.5rem' }}>
+                          {subscriber.verified_at ? formatDate(subscriber.verified_at) : 'Not verified'}
                         </td>
                         <td style={{ padding: '0.5rem' }}>
                           <div className="d-flex justify-content-center gap-1">
@@ -554,7 +584,7 @@ export default function AdminNewsletter() {
                   <div className="table-responsive">
                     <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
                       <tbody>
-                        {stats.sources?.map((source, index) => (
+                        {stats?.stats?.sources?.map((source, index) => (
                           <tr key={index} style={{ borderColor: '#ADBBDA' }}>
                             <td style={{ padding: '0.75rem', color: '#3D52A0', width: '60%' }}>
                               {source.source}
@@ -565,11 +595,17 @@ export default function AdminNewsletter() {
                                 color: 'white',
                                 fontSize: '0.75rem'
                               }}>
-                                {source.count}
+                                {source.count} ({source.percentage}%)
                               </span>
                             </td>
                           </tr>
-                        ))}
+                        )) || (
+                          <tr>
+                            <td colSpan="2" className="text-center py-3" style={{ color: '#8697C4' }}>
+                              No source data available
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -593,13 +629,14 @@ export default function AdminNewsletter() {
                         <tr style={{ borderColor: '#ADBBDA' }}>
                           <th style={{ padding: '0.75rem', color: '#3D52A0' }}>Month</th>
                           <th style={{ padding: '0.75rem', color: '#3D52A0', textAlign: 'right' }}>New Subscribers</th>
+                          <th style={{ padding: '0.75rem', color: '#3D52A0', textAlign: 'right' }}>Verified</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {stats.monthlyGrowth?.slice(0, 5).map((growth, index) => (
+                        {stats?.stats?.growth?.slice(0, 5).map((growth, index) => (
                           <tr key={index} style={{ borderColor: '#ADBBDA' }}>
                             <td style={{ padding: '0.75rem', color: 'black' }}>
-                              {new Date(growth.month + '-01').toLocaleDateString('en-US', { 
+                              {new Date(growth.month).toLocaleDateString('en-US', { 
                                 month: 'short', 
                                 year: 'numeric' 
                               })}
@@ -613,8 +650,23 @@ export default function AdminNewsletter() {
                                 +{growth.new_subscribers}
                               </span>
                             </td>
+                            <td style={{ padding: '0.75rem', color: 'black', textAlign: 'right' }}>
+                              <span className="badge" style={{ 
+                                background: '#3D52A0', 
+                                color: 'white',
+                                fontSize: '0.75rem'
+                              }}>
+                                {growth.verified}
+                              </span>
+                            </td>
                           </tr>
-                        ))}
+                        )) || (
+                          <tr>
+                            <td colSpan="3" className="text-center py-3" style={{ color: '#8697C4' }}>
+                              No growth data available
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
