@@ -49,19 +49,242 @@ function Modal({ isOpen, onClose, title, children }) {
   );
 }
 
+// Newsletter Success Modal Component
+function NewsletterSuccessModal({ isOpen, onClose, message }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999
+    }} onClick={onClose}>
+      <div className="modal-content" style={{
+        background: 'var(--light-purple)',
+        borderRadius: '12px',
+        padding: '2rem',
+        maxWidth: '500px',
+        width: '90%',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+        border: '2px solid var(--main-blue)',
+        position: 'relative'
+      }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            marginBottom: '1.5rem',
+            color: 'var(--main-blue)',
+            fontSize: '3rem'
+          }}>
+            ✓
+          </div>
+          <h3 style={{
+            fontFamily: 'var(--heading-font)',
+            color: 'var(--main-blue)',
+            marginBottom: '1rem',
+            fontSize: '1.8rem'
+          }}>
+            Thank You!
+          </h3>
+          <p style={{
+            fontFamily: 'var(--body-font)',
+            color: 'var(--dark-text)',
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+            marginBottom: '2rem'
+          }}>
+            {message}
+          </p>
+          <button 
+            onClick={onClose}
+            style={{
+              background: 'var(--main-blue)',
+              color: 'var(--white)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.75rem 2rem',
+              fontSize: '1rem',
+              fontFamily: 'var(--body-font)',
+              fontWeight: 'var(--fw-semi-bold)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = 'var(--light-blue)';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = 'var(--main-blue)';
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Newsletter Error Modal Component
+function NewsletterErrorModal({ isOpen, onClose, message }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999
+    }} onClick={onClose}>
+      <div className="modal-content" style={{
+        background: 'var(--light-purple)',
+        borderRadius: '12px',
+        padding: '2rem',
+        maxWidth: '500px',
+        width: '90%',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+        border: '2px solid #FF6B6B',
+        position: 'relative'
+      }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            marginBottom: '1.5rem',
+            color: '#FF6B6B',
+            fontSize: '3rem'
+          }}>
+            ⚠️
+          </div>
+          <h3 style={{
+            fontFamily: 'var(--heading-font)',
+            color: '#FF6B6B',
+            marginBottom: '1rem',
+            fontSize: '1.8rem'
+          }}>
+            Oops!
+          </h3>
+          <p style={{
+            fontFamily: 'var(--body-font)',
+            color: 'var(--dark-text)',
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+            marginBottom: '2rem'
+          }}>
+            {message}
+          </p>
+          <button 
+            onClick={onClose}
+            style={{
+              background: '#FF6B6B',
+              color: 'var(--white)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.75rem 2rem',
+              fontSize: '1rem',
+              fontFamily: 'var(--body-font)',
+              fontWeight: 'var(--fw-semi-bold)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#FF5252';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = '#FF6B6B';
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Main Footer Component
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    // HIPAA compliant: Don't store health information in newsletter
-    console.log("Newsletter signup:", email);
-    setEmail("");
-    alert("Thank you for subscribing to our wellness newsletter!");
-  };
+// In Footer.jsx, update the handleNewsletterSubmit function:
+const handleNewsletterSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!email) {
+    setModalMessage("Please enter your email address");
+    setIsErrorModalOpen(true);
+    return;
+  }
+  
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setModalMessage("Please enter a valid email address");
+    setIsErrorModalOpen(true);
+    return;
+  }
+  
+  setIsLoading(true);
+  
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        email,
+        name: '' 
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      setEmail('');
+      
+      if (result.verified) {
+        // Already verified and subscribed
+        setModalMessage("You're already subscribed to our newsletter!");
+        setIsSuccessModalOpen(true);
+      } else {
+        // Needs verification
+        setModalMessage("Thank you! Please check your email to confirm your subscription.");
+        setIsSuccessModalOpen(true);
+      }
+    } else {
+      const errorData = await response.json();
+      setModalMessage(errorData.message || "Subscription failed. Please try again.");
+      setIsErrorModalOpen(true);
+    }
+  } catch (error) {
+    console.error("Newsletter error:", error);
+    setModalMessage("Network error. Please check your connection and try again.");
+    setIsErrorModalOpen(true);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleLegalClick = (e, modalType) => {
     e.preventDefault();
@@ -123,9 +346,15 @@ export default function Footer() {
                   onChange={(e) => setEmail(e.target.value)}
                   required 
                   aria-label="Email for newsletter"
+                  disabled={isLoading}
                 />
-                <button type="submit" className={styles.newsletterButton}>
-                  Sign Up
+                <button 
+                  type="submit" 
+                  className={styles.newsletterButton}
+                  disabled={isLoading}
+                  style={isLoading ? { opacity: 0.7, cursor: 'not-allowed' } : {}}
+                >
+                  {isLoading ? 'Subscribing...' : 'Sign Up'}
                 </button>
               </form>
             </div>
@@ -154,6 +383,20 @@ export default function Footer() {
         </div>
       </footer>
 
+      {/* Newsletter Success Modal */}
+      <NewsletterSuccessModal 
+        isOpen={isSuccessModalOpen} 
+        onClose={() => setIsSuccessModalOpen(false)}
+        message={modalMessage}
+      />
+
+      {/* Newsletter Error Modal */}
+      <NewsletterErrorModal 
+        isOpen={isErrorModalOpen} 
+        onClose={() => setIsErrorModalOpen(false)}
+        message={modalMessage}
+      />
+
       {/* Terms of Service Modal */}
       <Modal 
         isOpen={isTermsOpen} 
@@ -162,10 +405,10 @@ export default function Footer() {
       >
         <div className={styles.modalText}>
           <p>
-            <strong>Welcome to EmpowerMEd Wellness (“Company,” “we,” “our,” “us”).</strong> 
-            These Terms and Conditions (“Terms”) govern your use of our website, 
-            https://www.empowermedwellness.com/ (“Site”), and all services, programs, 
-            products, and content offered by EmpowerMEd Wellness (collectively, the “Services”). 
+            <strong>Welcome to EmpowerMEd Wellness ("Company," "we," "our," "us").</strong> 
+            These Terms and Conditions ("Terms") govern your use of our website, 
+            https://www.empowermedwellness.com/ ("Site"), and all services, programs, 
+            products, and content offered by EmpowerMEd Wellness (collectively, the "Services"). 
             By accessing or using our Site or Services, you agree to be bound by these Terms. 
             If you do not agree, please do not use the Site or Services.
           </p>

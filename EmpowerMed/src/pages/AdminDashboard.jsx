@@ -1,9 +1,11 @@
+// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
 import {
   FiUsers, FiClipboard, FiCalendar, FiBarChart, FiLogOut,
-  FiShoppingBag, FiTag, FiBookOpen, FiMessageCircle, FiUserCheck
+  FiShoppingBag, FiTag, FiBookOpen, FiMessageCircle, FiUserCheck,
+  FiMail // Add this import
 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -57,7 +59,8 @@ export default function AdminDashboard() {
       events: { upcoming: 0 },
       memberships: { plans: 0, active: 0 },
       messages: { total: 0 },
-      audit: { total: 0 }
+      audit: { total: 0 },
+      newsletter: { total: 0, active: 0 } // Add newsletter fallback
     });
 
     if (isAuthenticated && !isLoading) {
@@ -76,10 +79,11 @@ export default function AdminDashboard() {
       link: "/admin/users"
     },
     { 
-      icon: FiUserCheck, 
-      title: "Active Users", 
-      value: stats?.users?.active,
-      gradient: "card-green"
+      icon: FiMail, // Newsletter card
+      title: "Newsletter", 
+      value: stats?.newsletter?.total || 0,
+      gradient: "card-green",
+      link: "/admin/newsletter"
     },
     { 
       icon: FiCalendar, 
@@ -112,6 +116,7 @@ export default function AdminDashboard() {
 
   const detailStats = [
     { label: "New Users This Month", value: stats?.users?.newThisMonth },
+    { label: "Active Newsletter", value: stats?.newsletter?.active || 0 }, // Add newsletter stat
     { label: "Pending Appointments", value: stats?.appointments?.pending },
     { label: "Today's Appointments", value: stats?.appointments?.today },
     { label: "Categories", value: stats?.categories?.total },
@@ -188,6 +193,15 @@ export default function AdminDashboard() {
           >
             <FiUsers className="dashboard-icon" />
             Users
+          </NavLink>
+          <NavLink 
+            to="/admin/newsletter" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiMail className="dashboard-icon" /> {/* Add newsletter link */}
+            Newsletter
           </NavLink>
           <NavLink 
             to="/admin/appointments" 
