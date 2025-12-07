@@ -26,6 +26,7 @@ import AdminProducts from './pages/AdminProducts.jsx';
 import AdminNewsletter from './components/AdminNewsletter.jsx'; 
 import AdminRoute from './lib/AdminRoute.jsx';
 import NotFound from './pages/NotFound.jsx';
+import AdminAuditLogs from './components/AdminAuditLogs.jsx';
 
 function App() {
   return (
@@ -66,6 +67,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminProducts />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/audit"
+              element={
+                <AdminRoute>
+                  <AdminAuditLogs />
                 </AdminRoute>
               }
             />
