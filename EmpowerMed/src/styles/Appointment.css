@@ -1,6 +1,7 @@
 /* ---------------------------------------------------
    GLOBAL VARIABLES & IMPORTS
 --------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Aboreto&display=swap");
 :root {
   --main-blue: #3D52A0;
   --light-blue: #7091E6;
@@ -12,8 +13,6 @@
   --light-text: #6C757D;
   --heading-font: "Aboreto", cursive;
 }
-
-@import url("https://fonts.googleapis.com/css2?family=Aboreto&display=swap");
 
 body {
   margin: 0;

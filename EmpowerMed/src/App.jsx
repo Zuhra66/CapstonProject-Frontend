@@ -80,6 +80,10 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAppointments />
+                </AdminRoute>
+              }
+            />
+            <Route
               path="/admin/audit"
               element={
                 <AdminRoute>
@@ -96,7 +100,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/newsletter"  // Add this route
+              path="/admin/newsletter"
               element={
                 <AdminRoute>
                   <AdminNewsletter />
