@@ -3,8 +3,43 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/Blog.css";
 
-// ✅ Use env var in production, localhost for local dev
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// Use same base URL as rest of app & strip trailing slashes
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001"
+).replace(/\/+$/, "");
+
+function BlogHeader({ subtitleExtra }) {
+  return (
+    <>
+      <h1 className="blog-title">EMPOWERMED BLOG – INSIGHTS &amp; REFLECTIONS</h1>
+      <p className="blog-subtitle">
+        A space dedicated to sharing stories, inspiration, healing moments, and tools for
+        personal growth.
+      </p>
+
+      {subtitleExtra && (
+        <p className="blog-subtitle">{subtitleExtra}</p>
+      )}
+
+      <div className="blog-themes">
+        <h2 className="blog-themes-title">Blog Themes</h2>
+        <ul className="blog-themes-list">
+          <li>Emotional resilience</li>
+          <li>Faith reflections</li>
+          <li>Mindset growth</li>
+          <li>Burnout recovery</li>
+          <li>Life lessons</li>
+          <li>Wellness strategies</li>
+          <li>Leadership &amp; purpose</li>
+          <li>Empowerment stories</li>
+        </ul>
+        <p className="blog-themes-note">
+          Each entry is designed to encourage, uplift, and guide you on your wellness journey.
+        </p>
+      </div>
+    </>
+  );
+}
 
 function Blog() {
   const [posts, setPosts] = useState([]);
@@ -18,12 +53,18 @@ function Blog() {
 
         if (!res.ok) {
           const text = await res.text();
-          console.error("Backend error:", text);
+          console.error("Backend error:", res.status, text);
           throw new Error(`HTTP ${res.status}`);
         }
 
         const data = await res.json();
-        const normalized = Array.isArray(data) ? data : data.results || [];
+
+        // Backend returns { posts: [...] }
+        const normalized = Array.isArray(data)
+          ? data
+          : Array.isArray(data.posts)
+          ? data.posts
+          : [];
 
         setPosts(normalized);
       } catch (err) {
@@ -41,8 +82,7 @@ function Blog() {
     return (
       <div className="blog-page">
         <div className="blog-inner">
-          <h1 className="blog-title">Blog</h1>
-          <p className="blog-subtitle">Loading posts…</p>
+          <BlogHeader subtitleExtra="Loading posts…" />
         </div>
       </div>
     );
@@ -52,7 +92,7 @@ function Blog() {
     return (
       <div className="blog-page">
         <div className="blog-inner">
-          <h1 className="blog-title">Blog</h1>
+          <BlogHeader />
           <p className="blog-subtitle blog-error">{error}</p>
         </div>
       </div>
@@ -63,7 +103,7 @@ function Blog() {
     return (
       <div className="blog-page">
         <div className="blog-inner">
-          <h1 className="blog-title">Blog</h1>
+          <BlogHeader />
           <p className="blog-subtitle">No published posts yet.</p>
         </div>
       </div>
@@ -73,46 +113,28 @@ function Blog() {
   return (
     <div className="blog-page">
       <div className="blog-inner">
-        <h1 className="blog-title">EmpowerMEd Blog</h1>
-        <p className="blog-subtitle">
-          This blog shares easy-to-understand wellness insights, practical
-          health tips, and empowering information to support your well-being.
-        </p>
-
+        <BlogHeader />
         <div className="blog-grid">
-          {posts.map((page) => {
-            const props = page.properties || {};
-
-            const title =
-              props.Name?.title?.[0]?.plain_text || "Untitled post";
-
-            const slugProp = props["Slug (URL text)"] || props.Slug;
-            const slug = slugProp?.rich_text?.[0]?.plain_text || "";
-
-            const publishDateProp = props["Publish Date"];
-            const publishDate = publishDateProp?.date?.start;
-
-            const preview =
-              props.Summary?.rich_text?.[0]?.plain_text ||
-              props.Description?.rich_text?.[0]?.plain_text ||
-              props.Excerpt?.rich_text?.[0]?.plain_text ||
-              "Click to read the full article.";
+          {posts.map((post) => {
+            const { id, title, slug, publishedAt, preview } = post;
 
             if (!slug) return null;
 
             return (
-              <Link key={page.id} to={`/blog/${slug}`} className="blog-card">
+              <Link key={id} to={`/blog/${slug}`} className="blog-card">
                 <div className="blog-card-header">
                   <span className="blog-card-tag">Wellness</span>
-                  {publishDate && (
+                  {publishedAt && (
                     <span className="blog-card-date">
-                      {new Date(publishDate).toLocaleDateString()}
+                      {new Date(publishedAt).toLocaleDateString()}
                     </span>
                   )}
                 </div>
 
-                <h2 className="blog-card-title">{title}</h2>
-                <p className="blog-card-preview">{preview}</p>
+                <h2 className="blog-card-title">{title || "Untitled post"}</h2>
+                <p className="blog-card-preview">
+                  {preview || "Click to read the full article."}
+                </p>
                 <span className="blog-card-link">Read more →</span>
               </Link>
             );

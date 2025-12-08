@@ -5,16 +5,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
-import LoginRedirect from "./pages/LoginRedirect.jsx";
+import LoginRedirect from './pages/LoginRedirect.jsx';
 import Home from './pages/Home.jsx';
 import Services from './pages/Services.jsx';
 import Events from './pages/Events.jsx';
-import EventDetail from "./pages/EventDetail.jsx";
+import EventDetail from './pages/EventDetail.jsx';
 import Products from './pages/Products.jsx';
 import Blog from './pages/Blog.jsx';
-import BlogPost from "./pages/BlogPost.jsx";
-import Education from './pages/EducationalHub';
-import EducationAdmin from "./pages/EducationAdmin";
+import BlogPost from './pages/BlogPost.jsx';
+import Education from './pages/EducationalHub.jsx';
+import EducationAdmin from './pages/EducationAdmin.jsx';
 import About from './pages/About.jsx';
 import Appointment from './pages/Appointment.jsx';
 import Account from './pages/Account.jsx';
@@ -23,6 +23,8 @@ import Membership from './pages/Membership.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminProducts from './pages/AdminProducts.jsx';
+import AdminEvents from './pages/AdminEvents.jsx';
+import AdminBlog from './pages/AdminBlog.jsx';
 import AdminRoute from './lib/AdminRoute.jsx';
 import NotFound from './pages/NotFound.jsx';
 
@@ -30,10 +32,11 @@ function App() {
   return (
     <>
       <Navbar />
-      
+
       <main className="page-content">
         <div className="container mb-5">
           <Routes>
+            {/* Public routes */}
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />
@@ -48,10 +51,13 @@ function App() {
             <Route path="/events/:slug" element={<EventDetail />} />
             <Route path="/booking" element={<Booking />} />
             <Route path="/membership" element={<Membership />} />
-            <Route path="/education/admin" element={<EducationAdmin />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            {/* Admin routes */}
+            <Route
+              path="/admin"
+              element={<Navigate to="/admin/dashboard" replace />}
+            />
+
             <Route
               path="/admin/dashboard"
               element={
@@ -60,6 +66,7 @@ function App() {
                 </AdminRoute>
               }
             />
+
             <Route
               path="/admin/products"
               element={
@@ -68,6 +75,7 @@ function App() {
                 </AdminRoute>
               }
             />
+
             <Route
               path="/admin/users"
               element={
@@ -76,6 +84,36 @@ function App() {
                 </AdminRoute>
               }
             />
+
+            <Route
+              path="/admin/events"
+              element={
+                <AdminRoute>
+                  <AdminEvents />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/blog"
+              element={
+                <AdminRoute>
+                  <AdminBlog />
+                </AdminRoute>
+              }
+            />
+
+            {/* Admin Education Hub */}
+            <Route
+              path="/admin/education"
+              element={
+                <AdminRoute>
+                  <EducationAdmin />
+                </AdminRoute>
+              }
+            />
+
+            {/* 404 fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

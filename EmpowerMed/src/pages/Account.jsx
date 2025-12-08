@@ -9,7 +9,7 @@ export default function Account() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
   const [loadingBackend, setLoadingBackend] = useState(true)
 
-  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
   useEffect(() => {
     const fetchBackendUser = async () => {
@@ -25,8 +25,9 @@ export default function Account() {
             audience: import.meta.env.VITE_AUTH0_AUDIENCE,
           }
         });
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(/\/+$/, "");
 
-        const response = await fetch(`${API}/auth/me`, {
+       const response = await fetch(`${API}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

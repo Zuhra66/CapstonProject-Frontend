@@ -1,6 +1,9 @@
+// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
+import "../styles/admin-dashboard.css";
+
 import {
   FiUsers,
   FiClipboard,
@@ -13,9 +16,11 @@ import {
   FiUserCheck,
 } from "react-icons/fi";
 
-// Backend base URL – set VITE_API_BASE_URL in Render for production.
-// For local dev you can also set it in your .env.
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+// Normalized backend base URL
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(
+  /\/+$/,
+  ""
+);
 
 const getFallbackStats = () => ({
   users: { total: 0, active: 0, newThisMonth: 0, roles: {} },
@@ -50,7 +55,6 @@ export default function AdminDashboard() {
       try {
         if (isLoading) return;
 
-        // Not logged in → send to Auth0, then back here
         if (!isAuthenticated) {
           await loginWithRedirect({
             appState: { returnTo: window.location.pathname },
@@ -58,14 +62,11 @@ export default function AdminDashboard() {
           return;
         }
 
-        // Get API access token
         const token = await getAccessTokenSilently({
           authorizationParams: {
             audience: import.meta.env.VITE_AUTH0_AUDIENCE,
           },
         });
-
-        console.log("🔄 Fetching dashboard stats...");
 
         const res = await fetch(`${API_BASE}/api/admin/dashboard-stats`, {
           method: "GET",
@@ -78,11 +79,7 @@ export default function AdminDashboard() {
 
         if (!res.ok) {
           const text = await res.text();
-          console.error(
-            "❌ Stats fetch failed:",
-            res.status,
-            text.slice(0, 200)
-          );
+          console.error("❌ Stats fetch failed:", res.status, text.slice(0, 200));
 
           if (!alive) return;
 
@@ -101,7 +98,6 @@ export default function AdminDashboard() {
         const data = await res.json();
         if (!alive) return;
 
-        console.log("✅ Dashboard stats received:", data);
         setStats(data || getFallbackStats());
       } catch (e) {
         if (!alive) return;
@@ -109,7 +105,6 @@ export default function AdminDashboard() {
 
         const msg = String(e?.message || e);
         if (msg.includes("login_required")) {
-          // Token expired / not present – re-login
           await loginWithRedirect({
             appState: { returnTo: window.location.pathname },
           });
@@ -128,7 +123,9 @@ export default function AdminDashboard() {
     };
   }, [isLoading, isAuthenticated, loginWithRedirect, getAccessTokenSilently]);
 
-  // Main stats cards
+  const educationTotal =
+    (stats?.education?.articles || 0) + (stats?.education?.videos || 0);
+
   const mainCards = [
     {
       icon: FiUsers,
@@ -162,18 +159,38 @@ export default function AdminDashboard() {
       title: "Blog Posts",
       value: stats?.blog?.total,
       gradient: "card-blue",
-      link: "/blog",
+      link: "/admin/blog-posts",
+    },
+    {
+      icon: FiBookOpen,
+      title: "Education Hub Items",
+      value: educationTotal,
+      gradient: "card-slate",
+      link: "/admin/education",
+    },
+    {
+      icon: FiCalendar,
+      title: "Upcoming Events",
+      value: stats?.events?.upcoming,
+      gradient: "card-slate",
+      link: "/admin/events",
+    },
+    {
+      icon: FiUsers,
+      title: "Active Memberships",
+      value: stats?.memberships?.active,
+      gradient: "card-green",
+      link: "/admin/memberships",
     },
     {
       icon: FiClipboard,
       title: "Audit Logs",
       value: stats?.audit?.total,
-      gradient: "card-green",
+      gradient: "card-blue",
       link: "/admin/audit",
     },
   ];
 
-  // Detailed stats
   const detailStats = [
     { label: "New Users This Month", value: stats?.users?.newThisMonth },
     { label: "Pending Appointments", value: stats?.appointments?.pending },
@@ -187,7 +204,6 @@ export default function AdminDashboard() {
     { label: "Contact Messages", value: stats?.messages?.total },
   ];
 
-  // Loading skeleton
   if (isLoading || loading) {
     return (
       <div className="admin-dashboard-wrapper">
@@ -199,7 +215,7 @@ export default function AdminDashboard() {
                 key={i}
                 className="sidebar-link placeholder"
                 style={{ height: "38px" }}
-              ></div>
+              />
             ))}
           </nav>
         </aside>
@@ -210,14 +226,14 @@ export default function AdminDashboard() {
               <div
                 className="placeholder col-6 display-font mb-3"
                 style={{ height: "40px" }}
-              ></div>
+              />
               <div className="dashboard-cards-row">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
+                {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
                     className="dashboard-card placeholder"
                     style={{ height: "140px" }}
-                  ></div>
+                  />
                 ))}
               </div>
             </div>
@@ -227,7 +243,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // Error / access denied state
   if (error) {
     return (
       <div className="page-content pt-small">
@@ -243,7 +258,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // Main dashboard
   return (
     <div className="admin-dashboard-wrapper">
       <aside className="admin-sidebar">
@@ -286,6 +300,42 @@ export default function AdminDashboard() {
             Products
           </NavLink>
           <NavLink
+            to="/admin/events"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiCalendar className="dashboard-icon" />
+            Events
+          </NavLink>
+          <NavLink
+            to="/admin/blog-posts"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiBookOpen className="dashboard-icon" />
+            Blog Posts
+          </NavLink>
+          <NavLink
+            to="/admin/education"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiBookOpen className="dashboard-icon" />
+            Education Hub
+          </NavLink>
+          <NavLink
+            to="/admin/memberships"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiUsers className="dashboard-icon" />
+            Memberships
+          </NavLink>
+          <NavLink
             to="/admin/audit"
             className={({ isActive }) =>
               `sidebar-link ${isActive ? "active" : ""}`
@@ -297,7 +347,11 @@ export default function AdminDashboard() {
         </nav>
 
         <button
-          onClick={() => logout({ returnTo: window.location.origin })}
+          onClick={() =>
+            logout({
+              logoutParams: { returnTo: window.location.origin },
+            })
+          }
           className="btn btn-secondary logout-btn"
         >
           <FiLogOut className="me-1" />
@@ -310,8 +364,8 @@ export default function AdminDashboard() {
           <div className="about-header mb-4">
             <h1 className="display-font about-title">Administrator Dashboard</h1>
             <p className="about-subtitle body-font">
-              Welcome back! Here&apos;s what&apos;s happening with your
-              business today.
+              Welcome back! Here&apos;s what&apos;s happening with your business
+              today.
             </p>
             <div className="text-muted small body-font">
               Last updated: {new Date().toLocaleTimeString()}
@@ -393,40 +447,37 @@ export default function AdminDashboard() {
   );
 }
 
-// Reusable Stat Card Component
 const StatCard = ({
   icon: Icon,
   title,
   value,
   gradient = "card-blue",
   clickable = false,
-}) => {
-  return (
-    <div
-      className={`dashboard-card ${gradient} ${
-        clickable ? "clickable" : ""
-      }`.trim()}
-      style={{ minHeight: "140px", padding: "1.5rem" }}
-    >
-      <div className="dashboard-icon">
-        <Icon size={20} />
-      </div>
-      <h2
-        className="display-font"
-        style={{ fontSize: "1rem", margin: "0.5rem 0", lineHeight: "1.2" }}
-      >
-        {title}
-      </h2>
-      <p
-        className="body-font"
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: "var(--fw-bold)",
-          margin: 0,
-        }}
-      >
-        {value ?? 0}
-      </p>
+}) => (
+  <div
+    className={`dashboard-card ${gradient} ${
+      clickable ? "clickable" : ""
+    }`.trim()}
+    style={{ minHeight: "140px", padding: "1.5rem" }}
+  >
+    <div className="dashboard-icon">
+      <Icon size={20} />
     </div>
-  );
-};
+    <h2
+      className="display-font"
+      style={{ fontSize: "1rem", margin: "0.5rem 0", lineHeight: "1.2" }}
+    >
+      {title}
+    </h2>
+    <p
+      className="body-font"
+      style={{
+        fontSize: "1.5rem",
+        fontWeight: "var(--fw-bold)",
+        margin: 0,
+      }}
+    >
+      {value ?? 0}
+    </p>
+  </div>
+);

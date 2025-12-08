@@ -3,11 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Products.module.css";
 import ProductCard, { HeroCarousel } from "../components/ProductCard";
 
-/** Normalize API base:
- *  - If VITE_API_URL is empty => use same-origin ("" so we fetch "/api/...")
- *  - If it's the Render backend over HTTP, force HTTPS
- *  - Strip trailing slashes
- */
+/** Normalize API base */
 const RAW_BASE = import.meta.env.VITE_API_URL ?? "";
 const API_BASE =
   RAW_BASE === ""
@@ -26,24 +22,25 @@ export default function Products() {
   const [err, setErr] = useState("");
 
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all"); // normalized
+  const [cat, setCat] = useState("all");
 
-  // Resolve a base to use with new URL (must be absolute)
   const urlBase = API_BASE || window.location.origin;
 
+  // --------------------------
   // Load categories
+  // --------------------------
   useEffect(() => {
     let alive = true;
+
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/categories` || "/api/categories", {
-          credentials: "include",
-        });
+        const url = API_BASE ? `${API_BASE}/api/categories` : "/api/categories";
+        const res = await fetch(url, { credentials: "include" });
         if (!res.ok) throw new Error(`Categories ${res.status}`);
-        let rows = await res.json(); // expect [{name, slug}]
+
+        let rows = await res.json(); // expect array of categories
         if (!alive) return;
 
-        // normalize: ensure lowercase slug and fallback if missing
         rows = (rows || []).map((c) => {
           const name = c.name ?? c.slug ?? "Unknown";
           const slug = (c.slug ?? name)
@@ -51,7 +48,7 @@ export default function Products() {
             .trim()
             .toLowerCase()
             .replace(/\s+/g, "-");
-          return { name, slug };
+          return { ...c, name, slug };
         });
 
         setCategories([{ name: "All", slug: "all" }, ...rows]);
@@ -59,30 +56,35 @@ export default function Products() {
         console.warn("Categories load failed:", e);
       }
     })();
+
     return () => {
       alive = false;
     };
   }, []);
 
+  // --------------------------
   // Load products (server-side filter)
+  // --------------------------
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setErr("");
+
     (async () => {
       try {
-        // Build URL against absolute base (handles same-origin or remote API)
         const url = new URL("/api/products", urlBase);
         if (q) url.searchParams.set("q", q);
-        if (cat && cat !== "all") url.searchParams.set("category", cat); // already lowercase
+        if (cat && cat !== "all") url.searchParams.set("category", cat);
 
         const res = await fetch(url.toString(), { credentials: "include" });
         if (!res.ok) throw new Error(`Products ${res.status}`);
+
         const rows = await res.json();
         if (!alive) return;
+
         setProducts(rows || []);
       } catch (e) {
-        console.error(e);
+        console.error("Products load error:", e);
         if (!alive) return;
         setErr("We couldn’t load products. Please try again.");
       } finally {
@@ -95,7 +97,9 @@ export default function Products() {
     };
   }, [q, cat, urlBase]);
 
-  // Client-side filter (handles category as string OR object)
+  // --------------------------
+  // Client-side filter
+  // --------------------------
   const filtered = useMemo(() => {
     const list = products || [];
     const ql = q.trim().toLowerCase();
@@ -123,9 +127,11 @@ export default function Products() {
     });
   }, [products, q, cat]);
 
+  // --------------------------
+  // Render
+  // --------------------------
   return (
     <div className={styles.page}>
-      {/* Full-bleed banner with image-only slideshow */}
       <header className={styles.hero}>
         <div className={styles.heroInner}>
           <HeroCarousel items={products} intervalMs={4000} />
@@ -148,7 +154,7 @@ export default function Products() {
             {categories.map((c) => (
               <button
                 key={c.slug}
-                onClick={() => setCat(c.slug)} // slug is normalized (lowercase)
+                onClick={() => setCat(c.slug)}
                 className={`${styles.pill} ${
                   cat === c.slug ? styles.pillActive : ""
                 }`}
@@ -170,7 +176,8 @@ export default function Products() {
                 product={{
                   id: p.id,
                   name: p.name,
-                  price_cents: p.price_cents,
+                  price: p.price,          // dollars
+                  price_cents: p.price_cents, // legacy safety
                   image_url: p.image_url,
                   tags: p.tags,
                   external_url: p.external_url,

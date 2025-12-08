@@ -1,10 +1,12 @@
+// src/components/ProductCard.jsx
 import React from "react";
 import styles from "../styles/Products.module.css";
 
-function formatCents(cents) {
-  if (cents == null) return "$0.00";
-  const dollars = (Number(cents) / 100).toFixed(2);
-  return `$${dollars}`;
+function formatPrice(dollars) {
+  if (dollars == null || dollars === "") return "$0.00";
+  const n = Number(dollars);
+  if (Number.isNaN(n)) return "$0.00";
+  return `$${n.toFixed(2)}`;
 }
 
 /* ---------------- Hero slideshow (image-only) ---------------- */
@@ -46,7 +48,9 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
         {slides.map((s, idx) => (
           <div
             key={s.id ?? idx}
-            className={`${styles.heroSlide} ${idx === i ? styles.heroSlideActive : ""}`}
+            className={`${styles.heroSlide} ${
+              idx === i ? styles.heroSlideActive : ""
+            }`}
             aria-hidden={idx !== i}
           >
             <img src={s.src} alt={s.alt} />
@@ -74,7 +78,9 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
           {slides.map((_, idx) => (
             <button
               key={idx}
-              className={`${styles.heroDot} ${idx === i ? styles.heroDotActive : ""}`}
+              className={`${styles.heroDot} ${
+                idx === i ? styles.heroDotActive : ""
+              }`}
               aria-label={`Go to slide ${idx + 1}`}
               onClick={() => {
                 clearInterval(timer.current);
@@ -92,22 +98,28 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
 export default function ProductCard({ product }) {
   const {
     name,
-    price_cents,                // preferred (from API)
-    price,                      // fallback if API ever returns dollars
+    // NEW: dollars is the main field
+    price,
+    // optional fallback if some records still send cents
+    price_cents,
     image_url,
     image,
     tags = [],
     external_url,
-    externalUrl,                // fallback
+    externalUrl,
   } = product || {};
 
   const img = image_url || image;
-  const href = external_url || externalUrl || "https://empowermed.threeinternational.com/en";
+  const href =
+    external_url || externalUrl || "https://empowermed.threeinternational.com/en";
 
+  // Prefer dollars; if only cents exist, convert them
   const displayPrice =
-    price_cents != null ? formatCents(price_cents) :
-    price != null       ? `$${Number(price).toFixed(2)}` :
-                          "$0.00";
+    price != null
+      ? formatPrice(price)
+      : price_cents != null
+      ? formatPrice(Number(price_cents) / 100)
+      : "$0.00";
 
   return (
     <article className={styles.card}>
@@ -145,7 +157,12 @@ export default function ProductCard({ product }) {
             <div className={styles.price}>{displayPrice}</div>
             <div className={styles.muted}>Ships from THREE</div>
           </div>
-          <a href={href} target="_blank" rel="noopener noreferrer" className={styles.cta}>
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.cta}
+          >
             Shop
           </a>
         </div>
