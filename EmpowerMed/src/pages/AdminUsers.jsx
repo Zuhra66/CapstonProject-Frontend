@@ -284,6 +284,53 @@ export default function AdminUsers() {
     );
   };
 
+const getMembershipBadge = (user) => {
+
+  // If null, undefined, or an empty membership object
+  if (
+    !user.membership || 
+    user.membership.status == null || 
+    user.membership.plan_name == null
+  ) {
+    return (
+      <span className="badge" style={{
+        padding: '0.25em 0.5em',
+        fontSize: '0.7em',
+        fontWeight: '600',
+        background: '#b6b6b6',
+        color: '#333'
+      }}>
+        No Membership
+      </span>
+    );
+  }
+
+  const status = user.membership.status;
+
+  const colors = {
+    active:    { bg: "#00FF00", text: "black" },
+    past_due:  { bg: "#FF9900", text: "black" },
+    cancelled: { bg: "#F44336", text: "white" },
+    inactive:  { bg: "#868E96", text: "white" }
+  };
+
+  const c = colors[status] || colors["inactive"];
+
+  return (
+    <span className="badge" style={{
+      padding: '0.25em 0.5em',
+      fontSize: '0.7em',
+      fontWeight: '600',
+      background: c.bg,
+      color: c.text,
+      border: '1px solid rgba(0,0,0,0.1)'
+    }}>
+      {status === "active" ? "Member" : status.replace("_", " ").toUpperCase()}
+    </span>
+  );
+};
+
+
   const getToggleStatusButtonStyle = (user) => {
     if (user.is_active) {
       return {
@@ -458,7 +505,8 @@ export default function AdminUsers() {
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Email</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Role</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Status</th>
-                    <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Member Since</th>
+                    <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Membership</th>
+                    <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Account Created</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Last Updated</th>
                     <th className="text-center" style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Actions</th>
                   </tr>
@@ -495,6 +543,7 @@ export default function AdminUsers() {
                         </td>
                         <td style={{ padding: '0.5rem' }}>{getRoleBadge(user)}</td>
                         <td style={{ padding: '0.5rem' }}>{getStatusBadge(user)}</td>
+                        <td style={{ padding: '0.5rem' }}>{getMembershipBadge(user)}</td>
                         <td style={{ color: 'black', fontSize: '0.8rem', padding: '0.5rem' }}>{formatDate(user.created_at)}</td>
                         <td style={{ color: 'black', fontSize: '0.8rem', padding: '0.5rem' }}>{formatDate(user.updated_at)}</td>
                         <td style={{ padding: '0.5rem' }}>

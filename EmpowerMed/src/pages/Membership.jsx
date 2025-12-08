@@ -1,71 +1,170 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import CheckoutDrawer from "../components/CheckoutDrawer.jsx";
 import "../styles/Membership.css";
 
-function Membership() {
+const membershipImg =
+  "https://images.unsplash.com/photo-1636240976456-2c91842b79a0?q=80&w=2070&auto=format&fit=crop";
+
+export default function Membership() {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  // Membership Plans
+  const studentPlan = {
+    id: "student",
+    type: "student",
+    title: "Student Membership",
+    description: "Free 60-minute consultation. Afterward, 3 sessions for $70.",
+    priceLabel: "Initial Consultation",
+    price: "FREE",
+  };
+
+  const generalPlan = {
+    id: "general",
+    type: "general",
+    title: "General Membership",
+    description:
+      "Unlimited access to wellness coaching and support for one flat fee.",
+    priceLabel: "Monthly Membership",
+    price: "$99 / month",
+  };
+
+  // Motion animations
+  const titleFade = {
+    hidden: { opacity: 0, y: -35 },
+    visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+  };
+
+  const cardFade = {
+    hidden: { opacity: 0, y: 35 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 1, delay: 0.15 },
+    },
+  };
+
   return (
     <div className="membership-page">
 
-      {/* OUTER TRANSLUCENT CARD */}
-      <article className="membership-card">
+      {/* ---------- FULL-WIDTH BLUE HERO BANNER ---------- */}
+      <motion.div
+        className="membership-hero-banner"
+        variants={titleFade}
+        initial="hidden"
+        animate="visible"
+      >
+        <h1 className="display-font membership-banner-title">Membership</h1>
+        <p className="membership-banner-subtitle">
+          Empowering your wellness journey with personalized and accessible support.
+        </p>
+      </motion.div>
 
-        {/* TOP */}
-        <header className="membership-header">
-          <h1>Membership Access and Fee</h1>
-          <p>
-            One flat fee of <span className="price">$99 per month</span> — that’s it!
+      {/* ---------- TWO-COLUMN HERO CARD ---------- */}
+      <motion.div
+        className="membership-hero-card"
+        variants={cardFade}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* LEFT IMAGE */}
+        <div
+          className="membership-hero-image"
+          style={{ backgroundImage: `url(${membershipImg})` }}
+        />
+
+        {/* RIGHT CONTENT */}
+        <div className="membership-hero-body">
+          <h2 className="display-font card-title">Why Become a Member?</h2>
+          <div className="divider"></div>
+
+          <p className="body-font">
+            Membership gives you reliable access to expert wellness guidance,
+            ongoing support, and personalized care designed to help you thrive.
           </p>
-        </header>
 
-        {/* MIDDLE: IMAGE + BULLET POINTS IN ONE CONTAINER */}
-        <div className="membership-info-box">
+          {/* FEATURE LIST VERTICAL STYLE */}
+          <div className="features-vertical">
+            <div className="feature-item">
+              <span className="feature-icon">✔</span>
+              <p>Unlimited 24/7 access via text or call</p>
+            </div>
 
-          {/* LEFT: IMAGE */}
-          <div className="membership-image">
-            <img
-              src="https://images.unsplash.com/photo-1636240976456-2c91842b79a0?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-              alt="Membership"
-            />
-          </div>
+            <div className="feature-item">
+              <span className="feature-icon">✔</span>
+              <p>Virtual coaching anywhere in California</p>
+            </div>
 
-          {/* RIGHT: BULLET POINTS */}
-          <div className="membership-features">
-            <h2>Membership Includes:</h2>
+            <div className="feature-item">
+              <span className="feature-icon">✔</span>
+              <p>In-home wellness visits (within 20 miles)</p>
+            </div>
 
-            <ul>
-              <li>Unlimited 24/7 access via text or call with a wellness coach</li>
-              <li>Virtual coaching & counseling sessions anywhere in California</li>
-              <li>In-home wellness visits within 20 miles of Modesto, CA</li>
-              <li>Preventative wellness planning & stress management support</li>
-              <li>Patient & Physician Wellness Advocacy & education</li>
-              <li>Exclusive discounts with our trusted wellness partners</li>
-              <li>Affordable, personalized resources for long-term health and balance</li>
-            </ul>
+            <div className="feature-item">
+              <span className="feature-icon">✔</span>
+              <p>Preventative wellness planning</p>
+            </div>
+
+            <div className="feature-item">
+              <span className="feature-icon">✔</span>
+              <p>Patient & physician advocacy</p>
+            </div>
+
+            <div className="feature-item">
+              <span className="feature-icon">✔</span>
+              <p>Exclusive partner discounts</p>
+            </div>
           </div>
         </div>
+      </motion.div>
 
-        {/* BOTTOM: BUTTONS*/}
+      {/* ---------- MEMBERSHIP ACCESS & FEE (NOW SEPARATE SECTION) ---------- */}
+      <div className="membership-fee-section">
+        <h3 className="membership-fee-title">Membership Access and Fee</h3>
+
+        <p className="membership-fee-text">
+          <strong>General Membership:</strong> One flat fee of $99 per month — that’s it!
+        </p>
+
+        <p className="membership-fee-text">
+          <strong>Student Membership:</strong> FREE 60-minute consultation for high school and
+          college students. Afterward, enjoy 3 sessions for just $70.
+        </p>
+
+        {/* Buttons */}
         <div className="membership-buttons">
-          <a 
-            href="https://venmo.com/" 
+          <button
             className="btn student-btn"
-            target="_blank" 
-            rel="noopener noreferrer"
+            onClick={() => {
+              setSelectedPlan(studentPlan);
+              setDrawerOpen(true);
+            }}
           >
             Student Membership
-          </a>
+          </button>
 
-          <a 
-            href="https://venmo.com/" 
+          <button
             className="btn main-btn"
-            target="_blank" 
-            rel="noopener noreferrer"
+            onClick={() => {
+              setSelectedPlan(generalPlan);
+              setDrawerOpen(true);
+            }}
           >
-            Main Membership
-          </a>
+            General Membership
+          </button>
         </div>
+      </div>
 
-      </article>
+      {/* ---------- CHECKOUT DRAWER ---------- */}
+      {drawerOpen && (
+        <CheckoutDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          plan={selectedPlan}
+          hasConsult={false}
+        />
+      )}
     </div>
   );
 }
-
-export default Membership;
