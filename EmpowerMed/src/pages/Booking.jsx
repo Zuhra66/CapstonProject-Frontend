@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, Spinner, Modal, Button, Form } from "react-bootstrap";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "../styles/booking.css";
+import "../styles/Booking.css";
 import { useAuth } from "../lib/useAuth";   
 
 export default function Booking({ userId }) {
