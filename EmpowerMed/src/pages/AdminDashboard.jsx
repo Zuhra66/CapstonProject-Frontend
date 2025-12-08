@@ -1,9 +1,11 @@
+// src/pages/AdminDashboard.jsx 
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
 import {
   FiUsers, FiClipboard, FiCalendar, FiBarChart, FiLogOut,
-  FiShoppingBag, FiTag, FiBookOpen, FiMessageCircle, FiUserCheck
+  FiShoppingBag, FiTag, FiBookOpen, FiMessageCircle, FiUserCheck,
+  FiMail, FiShield, FiDatabase, FiActivity 
 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -41,6 +43,7 @@ export default function AdminDashboard() {
         const data = await res.json();
         setStats(data);
       } catch (err) {
+        console.error("Dashboard data fetch error:", err);
         setStats(getFallbackStats());
       } finally {
         if (alive) setLoading(false);
@@ -57,7 +60,15 @@ export default function AdminDashboard() {
       events: { upcoming: 0 },
       memberships: { plans: 0, active: 0 },
       messages: { total: 0 },
-      audit: { total: 0 }
+      audit: { 
+        total: 0, 
+        today: 0,
+        security: 0,
+        authentication: 0,
+        access: 0,
+        modification: 0 
+      },
+      newsletter: { total: 0, active: 0 }
     });
 
     if (isAuthenticated && !isLoading) {
@@ -76,10 +87,11 @@ export default function AdminDashboard() {
       link: "/admin/users"
     },
     { 
-      icon: FiUserCheck, 
-      title: "Active Users", 
-      value: stats?.users?.active,
-      gradient: "card-green"
+      icon: FiMail,
+      title: "Newsletter", 
+      value: stats?.newsletter?.total || 0,
+      gradient: "card-green",
+      link: "/admin/newsletter"
     },
     { 
       icon: FiCalendar, 
@@ -96,22 +108,24 @@ export default function AdminDashboard() {
       link: "/admin/products"
     },
     { 
-      icon: FiBookOpen, 
-      title: "Blog Posts", 
-      value: stats?.blog?.total,
-      gradient: "card-blue"
-    },
-    { 
-      icon: FiClipboard, 
+      icon: FiShield, 
       title: "Audit Logs", 
       value: stats?.audit?.total,
       gradient: "card-green",
       link: "/admin/audit"
     },
+    { 
+      icon: FiBookOpen, 
+      title: "Blog Posts", 
+      value: stats?.blog?.total,
+      gradient: "card-blue",
+      link: "/admin/blog"
+    },
   ];
 
   const detailStats = [
     { label: "New Users This Month", value: stats?.users?.newThisMonth },
+    { label: "Active Newsletter", value: stats?.newsletter?.active || 0 },
     { label: "Pending Appointments", value: stats?.appointments?.pending },
     { label: "Today's Appointments", value: stats?.appointments?.today },
     { label: "Categories", value: stats?.categories?.total },
@@ -121,6 +135,12 @@ export default function AdminDashboard() {
     { label: "Membership Plans", value: stats?.memberships?.plans },
     { label: "Upcoming Events", value: stats?.events?.upcoming },
     { label: "Contact Messages", value: stats?.messages?.total },
+    // Add audit-specific stats
+    { label: "Today's Audit Logs", value: stats?.audit?.today },
+    { label: "Security Events", value: stats?.audit?.security },
+    { label: "Login Events", value: stats?.audit?.authentication },
+    { label: "Data Access Events", value: stats?.audit?.access },
+    { label: "Data Changes", value: stats?.audit?.modification },
   ];
 
   if (isLoading || loading) {
@@ -190,6 +210,15 @@ export default function AdminDashboard() {
             Users
           </NavLink>
           <NavLink 
+            to="/admin/newsletter" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiMail className="dashboard-icon" />
+            Newsletter
+          </NavLink>
+          <NavLink 
             to="/admin/appointments" 
             className={({ isActive }) => 
               `sidebar-link ${isActive ? 'active' : ''}`
@@ -213,8 +242,17 @@ export default function AdminDashboard() {
               `sidebar-link ${isActive ? 'active' : ''}`
             }
           >
-            <FiClipboard className="dashboard-icon" />
+            <FiShield className="dashboard-icon" />
             Audit Logs
+          </NavLink>
+          <NavLink 
+            to="/admin/blog" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiBookOpen className="dashboard-icon" />
+            Blog
           </NavLink>
         </nav>
 
@@ -265,6 +303,85 @@ export default function AdminDashboard() {
             ))}
           </div>
 
+          {/* Quick Stats Section */}
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="about-section">
+                <div className="about-header">
+                  <h2 className="display-font about-title">Activity Overview</h2>
+                </div>
+                <div className="row">
+                  {/* Audit Activity Card */}
+                  <div className="col-md-6 mb-3">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <FiActivity className="me-2" /> Audit Activity
+                        </h5>
+                        <div className="row">
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Today</small>
+                            <div className="h4">{stats?.audit?.today || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Security Events</small>
+                            <div className="h4 text-danger">{stats?.audit?.security || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Logins</small>
+                            <div className="h4 text-info">{stats?.audit?.authentication || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Data Access</small>
+                            <div className="h4 text-success">{stats?.audit?.access || 0}</div>
+                          </div>
+                        </div>
+                        <NavLink to="/admin/audit" className="btn btn-outline-primary btn-sm mt-2">
+                          View Audit Logs
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* System Status Card */}
+                  <div className="col-md-6 mb-3">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <FiDatabase className="me-2" /> System Status
+                        </h5>
+                        <div className="row">
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Total Audit Logs</small>
+                            <div className="h4">{stats?.audit?.total || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Data Changes</small>
+                            <div className="h4 text-warning">{stats?.audit?.modification || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">HIPAA Compliant</small>
+                            <div className="h4 text-success">
+                              {stats?.audit?.total > 0 ? '✓' : '–'}
+                            </div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">6-Year Retention</small>
+                            <div className="h4 text-success">✓</div>
+                          </div>
+                        </div>
+                        <NavLink to="/admin/audit?tab=report" className="btn btn-outline-success btn-sm mt-2">
+                          Generate Report
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Statistics Section */}
           <div className="about-section">
             <div className="about-header">
               <h2 className="display-font about-title">Detailed Statistics</h2>

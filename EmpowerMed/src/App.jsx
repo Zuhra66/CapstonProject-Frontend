@@ -23,10 +23,12 @@ import Membership from './pages/Membership.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminProducts from './pages/AdminProducts.jsx';
+import AdminNewsletter from './components/AdminNewsletter.jsx'; 
 import AdminRoute from './lib/AdminRoute.jsx';
 import AdminAppointments from "./pages/AdminAppointments.jsx";
 import NotFound from './pages/NotFound.jsx';
 import { useAuth } from "./lib/useAuth"; 
+import AdminAuditLogs from './components/AdminAuditLogs.jsx';
 
 function App() {
   const { user, ready } = useAuth();   
@@ -78,6 +80,10 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAppointments />
+              path="/admin/audit"
+              element={
+                <AdminRoute>
+                  <AdminAuditLogs />
                 </AdminRoute>
               }
             />
@@ -86,6 +92,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminUsers />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/newsletter"  // Add this route
+              element={
+                <AdminRoute>
+                  <AdminNewsletter />
                 </AdminRoute>
               }
             />

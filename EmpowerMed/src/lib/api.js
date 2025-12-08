@@ -170,6 +170,155 @@ export async function adminDeleteUser(userId, getToken) {
   return deleteJson(`/api/admin/users/${userId}`, getToken);
 }
 
+// Add these functions to your existing api.js file
+
+// Newsletter API functions
+export const subscribeToNewsletter = async (email) => {
+  try {
+    const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Subscription failed');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Newsletter subscription error:', error);
+    throw error;
+  }
+};
+
+// Admin newsletter functions
+export const getNewsletterSubscribers = async (params = {}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        queryParams.append(key, value);
+      }
+    });
+
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/api/newsletter/subscribers?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch subscribers');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Get subscribers error:', error);
+    throw error;
+  }
+};
+
+export const getNewsletterStats = async () => {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/api/newsletter/stats`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch stats');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Get stats error:', error);
+    throw error;
+  }
+};
+
+export const exportSubscribersCSV = async (params = {}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        queryParams.append(key, value);
+      }
+    });
+
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/api/newsletter/export?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export subscribers');
+    }
+
+    // Create download link for CSV
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const filename = response.headers.get('Content-Disposition')?.split('filename=')[1] || 
+                     `empowermed-subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+    
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    return true;
+  } catch (error) {
+    console.error('Export error:', error);
+    throw error;
+  }
+};
+
+export const deleteSubscriber = async (subscriberId) => {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/api/newsletter/subscribers/${subscriberId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete subscriber');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Delete subscriber error:', error);
+    throw error;
+  }
+};
+
 /* ---------- Public catalog ---------- */
 export const fetchProducts = (params = "", getToken) => 
   getJson(`/api/products${params}`, getToken);
