@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
-import "../styles/appointment.css";
+import "../styles/Appointment.css";
 
 export default function AdminAppointments() {
   const API_URL = import.meta.env.VITE_API_URL;
