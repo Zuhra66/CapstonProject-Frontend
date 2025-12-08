@@ -1,122 +1,425 @@
-/* PAGE SPACING */
+
+/* ----------------------------------------------------
+   GLOBAL MEMBERSHIP PAGE WRAPPER (FULL WHITE SECTION)
+---------------------------------------------------- */
 .membership-page {
-  padding-top: 140px;
+  background: white;
+  padding: 0;
+  margin: 0;
+  padding-top: 50px;
 }
 
-/* OUTER LARGE CARD */
-.membership-card {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 50px;
-  background: rgba(255, 255, 255, 0.65);
-  border-radius: 22px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  backdrop-filter: blur(4px);
-}
 
-/* HEADER */
-.membership-header {
+/* ----------------------------------------------------
+   FULL-WIDTH HERO BANNER (BLUE STRIP)
+---------------------------------------------------- */
+.membership-hero-banner {
+  width: 100%;
+  padding: 3rem 1rem;
+  background: linear-gradient(135deg, var(--light-blue), var(--main-blue));
   text-align: center;
-  margin-bottom: 45px;
+  margin: 0; /* removes extra spacing above card */
 }
 
-.membership-header h1 {
-  font-size: 2.3rem;
+.membership-banner-title {
+  font-size: 2.8rem;
+  color: white;
+  margin: 0 0 0.5rem 0;
   font-weight: 700;
-  margin-bottom: 15px;
+  letter-spacing: 1px;
 }
 
-.membership-header p {
+.membership-banner-subtitle {
   font-size: 1.25rem;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
 }
 
-.price {
-  font-weight: 600;
+
+
+/* ----------------------------------------------------
+   MAIN WHITE HERO SECTION (SIDE-BY-SIDE)
+---------------------------------------------------- */
+.membership-hero-card {
+  display: flex;
+  width: 100%;
+  background: white;
+  border-radius: 0;          /* seamless with top & bottom */
+  margin: 0;                 /* removes spacing before and after */
+  padding: 0;
+  box-shadow: none;          /* no card feel */
+  overflow: hidden;
+  min-height: 650px;         /* premium height */
 }
 
-.membership-info-box {
+/* LEFT IMAGE: full-height */
+.membership-hero-image {
+  width: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* RIGHT CONTENT COLUMN */
+.membership-hero-body {
+  width: 50%;
+  padding: 60px 50px;
+  color: var(--dark-text);
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  background: rgba(255, 255, 255, 0.55);
-  padding: 35px;
-  border-radius: 18px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  margin-bottom: 40px;
+  justify-content: center;
 }
 
-@media (min-width: 992px) {
-  .membership-info-box {
-    flex-direction: row;
-    align-items: center;
-  }
+.membership-hero-body h2 {
+  font-size: 2rem;
+  color: var(--main-blue);
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
-.membership-image img {
-  width: 100%;
-  max-width: 380px;
-  border-radius: 14px;
-  display: block;
-  margin: 0 auto;
-}
-
-.membership-features {
-  flex-grow: 1;
-}
-
-.membership-features h2 {
-  font-size: 1.7rem;
+.divider {
+  width: 55px;
+  height: 3px;
+  background: var(--medium-blue);
   margin-bottom: 18px;
-  font-weight: 600;
 }
 
-.membership-features ul {
-  font-size: 1.15rem;
+.membership-hero-body p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+/* BENEFITS LIST */
+.benefits-list {
+  padding-left: 18px;
+  margin-bottom: 25px;
   line-height: 1.65;
-  padding-left: 20px;
+  font-size: 1.05rem;
 }
 
+
+/* ----------------------------------------------------
+   MEMBERSHIP ACCESS & FEE SECTION (MERGED INTO RIGHT)
+---------------------------------------------------- */
+.membership-fee-block {
+  margin-top: 25px;
+  padding-top: 18px;
+  border-top: 1px solid #eaeaea;
+}
+
+.membership-fee-title {
+  font-family: var(--heading-font);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--main-blue);
+  margin-bottom: 10px;
+}
+
+.membership-fee-block h3 {
+  font-size: 1.5rem;
+  font-family: 'Aboreto', cursive;
+  color: var(--main-blue);
+  font-weight: 00;
+  margin-bottom: 8px;
+}
+
+.membership-fee-block p {
+  font-size: 1.15rem;
+  margin-bottom: 20px;
+}
+
+
+/* ----------------------------------------------------
+   BUTTONS (IN RIGHT COLUMN)
+---------------------------------------------------- */
 .membership-buttons {
   display: flex;
-  flex-direction: column;
   gap: 15px;
-}
-
-@media (min-width: 768px) {
-  .membership-buttons {
-    flex-direction: row;
-    justify-content: center;
-  }
+  margin-top: 15px;
 }
 
 .btn {
   padding: 14px 30px;
   border-radius: 10px;
   font-size: 1.15rem;
-  text-align: center;
   font-weight: 600;
-  text-decoration: none;
-  transition: 0.2s ease-in-out;
+  background: var(--main-blue);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s ease-in-out;
 }
 
-/* Student Button */
-.student-btn {
-  background-color: #3D52A0;
-  color: white;
+.btn:hover {
+  background: var(--medium-blue);
 }
 
-.student-btn:hover {
-  background-color: #8697C4;
-  color: white;
+
+/* ----------------------------------------------------
+   SLIDE-OUT CHECKOUT DRAWER
+---------------------------------------------------- */
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 9999;
 }
 
-/* Main Membership Button */
-.main-btn {
-  background-color: #3D52A0;
-  color: white;
+.drawer {
+  width: 600px;
+  background: var(--white);
+  height: 100%;
+  padding: 28px;
+  box-shadow: -4px 0 14px rgba(0,0,0,0.15);
+  position: relative;
+  animation: slideIn 0.3s ease forwards;
+  display: flex;
+  flex-direction: column;
 }
 
-.main-btn:hover {
-  background-color: #8697C4;
-  color: white;
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
+
+/* Close animation */
+.drawer.slide-out {
+  animation: slideOut 0.3s ease forwards;
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+.drawer-close {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--dark-text);
+}
+
+.drawer-close:hover {
+  color: var(--main-blue);
+}
+
+.drawer-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--main-blue);
+  margin-bottom: 10px;
+}
+
+.drawer-subtitle {
+  color: var(--light-text);
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+/* Summary box */
+.drawer-summary {
+  background: var(--light-purple);
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--pale-blue);
+}
+
+.drawer-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--dark-text);
+  font-size: 1.1rem;
+}
+
+/* Drawer buttons */
+.drawer-button {
+  width: 100%;
+  padding: 14px;
+  background: var(--main-blue);
+  color: white;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: 0.25s ease-in-out;
+  margin-top: 12px;
+}
+
+.drawer-button:hover {
+  background: var(--light-blue);
+}
+
+.drawer-button.secondary {
+  background: #ccc;
+  color: #333;
+}
+
+.drawer-button.secondary:hover {
+  background: #bbb;
+}
+
+.drawer-note {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: var(--light-text);
+  text-align: center;
+}
+
+
+/* ----------------------------------------------------
+   MEMBERSHIP FEE SECTION 
+---------------------------------------------------- */
+.membership-fee-section {
+  width: 100%;
+  background: white;
+  text-align: center;
+
+  padding: 60px 40px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-top: 2px solid;
+  border-image: linear-gradient(to right, var(--light-blue), var(--main-blue)) 1;
+}
+
+.membership-fee-section-content {
+  max-width: 900px;
+  width: 100%;
+}
+
+.membership-fee-title {
+  font-family: var(--heading-font);
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: var(--main-blue);
+  margin-bottom: 20px;
+}
+
+.membership-fee-description {
+  font-size: 1.2rem;
+  color: var(--dark-text);
+  margin-bottom: 20px;
+  max-width: 750px;
+}
+
+.fee-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .membership-fee-section {
+    padding: 50px 20px;
+  }
+
+  .membership-fee-description {
+    font-size: 1.1rem;
+  }
+
+  .fee-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+}
+
+
+
+/* ----------------------------------------------------
+   MOBILE RESPONSIVE
+---------------------------------------------------- */
+@media (max-width: 900px) {
+  .membership-hero-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .membership-hero-image {
+    width: 100%;
+    height: 260px;
+  }
+
+  .membership-hero-body {
+    width: 100%;
+    padding: 40px 24px;
+  }
+
+  .membership-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .drawer {
+    width: 100%;
+  }
+}
+
+/* ----------------------------------------------------
+   CLEAN + CONTROLLED BOTTOM SPACING
+---------------------------------------------------- */
+
+
+/* Just in case older membership-card is still mounted */
+.membership-card {
+  margin-bottom: 24px !important;
+}
+
+/* Prevent accidental over-padding from layout containers */
+.page-root,
+main,
+.container,
+.container-fluid {
+  padding-bottom: 0 !important; /* don't double-pad footer */
+}
+
+/* ---------- VERTICAL FEATURE LIST ---------- */
+.features-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 22px 0;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.feature-item:last-child {
+  border-bottom: none;
+}
+
+.feature-icon {
+  color: var(--main-blue);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.feature-item p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--dark-text);
+}
+

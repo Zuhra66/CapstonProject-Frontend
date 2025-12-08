@@ -24,9 +24,14 @@ import AdminUsers from './pages/AdminUsers.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminProducts from './pages/AdminProducts.jsx';
 import AdminRoute from './lib/AdminRoute.jsx';
+import AdminAppointments from "./pages/AdminAppointments.jsx";
 import NotFound from './pages/NotFound.jsx';
+import { useAuth } from "./lib/useAuth"; 
 
 function App() {
+  const { user, ready } = useAuth();   
+  if (!ready) return <div>Loading...</div>; 
+
   return (
     <>
       <Navbar />
@@ -46,7 +51,7 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:slug" element={<EventDetail />} />
-            <Route path="/booking" element={<Booking />} />
+            <Route path="/booking" element={<Booking userId={user?.id} />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
 
@@ -65,6 +70,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminProducts />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/appointments"
+              element={
+                <AdminRoute>
+                  <AdminAppointments />
                 </AdminRoute>
               }
             />

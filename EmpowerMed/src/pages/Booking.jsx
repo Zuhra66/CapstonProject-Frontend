@@ -1,33 +1,43 @@
+// src/pages/Booking.jsx
 import React, { useState, useEffect } from "react";
-import { Card, Button, Spinner } from "react-bootstrap";
-//import Calendar from "react-calendar";
-//import "react-calendar/dist/Calendar.css";
+import { Card, Spinner, Modal, Button, Form } from "react-bootstrap";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import "../styles/booking.css";
+import { useAuth } from "../lib/useAuth";   
 
-export default function Booking() {
-  const [selectedType, setSelectedType] = useState(null);
+export default function Booking({ userId }) {
+  const { user } = useAuth();               
+  const finalUserId = userId || user?.id;  
+
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(null);
   const [availableTimes, setAvailableTimes] = useState([]);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedType, setSelectedType] = useState(""); 
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [email, setEmail] = useState("");
 
-  const appointmentTypes = ["Appointment Type 1", "Appointment Type 2"];
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Fetch available times from backend
+  const appointmentTypes = [
+    "Membership Appointment",
+    "General Appointment",
+  ];
+
+  // Fetch available times
   useEffect(() => {
     if (!selectedDate) return;
 
     const fetchTimes = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/calendar/availability?date=${selectedDate.toISOString().split("T")[0]}`,
-          { credentials: "include" }
-        );
+        const dateStr = selectedDate.toISOString().split("T")[0];
+        const res = await fetch(`${API_URL}/calendar/availability?date=${dateStr}`);
         const data = await res.json();
         setAvailableTimes(data.times || []);
-        setSelectedTime(null);
       } catch (err) {
-        console.error("Error fetching times", err);
+        console.error("Error fetching times:", err);
         setAvailableTimes([]);
       } finally {
         setLoading(false);
@@ -35,99 +45,158 @@ export default function Booking() {
     };
 
     fetchTimes();
-  }, [selectedDate]);
+  }, [selectedDate, API_URL]);
 
-  const handleBook = async () => {
-    if (!selectedType || !selectedDate || !selectedTime) {
-      return alert("Please select appointment type, date, and time.");
+  const handleTimeClick = (time) => {
+    setSelectedTime(time);
+    setShowModal(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedType) {
+      alert("Please select an appointment type.");
+      return;
+    }
+
+    if (!email) {
+      alert("Please enter your email.");
+      return;
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/calendar/book`, {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+
+      console.log("📤 Sending booking with userId:", finalUserId);
+
+      const res = await fetch(`${API_URL}/calendar/book`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
-          type: selectedType,
-          date: selectedDate.toISOString().split("T")[0],
+          date: dateStr,
           time: selectedTime,
+          email,
+          appointment_type: selectedType,
+          userId: finalUserId,  
         }),
       });
+
       const data = await res.json();
+      console.log("📥 Booking response:", data);
+
       if (data.success) {
-        alert("Appointment booked successfully!");
-        setSelectedTime(null);
+        alert("Your appointment has been booked!");
+        setAvailableTimes((prev) => prev.filter((t) => t !== selectedTime));
       } else {
-        alert("Booking failed: " + data.error);
+        alert("Booking failed.");
       }
     } catch (err) {
-      console.error(err);
-      alert("Error booking appointment.");
+      console.error("Booking error:", err);
+      alert("Booking failed.");
+    } finally {
+      setSelectedTime(null);
+      setSelectedType("");
+      setEmail("");
+      setShowModal(false);
     }
   };
 
   return (
-    <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 p-4 bg-light">
-      <Card className="w-100" style={{ maxWidth: "800px" }}>
+    <div className="booking-page">
+      <Card className="booking-card">
         <Card.Body>
-          <h2 className="text-center mb-4">Select Appointment Type</h2>
-          <div className="d-flex flex-wrap justify-content-center gap-3 mb-5">
-            {appointmentTypes.map((type) => (
-              <Button
-                key={type}
-                variant={selectedType === type ? "primary" : "outline-primary"}
-                onClick={() => setSelectedType(type)}
-              >
-                {type}
-              </Button>
-            ))}
-          </div>
+          <h1 className="booking-title text-center">Book an Appointment</h1>
 
-          <div className="d-flex flex-column flex-md-row justify-content-between gap-4">
-            <div className="flex-fill">
-              <h4 className="text-center mb-2">Select Date</h4>
-              <div className="d-flex justify-content-center">
-                <Calendar
-                  onChange={setSelectedDate}
-                  value={selectedDate}
-                />
-              </div>
+          <div className="calendar-times-container">
+            {/* Calendar */}
+            <div className="calendar-wrapper">
+              <Calendar value={selectedDate} onChange={setSelectedDate} />
             </div>
 
-            <div className="flex-fill">
-              <h4 className="text-center mb-2">Select Time</h4>
+            {/* Times */}
+            <div className="times-wrapper">
+              <h4 className="available-times-title">Available Times</h4>
+
               {loading ? (
-                <div className="text-center mt-3">
-                  <Spinner animation="border" size="sm" /> Loading...
-                </div>
+                <Spinner animation="border" />
               ) : availableTimes.length > 0 ? (
-                <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                <div className="times-grid">
                   {availableTimes.map((time) => (
-                    <Button
+                    <button
                       key={time}
-                      variant={selectedTime === time ? "success" : "outline-success"}
-                      onClick={() => setSelectedTime(time)}
+                      className={`time-button ${
+                        selectedTime === time ? "selected-time" : ""
+                      }`}
+                      onClick={() => handleTimeClick(time)}
                     >
                       {time}
-                    </Button>
+                    </button>
                   ))}
                 </div>
               ) : (
-                <p className="text-center mt-3 text-muted">No times available.</p>
+                <p>No times available</p>
               )}
             </div>
           </div>
-
-          <div className="d-flex justify-content-center mt-4">
-            <Button
-              onClick={handleBook}
-              disabled={!selectedType || !selectedDate || !selectedTime || availableTimes.length === 0}
-            >
-              Book Appointment
-            </Button>
-          </div>
         </Card.Body>
       </Card>
+
+      {/* Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header
+          closeButton
+          style={{ backgroundColor: "#1f1f1f", color: "white" }}
+        >
+          <Modal.Title>Confirm Appointment</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body style={{ backgroundColor: "#2a2a2a", color: "white" }}>
+          <p>
+            <strong>Date:</strong> {selectedDate.toDateString()}
+          </p>
+          <p>
+            <strong>Time:</strong> {selectedTime}
+          </p>
+
+          {/* Radio Buttons for Appointment Type */}
+          <Form.Group className="mt-3">
+            <Form.Label>
+              <strong>Appointment Type:</strong>
+            </Form.Label>
+            {appointmentTypes.map((type) => (
+              <Form.Check
+                key={type}
+                type="radio"
+                name="appointmentType"
+                label={type}
+                value={type}
+                checked={selectedType === type}
+                onChange={(e) => setSelectedType(e.target.value)}
+                style={{ marginBottom: "8px" }}
+              />
+            ))}
+          </Form.Group>
+
+          {/* Email */}
+          <Form.Group className="mt-3">
+            <Form.Label>Email for confirmation:</Form.Label>
+            <Form.Control
+              type="email"
+              placeholder="Enter your email..."
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Form.Group>
+        </Modal.Body>
+
+        <Modal.Footer style={{ backgroundColor: "#1f1f1f" }}>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleConfirmBooking}>
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

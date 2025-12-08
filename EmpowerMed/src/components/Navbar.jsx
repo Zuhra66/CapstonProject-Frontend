@@ -185,8 +185,20 @@ export default function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
-              
-              {/* More Menu Dropdown */}
+
+              {/* Appointments link visible only when authenticated */}
+              {isAuthenticated && (
+                <NavLink
+                  to="/appointment"
+                  className={({ isActive }) =>
+                    isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+                  }
+                >
+                  Appointments
+                </NavLink>
+              )}
+
+              {/* More Menu */}
               <div 
                 className={styles.moreMenu}
                 onMouseEnter={() => setShowMoreMenu(true)}
@@ -292,6 +304,20 @@ export default function Navbar() {
                 {link.label}
               </NavLink>
             ))}
+
+            {/* Mobile-only Appointments link when logged in */}
+            {isAuthenticated && (
+              <NavLink
+                to="/appointment"
+                onClick={() => setIsOpen(false)}
+                className={({ isActive }) =>
+                  isActive ? styles.mobileNavLinkActive : ""
+                }
+              >
+                Appointments
+              </NavLink>
+            )}
+
             {isAdmin && (
               <NavLink to="/admin/dashboard" onClick={() => setIsOpen(false)}>Admin Dashboard</NavLink>
             )}
