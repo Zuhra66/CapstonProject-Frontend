@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Products.module.css";
 import ProductCard, { HeroCarousel } from "../components/ProductCard";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -11,25 +11,29 @@ export default function Products() {
   const [err, setErr] = useState("");
 
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all"); // normalized
+  const [cat, setCat] = useState("all");
 
   // Load categories
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/categories`, {
+        const res = await fetch(`${API}/api/categories`, {
           credentials: "include",
         });
-        if (!res.ok) throw new Error(`Categories ${res.status}`);
-        let rows = await res.json(); // expect [{name, slug}]
+        
+        if (!res.ok) {
+          setCategories([{ name: "All", slug: "all" }]);
+          return;
+        }
+        
+        let rows = await res.json();
         if (!alive) return;
 
-        // normalize: ensure lowercase slug and fallback if missing
         rows = (rows || []).map((c) => {
-          const name = c.name ?? c.slug ?? "Unknown";
-          const slug = (c.slug ?? name)
-            ?.toString()
+          const name = c.name || c.slug || "Unknown";
+          const slug = (c.slug || name)
+            .toString()
             .trim()
             .toLowerCase()
             .replace(/\s+/g, "-");
@@ -38,7 +42,7 @@ export default function Products() {
 
         setCategories([{ name: "All", slug: "all" }, ...rows]);
       } catch (e) {
-        console.warn("Categories load failed:", e);
+        setCategories([{ name: "All", slug: "all" }]);
       }
     })();
     return () => {
@@ -46,26 +50,32 @@ export default function Products() {
     };
   }, []);
 
-  // Load products (server-side filter)
+  // Load products
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setErr("");
     (async () => {
       try {
-        const url = new URL(`${API_BASE}/api/products`);
+        const url = new URL(`${API}/api/products`);
         if (q) url.searchParams.set("q", q);
-        if (cat && cat !== "all") url.searchParams.set("category", cat); // already lowercase
+        if (cat && cat !== "all") url.searchParams.set("category", cat);
 
-        const res = await fetch(url.toString(), { credentials: "include" });
-        if (!res.ok) throw new Error(`Products ${res.status}`);
+        const res = await fetch(url.toString(), { 
+          credentials: "include",
+        });
+        
+        if (!res.ok) {
+          throw new Error(`Failed to load products`);
+        }
+        
         const rows = await res.json();
         if (!alive) return;
+        
         setProducts(rows || []);
       } catch (e) {
-        console.error(e);
         if (!alive) return;
-        setErr("We couldn’t load products. Please try again.");
+        setErr("We couldn't load products. Please try again.");
       } finally {
         if (alive) setLoading(false);
       }
@@ -76,7 +86,7 @@ export default function Products() {
     };
   }, [q, cat]);
 
-  // Client-side filter (handles category as string OR object)
+  // Client-side filter
   const filtered = useMemo(() => {
     const list = products || [];
     const ql = q.trim().toLowerCase();
@@ -85,7 +95,7 @@ export default function Products() {
     if (!ql && cl === "all") return list;
 
     return list.filter((p) => {
-      const hay = `${p.name ?? ""} ${(p.tags || []).join(" ")}`.toLowerCase();
+      const hay = `${p.name || ""} ${(p.tags || []).join(" ")}`.toLowerCase();
       const matchesQ = ql ? hay.includes(ql) : true;
 
       let matchesCat = true;
@@ -106,7 +116,6 @@ export default function Products() {
 
   return (
     <div className={styles.page}>
-      {/* Full-bleed banner with image-only slideshow */}
       <header className={styles.hero}>
         <div className={styles.heroInner}>
           <HeroCarousel items={products} intervalMs={4000} />
@@ -129,7 +138,7 @@ export default function Products() {
             {categories.map((c) => (
               <button
                 key={c.slug}
-                onClick={() => setCat(c.slug)} // slug is normalized (lowercase)
+                onClick={() => setCat(c.slug)}
                 className={`${styles.pill} ${cat === c.slug ? styles.pillActive : ""}`}
               >
                 {c.name}
@@ -149,9 +158,9 @@ export default function Products() {
                 product={{
                   id: p.id,
                   name: p.name,
-                  price_cents: p.price_cents,
+                  price_cents: p.price_cents || 0,
                   image_url: p.image_url,
-                  tags: p.tags,
+                  tags: p.tags || [],
                   external_url: p.external_url,
                 }}
               />
