@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import logoCropped from "../assets/logo-cropped.png";
+import logoCropped from "../assets/logo.png";
 import styles from "../styles/Navbar.module.css";
 import { UserCog, ChevronDown, Menu } from "lucide-react";
 
@@ -168,7 +168,6 @@ export default function Navbar() {
           <Link to="/" className={styles.navbarBrand}>
             <div className={styles.logoContainer}>
               <img src={logoCropped} alt="EmpowerMEd Logo" className={styles.navbarLogoImg} />
-              <span className={styles.logoText}>EmpowerMEd</span>
             </div>
           </Link>
 
