@@ -25,8 +25,10 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminProducts from './pages/AdminProducts.jsx';
 import AdminEvents from './pages/AdminEvents.jsx';
 import AdminBlog from './pages/AdminBlog.jsx';
+import AdminNewsletter from './components/AdminNewsletter.jsx'; 
 import AdminRoute from './lib/AdminRoute.jsx';
 import NotFound from './pages/NotFound.jsx';
+import AdminAuditLogs from './components/AdminAuditLogs.jsx';
 
 function App() {
   return (
@@ -77,6 +79,14 @@ function App() {
             />
 
             <Route
+              path="/admin/audit"
+              element={
+                <AdminRoute>
+                  <AdminAuditLogs />
+                </AdminRoute>
+              }
+            />
+            <Route
               path="/admin/users"
               element={
                 <AdminRoute>
@@ -114,6 +124,14 @@ function App() {
             />
 
             {/* 404 fallback */}
+            <Route
+              path="/admin/newsletter"  // Add this route
+              element={
+                <AdminRoute>
+                  <AdminNewsletter />
+                </AdminRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

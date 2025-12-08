@@ -1,4 +1,4 @@
-// src/pages/AdminDashboard.jsx
+// src/pages/AdminDashboard.jsx 
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
@@ -14,6 +14,11 @@ import {
   FiTag,
   FiBookOpen,
   FiUserCheck,
+  FiMail,
+  FiShield,
+  FiDatabase,
+  FiActivity,
+  FiMessageCircle
 } from "react-icons/fi";
 
 // Normalized backend base URL
@@ -24,6 +29,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").repla
 
 const getFallbackStats = () => ({
   users: { total: 0, active: 0, newThisMonth: 0, roles: {} },
+  newsletter: { total: 0, active: 0 },
   appointments: { total: 0, pending: 0, today: 0 },
   products: { total: 0 },
   categories: { total: 0 },
@@ -32,7 +38,14 @@ const getFallbackStats = () => ({
   events: { upcoming: 0 },
   memberships: { plans: 0, active: 0 },
   messages: { total: 0 },
-  audit: { total: 0 },
+  audit: { 
+    total: 0, 
+    today: 0,
+    security: 0,
+    authentication: 0,
+    access: 0,
+    modification: 0 
+  },
 });
 
 export default function AdminDashboard() {
@@ -48,6 +61,62 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(getFallbackStats());
   const [error, setError] = useState("");
 
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        },
+      });
+
+      const res = await fetch(`${API_BASE}/api/admin/dashboard-stats`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("❌ Stats fetch failed:", res.status, text.slice(0, 200));
+
+        if (res.status === 401) {
+          setError("Not authenticated. Please sign in again.");
+        } else if (res.status === 403) {
+          setError("Access restricted: Administrator role required.");
+        } else {
+          setError("Failed to load dashboard statistics.");
+        }
+
+        setStats(getFallbackStats());
+        return;
+      }
+
+      const data = await res.json();
+      setStats(data || getFallbackStats());
+    } catch (e) {
+      console.error("❌ Dashboard error:", e);
+
+      const msg = String(e?.message || e);
+      if (msg.includes("login_required")) {
+        await loginWithRedirect({
+          appState: { returnTo: window.location.pathname },
+        });
+        return;
+      }
+
+      setError("Failed to load dashboard. Please try again later.");
+      setStats(getFallbackStats());
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let alive = true;
 
@@ -62,66 +131,20 @@ export default function AdminDashboard() {
           return;
         }
 
-        const token = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-          },
-        });
-
-        const res = await fetch(`${API_BASE}/api/admin/dashboard-stats`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          console.error("❌ Stats fetch failed:", res.status, text.slice(0, 200));
-
-          if (!alive) return;
-
-          if (res.status === 401) {
-            setError("Not authenticated. Please sign in again.");
-          } else if (res.status === 403) {
-            setError("Access restricted: Administrator role required.");
-          } else {
-            setError("Failed to load dashboard statistics.");
-          }
-
-          setStats(getFallbackStats());
-          return;
+        await fetchDashboardData();
+      } catch (err) {
+        console.error("Dashboard initialization error:", err);
+        if (alive) {
+          setError("Failed to initialize dashboard.");
+          setLoading(false);
         }
-
-        const data = await res.json();
-        if (!alive) return;
-
-        setStats(data || getFallbackStats());
-      } catch (e) {
-        if (!alive) return;
-        console.error("❌ Dashboard error:", e);
-
-        const msg = String(e?.message || e);
-        if (msg.includes("login_required")) {
-          await loginWithRedirect({
-            appState: { returnTo: window.location.pathname },
-          });
-          return;
-        }
-
-        setError("Failed to load dashboard. Please try again later.");
-        setStats(getFallbackStats());
-      } finally {
-        if (alive) setLoading(false);
       }
     })();
 
     return () => {
       alive = false;
     };
-  }, [isLoading, isAuthenticated, loginWithRedirect, getAccessTokenSilently]);
+  }, [isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently]);
 
   const educationTotal =
     (stats?.education?.articles || 0) + (stats?.education?.videos || 0);
@@ -139,6 +162,13 @@ export default function AdminDashboard() {
       title: "Active Users",
       value: stats?.users?.active,
       gradient: "card-green",
+    },
+    { 
+      icon: FiMail,
+      title: "Newsletter", 
+      value: stats?.newsletter?.total || 0,
+      gradient: "card-green",
+      link: "/admin/newsletter"
     },
     {
       icon: FiCalendar,
@@ -159,11 +189,11 @@ export default function AdminDashboard() {
       title: "Blog Posts",
       value: stats?.blog?.total,
       gradient: "card-blue",
-      link: "/admin/blog-posts",
+      link: "/admin/blog",
     },
     {
       icon: FiBookOpen,
-      title: "Education Hub Items",
+      title: "Education Hub",
       value: educationTotal,
       gradient: "card-slate",
       link: "/admin/education",
@@ -182,9 +212,9 @@ export default function AdminDashboard() {
       gradient: "card-green",
       link: "/admin/memberships",
     },
-    {
-      icon: FiClipboard,
-      title: "Audit Logs",
+    { 
+      icon: FiShield, 
+      title: "Audit Logs", 
       value: stats?.audit?.total,
       gradient: "card-blue",
       link: "/admin/audit",
@@ -193,6 +223,7 @@ export default function AdminDashboard() {
 
   const detailStats = [
     { label: "New Users This Month", value: stats?.users?.newThisMonth },
+    { label: "Active Newsletter", value: stats?.newsletter?.active || 0 },
     { label: "Pending Appointments", value: stats?.appointments?.pending },
     { label: "Today's Appointments", value: stats?.appointments?.today },
     { label: "Categories", value: stats?.categories?.total },
@@ -202,6 +233,12 @@ export default function AdminDashboard() {
     { label: "Membership Plans", value: stats?.memberships?.plans },
     { label: "Upcoming Events", value: stats?.events?.upcoming },
     { label: "Contact Messages", value: stats?.messages?.total },
+    // Add audit-specific stats
+    { label: "Today's Audit Logs", value: stats?.audit?.today },
+    { label: "Security Events", value: stats?.audit?.security },
+    { label: "Login Events", value: stats?.audit?.authentication },
+    { label: "Data Access Events", value: stats?.audit?.access },
+    { label: "Data Changes", value: stats?.audit?.modification },
   ];
 
   if (isLoading || loading) {
@@ -281,10 +318,19 @@ export default function AdminDashboard() {
             <FiUsers className="dashboard-icon" />
             Users
           </NavLink>
-          <NavLink
-            to="/admin/appointments"
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? "active" : ""}`
+          <NavLink 
+            to="/admin/newsletter" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiMail className="dashboard-icon" />
+            Newsletter
+          </NavLink>
+          <NavLink 
+            to="/admin/appointments" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
             }
           >
             <FiCalendar className="dashboard-icon" />
@@ -309,13 +355,13 @@ export default function AdminDashboard() {
             Events
           </NavLink>
           <NavLink
-            to="/admin/blog-posts"
+            to="/admin/blog"
             className={({ isActive }) =>
               `sidebar-link ${isActive ? "active" : ""}`
             }
           >
             <FiBookOpen className="dashboard-icon" />
-            Blog Posts
+            Blog
           </NavLink>
           <NavLink
             to="/admin/education"
@@ -341,7 +387,7 @@ export default function AdminDashboard() {
               `sidebar-link ${isActive ? "active" : ""}`
             }
           >
-            <FiClipboard className="dashboard-icon" />
+            <FiShield className="dashboard-icon" />
             Audit Logs
           </NavLink>
         </nav>
@@ -400,6 +446,85 @@ export default function AdminDashboard() {
             )}
           </div>
 
+          {/* Quick Stats Section */}
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="about-section">
+                <div className="about-header">
+                  <h2 className="display-font about-title">Activity Overview</h2>
+                </div>
+                <div className="row">
+                  {/* Audit Activity Card */}
+                  <div className="col-md-6 mb-3">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <FiActivity className="me-2" /> Audit Activity
+                        </h5>
+                        <div className="row">
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Today</small>
+                            <div className="h4">{stats?.audit?.today || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Security Events</small>
+                            <div className="h4 text-danger">{stats?.audit?.security || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Logins</small>
+                            <div className="h4 text-info">{stats?.audit?.authentication || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Data Access</small>
+                            <div className="h4 text-success">{stats?.audit?.access || 0}</div>
+                          </div>
+                        </div>
+                        <NavLink to="/admin/audit" className="btn btn-outline-primary btn-sm mt-2">
+                          View Audit Logs
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* System Status Card */}
+                  <div className="col-md-6 mb-3">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <FiDatabase className="me-2" /> System Status
+                        </h5>
+                        <div className="row">
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Total Audit Logs</small>
+                            <div className="h4">{stats?.audit?.total || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">Data Changes</small>
+                            <div className="h4 text-warning">{stats?.audit?.modification || 0}</div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">HIPAA Compliant</small>
+                            <div className="h4 text-success">
+                              {stats?.audit?.total > 0 ? '✓' : '–'}
+                            </div>
+                          </div>
+                          <div className="col-6 mb-2">
+                            <small className="text-muted">6-Year Retention</small>
+                            <div className="h4 text-success">✓</div>
+                          </div>
+                        </div>
+                        <NavLink to="/admin/audit?tab=report" className="btn btn-outline-success btn-sm mt-2">
+                          Generate Report
+                        </NavLink>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Statistics Section */}
           <div className="about-section">
             <div className="about-header">
               <h2 className="display-font about-title">Detailed Statistics</h2>
