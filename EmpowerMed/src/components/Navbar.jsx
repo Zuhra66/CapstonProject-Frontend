@@ -150,7 +150,6 @@ export default function Navbar() {
             <Link to="/" className={styles.navbarBrand}>
               <div className={styles.logoContainer}>
                 <img src={logoCropped} alt="EmpowerMEd Logo" className={styles.navbarLogoImg} />
-                <span className={styles.logoText}>EmpowerMEd</span>
               </div>
             </Link>
             <div className={styles.navbarAuth}>
