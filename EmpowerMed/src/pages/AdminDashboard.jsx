@@ -2,89 +2,166 @@
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NavLink } from "react-router-dom";
+import "../styles/admin-dashboard.css";
+
 import {
-  FiUsers, FiClipboard, FiCalendar, FiBarChart, FiLogOut,
-  FiShoppingBag, FiTag, FiBookOpen, FiMessageCircle, FiUserCheck,
-  FiMail, FiShield, FiDatabase, FiActivity 
+  FiUsers,
+  FiClipboard,
+  FiCalendar,
+  FiBarChart,
+  FiLogOut,
+  FiShoppingBag,
+  FiTag,
+  FiBookOpen,
+  FiUserCheck,
+  FiMail,
+  FiShield,
+  FiDatabase,
+  FiActivity,
+  FiMessageCircle
 } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Normalized backend base URL
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(
+  /\/+$/,
+  ""
+);
+
+const getFallbackStats = () => ({
+  users: { total: 0, active: 0, newThisMonth: 0, roles: {} },
+  newsletter: { total: 0, active: 0 },
+  appointments: { total: 0, pending: 0, today: 0 },
+  products: { total: 0 },
+  categories: { total: 0 },
+  blog: { total: 0 },
+  education: { videos: 0, articles: 0 },
+  events: { upcoming: 0 },
+  memberships: { plans: 0, active: 0 },
+  messages: { total: 0 },
+  audit: { 
+    total: 0, 
+    today: 0,
+    security: 0,
+    authentication: 0,
+    access: 0,
+    modification: 0 
+  },
+});
 
 export default function AdminDashboard() {
-  const { isAuthenticated, isLoading, getAccessTokenSilently, logout } = useAuth0();
+  const {
+    isAuthenticated,
+    isLoading,
+    loginWithRedirect,
+    logout,
+    getAccessTokenSilently,
+  } = useAuth0();
+
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({});
+  const [stats, setStats] = useState(getFallbackStats());
   const [error, setError] = useState("");
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        },
+      });
+
+      const res = await fetch(`${API_BASE}/api/admin/dashboard-stats`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("❌ Stats fetch failed:", res.status, text.slice(0, 200));
+
+        if (res.status === 401) {
+          setError("Not authenticated. Please sign in again.");
+        } else if (res.status === 403) {
+          setError("Access restricted: Administrator role required.");
+        } else {
+          setError("Failed to load dashboard statistics.");
+        }
+
+        setStats(getFallbackStats());
+        return;
+      }
+
+      const data = await res.json();
+      setStats(data || getFallbackStats());
+    } catch (e) {
+      console.error("❌ Dashboard error:", e);
+
+      const msg = String(e?.message || e);
+      if (msg.includes("login_required")) {
+        await loginWithRedirect({
+          appState: { returnTo: window.location.pathname },
+        });
+        return;
+      }
+
+      setError("Failed to load dashboard. Please try again later.");
+      setStats(getFallbackStats());
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
 
-    const fetchDashboardData = async () => {
+    (async () => {
       try {
-        if (!isAuthenticated) return;
+        if (isLoading) return;
 
-        const token = await getAccessTokenSilently({
-          authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE }
-        });
-
-        const res = await fetch(`${API}/api/admin/dashboard-stats`, {
-          headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json" 
-          },
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          setStats(getFallbackStats());
+        if (!isAuthenticated) {
+          await loginWithRedirect({
+            appState: { returnTo: window.location.pathname },
+          });
           return;
         }
 
-        const data = await res.json();
-        setStats(data);
+        await fetchDashboardData();
       } catch (err) {
-        console.error("Dashboard data fetch error:", err);
-        setStats(getFallbackStats());
-      } finally {
-        if (alive) setLoading(false);
+        console.error("Dashboard initialization error:", err);
+        if (alive) {
+          setError("Failed to initialize dashboard.");
+          setLoading(false);
+        }
       }
+    })();
+
+    return () => {
+      alive = false;
     };
+  }, [isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently]);
 
-    const getFallbackStats = () => ({
-      users: { total: 1, active: 1, newThisMonth: 0 },
-      appointments: { total: 0, pending: 0, today: 0 },
-      products: { total: 0 },
-      categories: { total: 0 },
-      blog: { total: 0 },
-      education: { videos: 0, articles: 0 },
-      events: { upcoming: 0 },
-      memberships: { plans: 0, active: 0 },
-      messages: { total: 0 },
-      audit: { 
-        total: 0, 
-        today: 0,
-        security: 0,
-        authentication: 0,
-        access: 0,
-        modification: 0 
-      },
-      newsletter: { total: 0, active: 0 }
-    });
-
-    if (isAuthenticated && !isLoading) {
-      fetchDashboardData();
-    }
-
-    return () => { alive = false; };
-  }, [isAuthenticated, isLoading, getAccessTokenSilently]);
+  const educationTotal =
+    (stats?.education?.articles || 0) + (stats?.education?.videos || 0);
 
   const mainCards = [
-    { 
-      icon: FiUsers, 
-      title: "Total Users", 
+    {
+      icon: FiUsers,
+      title: "Total Users",
       value: stats?.users?.total,
       gradient: "card-blue",
-      link: "/admin/users"
+      link: "/admin/users",
+    },
+    {
+      icon: FiUserCheck,
+      title: "Active Users",
+      value: stats?.users?.active,
+      gradient: "card-green",
     },
     { 
       icon: FiMail,
@@ -93,33 +170,54 @@ export default function AdminDashboard() {
       gradient: "card-green",
       link: "/admin/newsletter"
     },
-    { 
-      icon: FiCalendar, 
-      title: "Appointments", 
+    {
+      icon: FiCalendar,
+      title: "Appointments",
       value: stats?.appointments?.total,
       gradient: "card-orange",
-      link: "/admin/appointments"
+      link: "/admin/appointments",
     },
-    { 
-      icon: FiShoppingBag, 
-      title: "Products", 
+    {
+      icon: FiShoppingBag,
+      title: "Products",
       value: stats?.products?.total,
-      gradient: "card-orange",
-      link: "/admin/products"
+      gradient: "card-purple",
+      link: "/admin/products",
+    },
+    {
+      icon: FiBookOpen,
+      title: "Blog Posts",
+      value: stats?.blog?.total,
+      gradient: "card-blue",
+      link: "/admin/blog",
+    },
+    {
+      icon: FiBookOpen,
+      title: "Education Hub",
+      value: educationTotal,
+      gradient: "card-slate",
+      link: "/admin/education",
+    },
+    {
+      icon: FiCalendar,
+      title: "Upcoming Events",
+      value: stats?.events?.upcoming,
+      gradient: "card-slate",
+      link: "/admin/events",
+    },
+    {
+      icon: FiUsers,
+      title: "Active Memberships",
+      value: stats?.memberships?.active,
+      gradient: "card-green",
+      link: "/admin/memberships",
     },
     { 
       icon: FiShield, 
       title: "Audit Logs", 
       value: stats?.audit?.total,
-      gradient: "card-green",
-      link: "/admin/audit"
-    },
-    { 
-      icon: FiBookOpen, 
-      title: "Blog Posts", 
-      value: stats?.blog?.total,
       gradient: "card-blue",
-      link: "/admin/blog"
+      link: "/admin/audit",
     },
   ];
 
@@ -149,19 +247,30 @@ export default function AdminDashboard() {
         <aside className="admin-sidebar">
           <h2 className="sidebar-title">Admin Panel</h2>
           <nav className="sidebar-nav">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="sidebar-link placeholder" style={{height: '38px'}}></div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="sidebar-link placeholder"
+                style={{ height: "38px" }}
+              />
             ))}
           </nav>
         </aside>
-        
+
         <main className="admin-main page-content">
           <div className="container">
             <div className="placeholder-glow">
-              <div className="placeholder col-6 display-font mb-3" style={{height: '40px'}}></div>
+              <div
+                className="placeholder col-6 display-font mb-3"
+                style={{ height: "40px" }}
+              />
               <div className="dashboard-cards-row">
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <div key={i} className="dashboard-card placeholder" style={{height: '140px'}}></div>
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="dashboard-card placeholder"
+                    style={{ height: "140px" }}
+                  />
                 ))}
               </div>
             </div>
@@ -191,19 +300,19 @@ export default function AdminDashboard() {
       <aside className="admin-sidebar">
         <h2 className="sidebar-title display-font">Admin Panel</h2>
         <nav className="sidebar-nav">
-          <NavLink 
-            to="/admin/dashboard" 
-            className={({ isActive }) => 
-              `sidebar-link ${isActive ? 'active' : ''}`
+          <NavLink
+            to="/admin/dashboard"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
             }
           >
             <FiBarChart className="dashboard-icon" />
             Dashboard
           </NavLink>
-          <NavLink 
-            to="/admin/users" 
-            className={({ isActive }) => 
-              `sidebar-link ${isActive ? 'active' : ''}`
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
             }
           >
             <FiUsers className="dashboard-icon" />
@@ -227,39 +336,69 @@ export default function AdminDashboard() {
             <FiCalendar className="dashboard-icon" />
             Appointments
           </NavLink>
-          <NavLink 
-            to="/admin/products" 
-            className={({ isActive }) => 
-              `sidebar-link ${isActive ? 'active' : ''}`
+          <NavLink
+            to="/admin/products"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
             }
           >
             <FiShoppingBag className="dashboard-icon" />
             Products
           </NavLink>
-          <NavLink 
-            to="/admin/audit" 
-            className={({ isActive }) => 
-              `sidebar-link ${isActive ? 'active' : ''}`
+          <NavLink
+            to="/admin/events"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
             }
           >
-            <FiShield className="dashboard-icon" />
-            Audit Logs
+            <FiCalendar className="dashboard-icon" />
+            Events
           </NavLink>
-          <NavLink 
-            to="/admin/blog" 
-            className={({ isActive }) => 
-              `sidebar-link ${isActive ? 'active' : ''}`
+          <NavLink
+            to="/admin/blog"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
             }
           >
             <FiBookOpen className="dashboard-icon" />
             Blog
           </NavLink>
+          <NavLink
+            to="/admin/education"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiBookOpen className="dashboard-icon" />
+            Education Hub
+          </NavLink>
+          <NavLink
+            to="/admin/memberships"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiUsers className="dashboard-icon" />
+            Memberships
+          </NavLink>
+          <NavLink
+            to="/admin/audit"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <FiShield className="dashboard-icon" />
+            Audit Logs
+          </NavLink>
         </nav>
 
-        <button 
-          onClick={() => logout({ returnTo: window.location.origin })} 
-          className="btn btn-secondary logout-btn btn-sm"
-          style={{padding: '0.375rem 0.75rem', fontSize: '0.875rem'}}
+        <button
+          onClick={() =>
+            logout({
+              logoutParams: { returnTo: window.location.origin },
+            })
+          }
+          className="btn btn-secondary logout-btn"
         >
           <FiLogOut className="me-1" />
           Logout
@@ -271,36 +410,40 @@ export default function AdminDashboard() {
           <div className="about-header mb-4">
             <h1 className="display-font about-title">Administrator Dashboard</h1>
             <p className="about-subtitle body-font">
-              Welcome back! Here's what's happening with your business today.
+              Welcome back! Here&apos;s what&apos;s happening with your business
+              today.
             </p>
             <div className="text-muted small body-font">
               Last updated: {new Date().toLocaleTimeString()}
             </div>
           </div>
 
-          <div className="row mb-4">
-            {mainCards.map(({ icon: Icon, title, value, gradient, link }, index) => (
-              <div key={index} className="col-md-4 col-6 mb-3">
-                {link ? (
-                  <NavLink to={link} className="text-decoration-none">
-                    <StatCard 
-                      icon={Icon} 
-                      title={title} 
-                      value={value} 
+          {/* Main Stats Cards */}
+          <div className="dashboard-cards-row">
+            {mainCards.map(
+              ({ icon: Icon, title, value, gradient, link }, index) => (
+                <div key={index}>
+                  {link ? (
+                    <NavLink to={link} className="text-decoration-none">
+                      <StatCard
+                        icon={Icon}
+                        title={title}
+                        value={value}
+                        gradient={gradient}
+                        clickable
+                      />
+                    </NavLink>
+                  ) : (
+                    <StatCard
+                      icon={Icon}
+                      title={title}
+                      value={value}
                       gradient={gradient}
-                      clickable
                     />
-                  </NavLink>
-                ) : (
-                  <StatCard 
-                    icon={Icon} 
-                    title={title} 
-                    value={value} 
-                    gradient={gradient}
-                  />
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              )
+            )}
           </div>
 
           {/* Quick Stats Section */}
@@ -409,8 +552,15 @@ export default function AdminDashboard() {
               <div className="expertise-grid">
                 {Object.entries(stats.users.roles).map(([role, count]) => (
                   <div key={role} className="expertise-item body-font">
-                    <span className="text-capitalize">{role.toLowerCase()}</span>
-                    <span className="badge btn-primary" style={{marginLeft: '1rem'}}>{count}</span>
+                    <span className="text-capitalize">
+                      {String(role).toLowerCase()}
+                    </span>
+                    <span
+                      className="badge btn-primary"
+                      style={{ marginLeft: "1rem" }}
+                    >
+                      {count}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -422,14 +572,37 @@ export default function AdminDashboard() {
   );
 }
 
-const StatCard = ({ icon: Icon, title, value, gradient = "card-blue", clickable = false }) => {
-  return (
-    <div className={`dashboard-card ${gradient} ${clickable ? 'clickable' : ''}`} style={{minHeight: '140px', padding: '1.5rem'}}>
-      <div className="dashboard-icon">
-        <Icon size={20} />
-      </div>
-      <h2 className="display-font" style={{fontSize: '1rem', margin: '0.5rem 0', lineHeight: '1.2'}}>{title}</h2>
-      <p className="body-font" style={{fontSize: '1.5rem', fontWeight: 'var(--fw-bold)', margin: 0}}>{value ?? 0}</p>
+const StatCard = ({
+  icon: Icon,
+  title,
+  value,
+  gradient = "card-blue",
+  clickable = false,
+}) => (
+  <div
+    className={`dashboard-card ${gradient} ${
+      clickable ? "clickable" : ""
+    }`.trim()}
+    style={{ minHeight: "140px", padding: "1.5rem" }}
+  >
+    <div className="dashboard-icon">
+      <Icon size={20} />
     </div>
-  );
-};
+    <h2
+      className="display-font"
+      style={{ fontSize: "1rem", margin: "0.5rem 0", lineHeight: "1.2" }}
+    >
+      {title}
+    </h2>
+    <p
+      className="body-font"
+      style={{
+        fontSize: "1.5rem",
+        fontWeight: "var(--fw-bold)",
+        margin: 0,
+      }}
+    >
+      {value ?? 0}
+    </p>
+  </div>
+);

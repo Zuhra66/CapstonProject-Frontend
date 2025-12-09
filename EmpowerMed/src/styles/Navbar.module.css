@@ -479,6 +479,9 @@
   }
 
   .navbarLogoImg {
+    width: 65px;
+    height: 65px;
+
     width: 85px !important;
     height: 85px !important;
   }
@@ -499,6 +502,7 @@
     padding-top: 1.5rem;
     margin-top: 1.5rem;
     border-top: 1px solid rgba(61, 82, 160, 0.2);
+
   }
 }
 

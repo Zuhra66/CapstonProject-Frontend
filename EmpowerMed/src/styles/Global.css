@@ -135,7 +135,10 @@ section,
   justify-content: center;
   text-align: center;
   position: relative;
+  padding: 4rem 0 1rem;
+
   padding: 5rem 0 .3rem;
+
 }
 
 .about-section {
