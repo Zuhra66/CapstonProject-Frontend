@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { FiSearch, FiEdit, FiTrash2, FiUserCheck, FiUserX, FiShield, FiUser, FiUsers, FiSave, FiX } from "react-icons/fi";
+import { Modal, Button, Spinner } from "react-bootstrap";
+import { FiSearch, FiEdit, FiTrash2, FiUserCheck, FiUserX, FiShield, FiUser, FiSave, FiX, FiAlertTriangle } from "react-icons/fi";
+import '../styles/admin-dashboard.css';
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Temporary authedJson implementation since import is failing
 async function authedJson(path, { method = "GET", body, headers = {} } = {}, getToken) {
   const upper = method.toUpperCase();
   
-  // CSRF token handling
   let csrfToken = null;
   const m = document.cookie.match(new RegExp(`(?:^|; )XSRF-TOKEN=([^;]*)`));
   if (m) csrfToken = decodeURIComponent(m[1]);
@@ -18,7 +18,6 @@ async function authedJson(path, { method = "GET", body, headers = {} } = {}, get
     csrfHeader = { "X-XSRF-TOKEN": csrfToken };
   }
 
-  // Bearer token handling
   let bearerHeader = {};
   if (typeof getToken === "function") {
     const token = await getToken();
@@ -65,6 +64,9 @@ export default function AdminUsers() {
     is_active: true,
     is_admin: false
   });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const tokenGetter = useCallback(
     () =>
@@ -155,10 +157,6 @@ export default function AdminUsers() {
   const saveUser = async (userId) => {
     try {
       setBusy(true);
-      const token = await tokenGetter();
-
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      console.log('🔍 Token payload sub:', tokenPayload.sub);
       
       const responseData = await authedJson(
         `/api/admin/users/${userId}`,
@@ -168,13 +166,10 @@ export default function AdminUsers() {
         },
         tokenGetter
       );
-
-      console.log('✅ Frontend - Success response:', responseData);
       
       await loadUsers();
       setEditingId(null);
     } catch (err) {
-      console.error('❌ Frontend - Save user error:', err);
       alert(err.message || "Failed to update user");
     } finally {
       setBusy(false);
@@ -182,7 +177,7 @@ export default function AdminUsers() {
   };
 
   const toggleUserStatus = async (user) => {
-    if (!confirm(`Are you sure you want to ${user.is_active ? 'deactivate' : 'activate'} this user?`)) return;
+    if (!window.confirm(`Are you sure you want to ${user.is_active ? 'deactivate' : 'activate'} this user?`)) return;
     
     try {
       setBusy(true);
@@ -204,14 +199,19 @@ export default function AdminUsers() {
     }
   };
 
-  const deleteUser = async (userId) => {
-    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+  const openDeleteModal = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const deleteUser = async () => {
+    if (!userToDelete) return;
     
     try {
       setBusy(true);
       
       await authedJson(
-        `/api/admin/users/${userId}`,
+        `/api/admin/users/${userToDelete.id}`,
         {
           method: "DELETE"
         },
@@ -219,6 +219,8 @@ export default function AdminUsers() {
       );
 
       await loadUsers();
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     } catch (err) {
       alert(err.message || "Failed to delete user");
     } finally {
@@ -247,8 +249,8 @@ export default function AdminUsers() {
           padding: '0.25em 0.5em', 
           fontSize: '0.7em',
           fontWeight: '600',
-          background: '#00FF00', // Solid neon green
-          color: 'black' // Black text
+          background: '#00FF00',
+          color: 'black'
         }}>
           <FiUserCheck className="me-1" size={10} />
           Active
@@ -260,8 +262,8 @@ export default function AdminUsers() {
         padding: '0.25em 0.5em', 
         fontSize: '0.7em',
         fontWeight: '600',
-        background: '#FF0000', // Solid red
-        color: 'white' // White text
+        background: '#FF0000',
+        color: 'white'
       }}>
         <FiUserX className="me-1" size={10} />
         Inactive
@@ -275,61 +277,58 @@ export default function AdminUsers() {
         padding: '0.25em 0.5em', 
         fontSize: '0.7em',
         fontWeight: '600',
-        background: 'white', // White background
-        color: 'black', // Black text
-        border: '1px solid #dee2e6' // Light border
+        background: 'white',
+        color: 'black',
+        border: '1px solid #dee2e6'
       }}>
         {user.role || 'User'}
       </span>
     );
   };
 
-const getMembershipBadge = (user) => {
+  const getMembershipBadge = (user) => {
+    if (
+      !user.membership || 
+      user.membership.status == null || 
+      user.membership.plan_name == null
+    ) {
+      return (
+        <span className="badge" style={{
+          padding: '0.25em 0.5em',
+          fontSize: '0.7em',
+          fontWeight: '600',
+          background: '#b6b6b6',
+          color: '#333'
+        }}>
+          No Membership
+        </span>
+      );
+    }
 
-  // If null, undefined, or an empty membership object
-  if (
-    !user.membership || 
-    user.membership.status == null || 
-    user.membership.plan_name == null
-  ) {
+    const status = user.membership.status;
+
+    const colors = {
+      active:    { bg: "#00FF00", text: "black" },
+      past_due:  { bg: "#FF9900", text: "black" },
+      cancelled: { bg: "#F44336", text: "white" },
+      inactive:  { bg: "#868E96", text: "white" }
+    };
+
+    const c = colors[status] || colors["inactive"];
+
     return (
       <span className="badge" style={{
         padding: '0.25em 0.5em',
         fontSize: '0.7em',
         fontWeight: '600',
-        background: '#b6b6b6',
-        color: '#333'
+        background: c.bg,
+        color: c.text,
+        border: '1px solid rgba(0,0,0,0.1)'
       }}>
-        No Membership
+        {status === "active" ? "Member" : status.replace("_", " ").toUpperCase()}
       </span>
     );
-  }
-
-  const status = user.membership.status;
-
-  const colors = {
-    active:    { bg: "#00FF00", text: "black" },
-    past_due:  { bg: "#FF9900", text: "black" },
-    cancelled: { bg: "#F44336", text: "white" },
-    inactive:  { bg: "#868E96", text: "white" }
   };
-
-  const c = colors[status] || colors["inactive"];
-
-  return (
-    <span className="badge" style={{
-      padding: '0.25em 0.5em',
-      fontSize: '0.7em',
-      fontWeight: '600',
-      background: c.bg,
-      color: c.text,
-      border: '1px solid rgba(0,0,0,0.1)'
-    }}>
-      {status === "active" ? "Member" : status.replace("_", " ").toUpperCase()}
-    </span>
-  );
-};
-
 
   const getToggleStatusButtonStyle = (user) => {
     if (user.is_active) {
@@ -385,7 +384,6 @@ const getMembershipBadge = (user) => {
           </p>
         </div>
 
-        {/* Stats Cards with your color scheme */}
         <div className="row mb-4">
           <div className="col-md-3 col-6 mb-3">
             <div className="card border-0 shadow-sm h-100" style={{ background: 'linear-gradient(135deg, #EDE8F5, #ADBBDA)' }}>
@@ -425,69 +423,94 @@ const getMembershipBadge = (user) => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
-          <div className="card-body">
-            <div className="row g-3 align-items-end">
-              <div className="col-md-4">
-                <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Search Users</label>
-                <div className="input-group">
-                  <span className="input-group-text" style={{ background: '#ADBBDA', borderColor: '#8697C4', color: '#3D52A0' }}>
-                    <FiSearch size={18} />
-                  </span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    style={{ borderColor: '#8697C4', color: 'black' }}
-                    placeholder="Search by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Status</label>
-                <select
-                  className="form-select"
-                  style={{ borderColor: '#8697C4', color: 'black' }}
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active Only</option>
-                  <option value="inactive">Inactive Only</option>
-                </select>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Role</label>
-                <select
-                  className="form-select"
-                  style={{ borderColor: '#8697C4', color: 'black' }}
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="User">User</option>
-                  <option value="Member">Member</option>
-                  <option value="Provider">Provider</option>
-                  <option value="Administrator">Administrator</option>
-                </select>
-              </div>
-              <div className="col-md-2">
-                <button 
-                  className="btn w-100"
-                  style={{ background: '#8697C4', borderColor: '#8697C4', color: 'white' }}
-                  onClick={loadUsers}
-                  disabled={busy}
-                >
-                  Refresh
-                </button>
-              </div>
-            </div>
-          </div>
+<div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
+  <div className="card-body">
+    <div className="row g-3 align-items-center"> {/* Changed from align-items-end to align-items-center */}
+      <div className="col-md-4">
+        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Search Users</label>
+        <div className="input-group" style={{ height: '38px' }}>
+          <span className="input-group-text d-flex align-items-center justify-content-center" 
+            style={{ 
+              background: '#ADBBDA', 
+              borderColor: '#8697C4', 
+              color: '#3D52A0',
+              padding: '0.375rem 0.75rem',
+              height: '100%'
+            }}>
+            <FiSearch size={18} />
+          </span>
+          <input
+            type="text"
+            className="form-control"
+            style={{ 
+              borderColor: '#8697C4', 
+              color: 'black',
+              height: '100%'
+            }}
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
+      </div>
+      <div className="col-md-3">
+        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Status</label>
+        <select
+          className="form-select"
+          style={{ 
+            borderColor: '#8697C4', 
+            color: 'black',
+            height: '38px'
+          }}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+      </div>
+      <div className="col-md-3">
+        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Role</label>
+        <select
+          className="form-select"
+          style={{ 
+            borderColor: '#8697C4', 
+            color: 'black',
+            height: '38px'
+          }}
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+        >
+          <option value="all">All Roles</option>
+          <option value="User">User</option>
+          <option value="Member">Member</option>
+          <option value="Provider">Provider</option>
+          <option value="Administrator">Administrator</option>
+        </select>
+      </div>
+      <div className="col-md-2">
+        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0', opacity: 0 }}>Actions</label>
+        <button 
+          className="btn w-100 d-flex align-items-center justify-content-center"
+          style={{ 
+            background: '#8697C4', 
+            borderColor: '#8697C4', 
+            color: 'white',
+            borderRadius: '0.375rem',
+            height: '38px',
+            padding: '0'
+          }}
+          onClick={loadUsers}
+          disabled={busy}
+        >
+          {busy ? 'Loading...' : 'Refresh'}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        {/* Users Table */}
         <div className="card border-0 shadow-sm" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
           <div className="card-body p-2">
             {error && (
@@ -514,7 +537,7 @@ const getMembershipBadge = (user) => {
                 <tbody>
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center py-5" style={{ color: '#3D52A0' }}>
+                      <td colSpan="8" className="text-center py-5" style={{ color: '#3D52A0' }}>
                         <FiUser size={48} className="mb-3" style={{ color: '#8697C4' }} />
                         <p className="mb-0">
                           {users.length === 0 ? "No users found in database" : "No users match your search criteria"}
@@ -590,7 +613,7 @@ const getMembershipBadge = (user) => {
                                 <button
                                   className="btn btn-outline-danger btn-sm"
                                   style={{ borderColor: '#3D52A0', color: '#3D52A0', padding: '0.25rem 0.5rem' }}
-                                  onClick={() => deleteUser(user.id)}
+                                  onClick={() => openDeleteModal(user)}
                                   disabled={busy || user.id === editingId}
                                   title="Delete User"
                                 >
@@ -607,7 +630,6 @@ const getMembershipBadge = (user) => {
               </table>
             </div>
 
-            {/* Edit Form - Maintains your original styling */}
             {editingId && (
               <div className="card mt-4" style={{ borderColor: '#3D52A0', background: '#EDE8F5' }}>
                 <div className="card-header text-white d-flex justify-content-between align-items-center" style={{ background: '#3D52A0' }}>
@@ -754,6 +776,60 @@ const getMembershipBadge = (user) => {
           </div>
         </div>
       </div>
+
+      <Modal 
+        show={showDeleteModal} 
+        onHide={() => !busy && setShowDeleteModal(false)} 
+        centered
+        backdrop={busy ? "static" : true}
+        size="sm"
+        className="modal-dark"
+      >
+        <Modal.Header className="modal-header-custom" closeButton={!busy}>
+          <Modal.Title>
+            <FiAlertTriangle className="me-2" />
+            Confirm Delete
+          </Modal.Title>
+        </Modal.Header>
+        
+        <Modal.Body className="modal-body-custom text-center">
+          <div className="error-icon mb-3">
+            <FiAlertTriangle size={48} />
+          </div>
+          <p className="mb-3">
+            Are you sure you want to delete <strong>{userToDelete?.email}</strong>?
+          </p>
+          <p className="text-muted mb-0" style={{ fontSize: '0.85rem' }}>
+            This action cannot be undone.
+          </p>
+        </Modal.Body>
+        
+        <Modal.Footer className="modal-footer-custom">
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDeleteModal(false)}
+            disabled={busy}
+            className="modal-btn-cancel"
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={deleteUser}
+            disabled={busy}
+            className="modal-btn-confirm"
+          >
+            {busy ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

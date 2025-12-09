@@ -171,3 +171,233 @@
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
+/* ---------------------------------------------------
+   User DASHBOARD STYLES
+--------------------------------------------------- */
+/* ==================== */
+/* MODAL STYLES - DARK THEME */
+/* ==================== */
+
+/* Modal Header Styles */
+.modal-header-custom {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.modal-header-success {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.modal-header-error {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.modal-header-warning {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+/* Modal Body Styles */
+.modal-body-custom {
+  background-color: #2a2a2a;
+  color: white;
+  padding: 1rem;
+}
+
+.modal-body-success, 
+.modal-body-error, 
+.modal-body-warning {
+  background-color: #2a2a2a;
+  color: white;
+}
+
+/* Modal Footer Styles */
+.modal-footer-custom,
+.modal-footer-success,
+.modal-footer-error,
+.modal-footer-warning {
+  background-color: #1f1f1f;
+  border-top: 1px solid #333;
+  padding: 0.75rem;
+}
+
+/* Appointment Details Box */
+.appointment-details {
+  background-color: #333;
+  border-left: 4px solid #0d6efd;
+}
+
+/* Form Elements */
+.form-label-custom {
+  color: white;
+  font-weight: 500;
+}
+
+.form-check-custom {
+  color: white;
+}
+
+.form-control-custom {
+  background-color: #333;
+  border: 1px solid #444;
+  color: white;
+}
+
+.form-control-custom:focus {
+  background-color: #333;
+  border-color: #0d6efd;
+  color: white;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-text-custom {
+  color: #aaa !important;
+}
+
+/* Buttons */
+.modal-btn-cancel {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.85rem;
+  min-width: 70px;
+  height: 32px;
+}
+
+.modal-btn-confirm,
+.modal-btn-ok {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.85rem;
+  min-width: 70px;
+  height: 32px;
+}
+
+.modal-btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.85rem;
+  min-width: 70px;
+  height: 32px;
+}
+
+.modal-btn-cancel:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+  color: white;
+}
+
+.modal-btn-confirm:hover,
+.modal-btn-ok:hover {
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
+  color: white;
+}
+
+.modal-btn-danger:hover {
+  background-color: #bb2d3b;
+  border-color: #b02a37;
+  color: white;
+}
+
+/* Even smaller for compact modals */
+.modal-sm .modal-btn-cancel,
+.modal-sm .modal-btn-confirm,
+.modal-sm .modal-btn-ok,
+.modal-sm .modal-btn-danger {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+  min-width: 60px;
+  height: 28px;
+}
+
+/* For extra small screens */
+@media (max-width: 576px) {
+  .modal-btn-cancel,
+  .modal-btn-confirm,
+  .modal-btn-ok,
+  .modal-btn-danger {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.8rem;
+    min-width: 65px;
+    height: 30px;
+  }
+}
+
+/* Icons */
+.success-icon,
+.error-icon,
+.warning-icon {
+  color: #0d6efd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Messages */
+.success-message,
+.error-message,
+.warning-message {
+  white-space: pre-line;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Compact modal sizing */
+.compact-modal {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.modal-content {
+  border: 1px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.modal-dark .modal-content {
+  border: 1px solid #444;
+}
+
+.modal-dialog.modal-sm {
+  max-width: 450px;
+}
+
+.modal-dialog.modal-md {
+  max-width: 450px;
+}
+
+/* Prevent modal from sliding/expanding */
+.modal.fade .modal-dialog {
+  transform: translate(0, 0) !important;
+  transition: none !important;
+}
+
+/* Text colors for modal */
+.modal-body-custom .text-muted {
+  color: #aaa !important;
+}
+
+.modal-body-custom strong {
+  color: #fff;
+}
+
+/* Specific styling for delete modal */
+.modal-body-custom .error-icon {
+  color: #dc3545;
+}

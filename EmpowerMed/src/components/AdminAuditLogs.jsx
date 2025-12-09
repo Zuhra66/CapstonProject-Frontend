@@ -618,151 +618,176 @@ export default function AdminAuditLogs() {
           </div>
         </div>
 
-        {/* Filters (only show for audit logs) */}
-        {activeTab !== 'report' && (
-          <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
-            <div className="card-body">
-              <div className="row g-3 align-items-end">
-                {activeTab === 'audit' && (
-                  <>
-                    <div className="col-md-3">
-                      <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Event Category</label>
-                      <select
-                        className="form-select"
-                        style={{ borderColor: '#8697C4', color: 'black' }}
-                        value={filters.eventCategory}
-                        onChange={(e) => setFilters({...filters, eventCategory: e.target.value})}
-                      >
-                        <option value="">All Categories</option>
-                        <option value="authentication">Authentication</option>
-                        <option value="access">Access</option>
-                        <option value="modification">Modification</option>
-                        <option value="security">Security</option>
-                        <option value="system">System</option>
-                      </select>
-                    </div>
-                    
-                    <div className="col-md-2">
-                      <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Status</label>
-                      <select
-                        className="form-select"
-                        style={{ borderColor: '#8697C4', color: 'black' }}
-                        value={filters.status}
-                        onChange={(e) => setFilters({...filters, status: e.target.value})}
-                      >
-                        <option value="">All Status</option>
-                        <option value="success">Success</option>
-                        <option value="failure">Failure</option>
-                        <option value="warning">Warning</option>
-                      </select>
-                    </div>
-                  </>
-                )}
-                
-                <div className="col-md-2">
-                  <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Start Date</label>
-                  <div className="input-group">
-                    <span className="input-group-text" style={{ 
-                      background: '#ADBBDA', 
-                      borderColor: '#8697C4', 
-                      color: '#3D52A0' 
-                    }}>
-                      <FiCalendar size={18} />
-                    </span>
-                    <input
-                      type="date"
-                      className="form-control"
-                      style={{ borderColor: '#8697C4', color: 'black' }}
-                      value={filters.startDate}
-                      onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
-                <div className="col-md-2">
-                  <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>End Date</label>
-                  <div className="input-group">
-                    <span className="input-group-text" style={{ 
-                      background: '#ADBBDA', 
-                      borderColor: '#8697C4', 
-                      color: '#3D52A0' 
-                    }}>
-                      <FiCalendar size={18} />
-                    </span>
-                    <input
-                      type="date"
-                      className="form-control"
-                      style={{ borderColor: '#8697C4', color: 'black' }}
-                      value={filters.endDate}
-                      onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-                    />
-                  </div>
-                </div>
+{/* Filters (only show for audit logs) */}
+{activeTab !== 'report' && (
+  <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
+    <div className="card-body">
+      <div className="row g-3 align-items-center"> {/* Changed from align-items-end to align-items-center */}
+        {activeTab === 'audit' && (
+          <>
+            <div className="col-md-3">
+              <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Event Category</label>
+              <select
+                className="form-select"
+                style={{ 
+                  borderColor: '#8697C4', 
+                  color: 'black',
+                  height: '38px'
+                }}
+                value={filters.eventCategory}
+                onChange={(e) => setFilters({...filters, eventCategory: e.target.value})}
+              >
+                <option value="">All Categories</option>
+                <option value="authentication">Authentication</option>
+                <option value="access">Access</option>
+                <option value="modification">Modification</option>
+                <option value="security">Security</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+            
+            <div className="col-md-2">
+              <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Status</label>
+              <select
+                className="form-select"
+                style={{ 
+                  borderColor: '#8697C4', 
+                  color: 'black',
+                  height: '38px'
+                }}
+                value={filters.status}
+                onChange={(e) => setFilters({...filters, status: e.target.value})}
+              >
+                <option value="">All Status</option>
+                <option value="success">Success</option>
+                <option value="failure">Failure</option>
+                <option value="warning">Warning</option>
+              </select>
+            </div>
+          </>
+        )}
+        
+        <div className="col-md-2">
+          <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Start Date</label>
+          <div className="input-group" style={{ height: '38px' }}>
+            <span className="input-group-text d-flex align-items-center justify-content-center" 
+              style={{ 
+                background: '#ADBBDA', 
+                borderColor: '#8697C4', 
+                color: '#3D52A0',
+                padding: '0.375rem 0.75rem',
+                height: '100%'
+              }}>
+              <FiCalendar size={18} />
+            </span>
+            <input
+              type="date"
+              className="form-control"
+              style={{ 
+                borderColor: '#8697C4', 
+                color: 'black',
+                height: '100%'
+              }}
+              value={filters.startDate}
+              onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+            />
+          </div>
+        </div>
+        
+        <div className="col-md-2">
+          <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>End Date</label>
+          <div className="input-group" style={{ height: '38px' }}>
+            <span className="input-group-text d-flex align-items-center justify-content-center" 
+              style={{ 
+                background: '#ADBBDA', 
+                borderColor: '#8697C4', 
+                color: '#3D52A0',
+                padding: '0.375rem 0.75rem',
+                height: '100%'
+              }}>
+              <FiCalendar size={18} />
+            </span>
+            <input
+              type="date"
+              className="form-control"
+              style={{ 
+                borderColor: '#8697C4', 
+                color: 'black',
+                height: '100%'
+              }}
+              value={filters.endDate}
+              onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+            />
+          </div>
+        </div>
 
-                {activeTab === 'audit' && (
-                  <div className="col-md-3">
-                    <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Search</label>
-                    <div className="input-group">
-                      <span className="input-group-text" style={{ 
-                        background: '#ADBBDA', 
-                        borderColor: '#8697C4', 
-                        color: '#3D52A0' 
-                      }}>
-                        <FiSearch size={18} />
-                      </span>
-                      <input
-                        type="text"
-                        className="form-control"
-                        style={{ borderColor: '#8697C4', color: 'black' }}
-                        placeholder="Search user, event, resource..."
-                        value={filters.search}
-                        onChange={(e) => setFilters({...filters, search: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="col-md-2">
-                  <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Actions</label>
-                  <div className="d-flex gap-2">
-                    <button
-                      onClick={loadLogs}
-                      className="btn w-100"
-                      style={{ 
-                        background: '#8697C4', 
-                        borderColor: '#8697C4', 
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
-                      }}
-                    >
-                      <FiSearch size={18} />
-                      Search
-                    </button>
-                    <button
-                      onClick={exportToCSV}
-                      className="btn w-100"
-                      style={{ 
-                        background: '#3D52A0', 
-                        borderColor: '#3D52A0', 
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
-                      }}
-                    >
-                      <FiDownload size={18} />
-                      Export
-                    </button>
-                  </div>
-                </div>
-              </div>
+        {activeTab === 'audit' && (
+          <div className="col-md-3">
+            <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Search</label>
+            <div className="input-group" style={{ height: '38px' }}>
+              <span className="input-group-text d-flex align-items-center justify-content-center" 
+                style={{ 
+                  background: '#ADBBDA', 
+                  borderColor: '#8697C4', 
+                  color: '#3D52A0',
+                  padding: '0.375rem 0.75rem',
+                  height: '100%'
+                }}>
+                <FiSearch size={18} />
+              </span>
+              <input
+                type="text"
+                className="form-control"
+                style={{ 
+                  borderColor: '#8697C4', 
+                  color: 'black',
+                  height: '100%'
+                }}
+                placeholder="Search user, event, resource..."
+                value={filters.search}
+                onChange={(e) => setFilters({...filters, search: e.target.value})}
+              />
             </div>
           </div>
         )}
+
+        <div className="col-md-2">
+          <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Actions</label>
+          <div className="d-flex gap-2" style={{ height: '38px' }}>
+            <button
+              onClick={loadLogs}
+              className="btn w-100 d-flex align-items-center justify-content-center"
+              style={{ 
+                background: '#8697C4', 
+                borderColor: '#8697C4', 
+                color: 'white',
+                height: '100%',
+                gap: '0.5rem'
+              }}
+            >
+              <FiSearch size={18} />
+              Search
+            </button>
+            <button
+              onClick={exportToCSV}
+              className="btn w-100 d-flex align-items-center justify-content-center"
+              style={{ 
+                background: '#3D52A0', 
+                borderColor: '#3D52A0', 
+                color: 'white',
+                height: '100%',
+                gap: '0.5rem'
+              }}
+            >
+              <FiDownload size={18} />
+              Export
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Report Section */}
         {activeTab === 'report' && (
