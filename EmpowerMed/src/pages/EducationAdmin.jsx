@@ -3,6 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import useAuthFetch from "../lib/useAuth";
 
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(
+  /\/+$/,
+  ""
+);
+
+// helper: convert array -> "tag1, tag2"
+const tagsToString = (tags) => (Array.isArray(tags) ? tags.join(", ") : "");
+
 export default function AdminEducation() {
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
   const authFetch = useAuthFetch();
@@ -10,85 +18,39 @@ export default function AdminEducation() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [adminSummary, setAdminSummary] = useState(null);
 
-  // Data lists
   const [articles, setArticles] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [downloads, setDownloads] = useState([]);
 
-  // Forms
+  // which section is active in UI
+  const [section, setSection] = useState("articles");
+
+  // forms
   const [articleForm, setArticleForm] = useState({
     id: null,
     title: "",
-    href: "",
     summary: "",
     minutes: "",
-    tagsText: "", // comma-separated tags
+    tags: "",
     cover_url: "",
+    href: "",
+    is_active: true,
   });
 
   const [videoForm, setVideoForm] = useState({
     id: null,
     title: "",
-    href: "",
     duration: "",
-    tagsText: "",
+    tags: "",
     thumb_url: "",
-  });
-
-  const [downloadForm, setDownloadForm] = useState({
-    id: null,
-    title: "",
     href: "",
-    file_size: "",
+    is_active: true,
   });
 
   const isEditingArticle = articleForm.id !== null;
   const isEditingVideo = videoForm.id !== null;
-  const isEditingDownload = downloadForm.id !== null;
 
-  /* ----------------------------- Helpers ----------------------------- */
-
-  const parseTags = (tagsText) =>
-    tagsText
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-  const tagsToText = (tags) => (Array.isArray(tags) ? tags.join(", ") : "");
-
-  const resetArticleForm = () =>
-    setArticleForm({
-      id: null,
-      title: "",
-      href: "",
-      summary: "",
-      minutes: "",
-      tagsText: "",
-      cover_url: "",
-    });
-
-  const resetVideoForm = () =>
-    setVideoForm({
-      id: null,
-      title: "",
-      href: "",
-      duration: "",
-      tagsText: "",
-      thumb_url: "",
-    });
-
-  const resetDownloadForm = () =>
-    setDownloadForm({
-      id: null,
-      title: "",
-      href: "",
-      file_size: "",
-    });
-
-  /* ----------------------------- Load data ----------------------------- */
-
+  /* ---------------------- LOAD DATA ---------------------- */
   useEffect(() => {
     let alive = true;
 
@@ -104,50 +66,21 @@ export default function AdminEducation() {
         }
 
         setLoading(true);
-        setError("");
 
-        // 1. Check admin permission + counts
-        const summaryRes = await authFetch(`/api/admin/education`);
-        const summaryData = summaryRes.data || summaryRes;
-
-        if (!alive) return;
-
-        if (!summaryData.ok || !summaryData.canManageEducation) {
-          setAdminSummary(summaryData);
-          setError(
-            summaryData.message ||
-              "You don't have permission to manage education content."
-          );
-          setLoading(false);
-          return;
-        }
-
-        setAdminSummary(summaryData);
-
-        // 2. Load editable education content
-        const [articlesRes, videosRes, downloadsRes] = await Promise.all([
+        const [articlesRes, videosRes] = await Promise.all([
           authFetch(`/api/admin/education/articles`),
           authFetch(`/api/admin/education/videos`),
-          authFetch(`/api/admin/education/downloads`),
         ]);
 
         if (!alive) return;
 
-        const articlesData = articlesRes.data || articlesRes;
-        const videosData = videosRes.data || videosRes;
-        const downloadsData = downloadsRes.data || downloadsRes;
-
-        setArticles(articlesData.articles || []);
-        setVideos(videosData.videos || []);
-        setDownloads(downloadsData.downloads || []);
+        setArticles(articlesRes.data.articles || []);
+        setVideos(videosRes.data.videos || []);
+        setError("");
       } catch (err) {
-        console.error("AdminEducation load error:", err);
+        console.error("Admin education load error:", err);
         if (!alive) return;
-        setError(
-          err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            "Failed to load education admin data."
-        );
+        setError("Failed to load education content.");
       } finally {
         if (alive) setLoading(false);
       }
@@ -158,100 +91,103 @@ export default function AdminEducation() {
     };
   }, [isLoading, isAuthenticated, loginWithRedirect, authFetch]);
 
-  /* ------------------------ Article handlers ------------------------ */
-
+  /* ---------------------- FORM HANDLERS ---------------------- */
   const handleArticleChange = (e) => {
-    const { name, value } = e.target;
-    setArticleForm((f) => ({ ...f, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setArticleForm((f) => ({
+      ...f,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
-  const handleArticleEdit = (item) => {
+  const handleVideoChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setVideoForm((f) => ({
+      ...f,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  /* ---- edit / reset helpers ---- */
+  const resetArticleForm = () =>
     setArticleForm({
-      id: item.id,
-      title: item.title || "",
-      href: item.href || "",
-      summary: item.summary || "",
-      minutes:
-        item.minutes !== null && item.minutes !== undefined
-          ? String(item.minutes)
-          : "",
-      tagsText: tagsToText(item.tags),
-      cover_url: item.cover_url || "",
+      id: null,
+      title: "",
+      summary: "",
+      minutes: "",
+      tags: "",
+      cover_url: "",
+      href: "",
+      is_active: true,
+    });
+
+  const resetVideoForm = () =>
+    setVideoForm({
+      id: null,
+      title: "",
+      duration: "",
+      tags: "",
+      thumb_url: "",
+      href: "",
+      is_active: true,
+    });
+
+  const editArticle = (a) => {
+    setSection("articles");
+    setArticleForm({
+      id: a.id,
+      title: a.title || "",
+      summary: a.summary || "",
+      minutes: a.minutes ?? "",
+      tags: tagsToString(a.tags),
+      cover_url: a.cover_url || "",
+      href: a.href || "",
+      is_active: a.is_active ?? true,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleArticleCancel = () => {
-    resetArticleForm();
+  const editVideo = (v) => {
+    setSection("videos");
+    setVideoForm({
+      id: v.id,
+      title: v.title || "",
+      duration: v.duration || "",
+      tags: tagsToString(v.tags),
+      thumb_url: v.thumb_url || "",
+      href: v.href || "",
+      is_active: v.is_active ?? true,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleArticleDelete = async (item) => {
-    if (!window.confirm(`Delete article "${item.title}"? This cannot be undone.`)) {
-      return;
-    }
-
-    try {
-      setSaving(true);
-      await authFetch(`/api/admin/education/articles/${item.id}`, {
-        method: "DELETE",
-      });
-
-      setArticles((prev) => prev.filter((a) => a.id !== item.id));
-      if (articleForm.id === item.id) resetArticleForm();
-    } catch (err) {
-      console.error("Delete article error:", err);
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "Failed to delete article.";
-      alert(message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleArticleSubmit = async (e) => {
+  /* ---------------------- SUBMIT HANDLERS ---------------------- */
+  const submitArticle = async (e) => {
     e.preventDefault();
-
     try {
       setSaving(true);
 
-      if (!articleForm.title) {
-        alert("Title is required for an article.");
-        setSaving(false);
-        return;
-      }
-
-      const minutesNumber = articleForm.minutes
-        ? Number(articleForm.minutes)
-        : null;
-      if (
-        articleForm.minutes &&
-        (Number.isNaN(minutesNumber) || minutesNumber < 0)
-      ) {
-        alert("Minutes must be a positive number (or leave blank).");
-        setSaving(false);
+      if (!articleForm.title.trim()) {
+        alert("Title is required.");
         return;
       }
 
       const payload = {
         title: articleForm.title.trim(),
-        href: articleForm.href.trim() || null,
-        summary: articleForm.summary.trim() || "",
-        minutes: minutesNumber,
-        tags: parseTags(articleForm.tagsText),
+        summary: articleForm.summary.trim(),
+        minutes: articleForm.minutes === "" ? null : Number(articleForm.minutes),
+        tags: articleForm.tags,
         cover_url: articleForm.cover_url.trim() || null,
+        href: articleForm.href.trim() || null,
+        is_active: !!articleForm.is_active,
       };
 
       let res;
       if (isEditingArticle) {
-        res = await authFetch(
-          `/api/admin/education/articles/${articleForm.id}`,
-          {
-            method: "PUT",
-            data: payload,
-          }
-        );
+        res = await authFetch(`/api/admin/education/articles/${articleForm.id}`, {
+          method: "PUT",
+          data: payload,
+        });
       } else {
         res = await authFetch(`/api/admin/education/articles`, {
           method: "POST",
@@ -259,17 +195,18 @@ export default function AdminEducation() {
         });
       }
 
-      const saved = res.data || res;
+      const saved = res.data;
 
-      if (isEditingArticle) {
-        setArticles((prev) => prev.map((a) => (a.id === saved.id ? saved : a)));
-      } else {
-        setArticles((prev) => [saved, ...prev]);
-      }
+      setArticles((prev) => {
+        if (isEditingArticle) {
+          return prev.map((a) => (a.id === saved.id ? saved : a));
+        }
+        return [saved, ...prev];
+      });
 
       resetArticleForm();
     } catch (err) {
-      console.error("Save article error:", err);
+      console.error("Save education article error:", err);
       const message =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -280,72 +217,23 @@ export default function AdminEducation() {
     }
   };
 
-  /* ------------------------- Video handlers ------------------------- */
-
-  const handleVideoChange = (e) => {
-    const { name, value } = e.target;
-    setVideoForm((f) => ({ ...f, [name]: value }));
-  };
-
-  const handleVideoEdit = (item) => {
-    setVideoForm({
-      id: item.id,
-      title: item.title || "",
-      href: item.href || "",
-      duration: item.duration || "",
-      tagsText: tagsToText(item.tags),
-      thumb_url: item.thumb_url || "",
-    });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleVideoCancel = () => {
-    resetVideoForm();
-  };
-
-  const handleVideoDelete = async (item) => {
-    if (!window.confirm(`Delete video "${item.title}"?`)) {
-      return;
-    }
-
-    try {
-      setSaving(true);
-      await authFetch(`/api/admin/education/videos/${item.id}`, {
-        method: "DELETE",
-      });
-
-      setVideos((prev) => prev.filter((v) => v.id !== item.id));
-      if (videoForm.id === item.id) resetVideoForm();
-    } catch (err) {
-      console.error("Delete video error:", err);
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "Failed to delete video.";
-      alert(message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleVideoSubmit = async (e) => {
+  const submitVideo = async (e) => {
     e.preventDefault();
-
     try {
       setSaving(true);
 
-      if (!videoForm.title) {
-        alert("Title is required for a video.");
-        setSaving(false);
+      if (!videoForm.title.trim()) {
+        alert("Title is required.");
         return;
       }
 
       const payload = {
         title: videoForm.title.trim(),
-        href: videoForm.href.trim() || null,
-        duration: videoForm.duration.trim() || "",
-        tags: parseTags(videoForm.tagsText),
+        duration: videoForm.duration.trim() || null,
+        tags: videoForm.tags,
         thumb_url: videoForm.thumb_url.trim() || null,
+        href: videoForm.href.trim() || null,
+        is_active: !!videoForm.is_active,
       };
 
       let res;
@@ -361,17 +249,18 @@ export default function AdminEducation() {
         });
       }
 
-      const saved = res.data || res;
+      const saved = res.data;
 
-      if (isEditingVideo) {
-        setVideos((prev) => prev.map((v) => (v.id === saved.id ? saved : v)));
-      } else {
-        setVideos((prev) => [saved, ...prev]);
-      }
+      setVideos((prev) => {
+        if (isEditingVideo) {
+          return prev.map((v) => (v.id === saved.id ? saved : v));
+        }
+        return [saved, ...prev];
+      });
 
       resetVideoForm();
     } catch (err) {
-      console.error("Save video error:", err);
+      console.error("Save education video error:", err);
       const message =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -382,109 +271,42 @@ export default function AdminEducation() {
     }
   };
 
-  /* ----------------------- Download handlers ----------------------- */
-
-  const handleDownloadChange = (e) => {
-    const { name, value } = e.target;
-    setDownloadForm((f) => ({ ...f, [name]: value }));
-  };
-
-  const handleDownloadEdit = (item) => {
-    setDownloadForm({
-      id: item.id,
-      title: item.title || "",
-      href: item.href || "",
-      file_size: item.file_size || "",
-    });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleDownloadCancel = () => {
-    resetDownloadForm();
-  };
-
-  const handleDownloadDelete = async (item) => {
-    if (!window.confirm(`Delete download "${item.title}"?`)) {
-      return;
-    }
-
+  /* ---------------------- DELETE HANDLERS ---------------------- */
+  const deleteArticle = async (a) => {
+    if (!window.confirm(`Delete article "${a.title}"?`)) return;
     try {
       setSaving(true);
-      await authFetch(`/api/admin/education/downloads/${item.id}`, {
+      await authFetch(`/api/admin/education/articles/${a.id}`, {
         method: "DELETE",
       });
-
-      setDownloads((prev) => prev.filter((d) => d.id !== item.id));
-      if (downloadForm.id === item.id) resetDownloadForm();
+      setArticles((prev) => prev.filter((x) => x.id !== a.id));
+      if (articleForm.id === a.id) resetArticleForm();
     } catch (err) {
-      console.error("Delete download error:", err);
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "Failed to delete download.";
-      alert(message);
+      console.error("Delete article error:", err);
+      alert("Failed to delete article.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDownloadSubmit = async (e) => {
-    e.preventDefault();
-
+  const deleteVideo = async (v) => {
+    if (!window.confirm(`Delete video "${v.title}"?`)) return;
     try {
       setSaving(true);
-
-      if (!downloadForm.title) {
-        alert("Title is required for a download.");
-        setSaving(false);
-        return;
-      }
-
-      const payload = {
-        title: downloadForm.title.trim(),
-        href: downloadForm.href.trim() || null,
-        file_size: downloadForm.file_size.trim() || "",
-      };
-
-      let res;
-      if (isEditingDownload) {
-        res = await authFetch(
-          `/api/admin/education/downloads/${downloadForm.id}`,
-          {
-            method: "PUT",
-            data: payload,
-          }
-        );
-      } else {
-        res = await authFetch(`/api/admin/education/downloads`, {
-          method: "POST",
-          data: payload,
-        });
-      }
-
-      const saved = res.data || res;
-
-      if (isEditingDownload) {
-        setDownloads((prev) => prev.map((d) => (d.id === saved.id ? saved : d)));
-      } else {
-        setDownloads((prev) => [saved, ...prev]);
-      }
-
-      resetDownloadForm();
+      await authFetch(`/api/admin/education/videos/${v.id}`, {
+        method: "DELETE",
+      });
+      setVideos((prev) => prev.filter((x) => x.id !== v.id));
+      if (videoForm.id === v.id) resetVideoForm();
     } catch (err) {
-      console.error("Save download error:", err);
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "Failed to save download.";
-      alert(message);
+      console.error("Delete video error:", err);
+      alert("Failed to delete video.");
     } finally {
       setSaving(false);
     }
   };
 
-  /* ---------------------------- Render ---------------------------- */
-
+  /* ---------------------- STATUS RENDERS ---------------------- */
   if (isLoading) {
     return (
       <div className="page-content pt-small">
@@ -509,494 +331,359 @@ export default function AdminEducation() {
     return (
       <div className="page-content pt-small">
         <div className="container">
-          <h1 className="display-font mb-3">Education (Admin)</h1>
           <div className="alert alert-danger">{error}</div>
         </div>
       </div>
     );
   }
 
+  /* ---------------------- MAIN RENDER ---------------------- */
   return (
     <div className="page-content pt-small">
       <div className="container">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1 className="display-font mb-0">Education (Admin)</h1>
-          {adminSummary && (
-            <div className="text-muted small body-font">
-              <span className="me-3">
-                Articles: <strong>{adminSummary.articlesCount}</strong>
-              </span>
-              <span>
-                Videos: <strong>{adminSummary.videosCount}</strong>
-              </span>
-            </div>
-          )}
-        </div>
+        <h1 className="display-font mb-4">Education Hub (Admin)</h1>
 
-        {/* ---------------------- Articles ---------------------- */}
-        <section className="mb-5">
-          <h2 className="display-font mb-3">
-            {isEditingArticle ? "Edit Article / Course" : "Add Article / Course"}
-          </h2>
+        {/* Tabs */}
+        <ul className="nav nav-tabs mb-4">
+          <li className="nav-item">
+            <button
+              className={`nav-link ${section === "articles" ? "active" : ""}`}
+              onClick={() => setSection("articles")}
+            >
+              Articles & Courses
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${section === "videos" ? "active" : ""}`}
+              onClick={() => setSection("videos")}
+            >
+              Videos
+            </button>
+          </li>
+        </ul>
 
-          <form onSubmit={handleArticleSubmit} className="mb-3">
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label body-font" htmlFor="article-title">
-                  Title
-                </label>
-                <input
-                  id="article-title"
-                  name="title"
-                  className="form-control"
-                  value={articleForm.title}
-                  onChange={handleArticleChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label body-font" htmlFor="article-href">
-                  Link URL
-                </label>
-                <input
-                  id="article-href"
-                  name="href"
-                  className="form-control"
-                  value={articleForm.href}
-                  onChange={handleArticleChange}
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div className="col-md-12">
-                <label
-                  className="form-label body-font"
-                  htmlFor="article-summary"
-                >
-                  Summary
-                </label>
-                <textarea
-                  id="article-summary"
-                  name="summary"
-                  className="form-control"
-                  rows={3}
-                  value={articleForm.summary}
-                  onChange={handleArticleChange}
-                />
-              </div>
-
-              <div className="col-md-2">
-                <label className="form-label body-font" htmlFor="article-minutes">
-                  Minutes (optional)
-                </label>
-                <input
-                  id="article-minutes"
-                  name="minutes"
-                  type="number"
-                  min="0"
-                  className="form-control"
-                  value={articleForm.minutes}
-                  onChange={handleArticleChange}
-                />
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label body-font" htmlFor="article-tags">
-                  Tags (comma-separated)
-                </label>
-                <input
-                  id="article-tags"
-                  name="tagsText"
-                  className="form-control"
-                  value={articleForm.tagsText}
-                  onChange={handleArticleChange}
-                  placeholder="Burnout, Free Course, Lifestyle"
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label
-                  className="form-label body-font"
-                  htmlFor="article-cover_url"
-                >
-                  Cover Image URL (optional)
-                </label>
-                <input
-                  id="article-cover_url"
-                  name="cover_url"
-                  className="form-control"
-                  value={articleForm.cover_url}
-                  onChange={handleArticleChange}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-
-              <div className="col-12 mt-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary me-2"
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Saving…"
-                    : isEditingArticle
-                    ? "Save changes"
-                    : "Add article"}
-                </button>
-
-                {isEditingArticle && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={handleArticleCancel}
-                    disabled={saving}
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </div>
-          </form>
-
-          <h3 className="display-font mb-3">Existing Articles / Courses</h3>
-          {articles.length === 0 ? (
-            <p>No articles yet.</p>
-          ) : (
-            <div className="list-group">
-              {articles.map((a) => (
-                <div
-                  key={a.id}
-                  className="list-group-item d-flex justify-content-between align-items-start"
-                >
-                  <div className="me-3">
-                    <div className="fw-semibold body-font">{a.title}</div>
-                    <div className="text-muted small body-font mb-1">
-                      {a.minutes ? `${a.minutes} min · ` : ""}
-                      {(a.tags || []).join(", ")}
-                    </div>
-                    <div className="small">
-                      {a.href && (
-                        <a
-                          href={a.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="me-2"
-                        >
-                          Open link ↗
-                        </a>
-                      )}
+        {/* ARTICLES FORM + LIST */}
+        {section === "articles" && (
+          <>
+            <section className="mb-5">
+              <h2 className="display-font mb-3">
+                {isEditingArticle ? "Edit article" : "Create article"}
+              </h2>
+              <form onSubmit={submitArticle} className="mb-3">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label">Title</label>
+                    <input
+                      name="title"
+                      type="text"
+                      className="form-control"
+                      value={articleForm.title}
+                      onChange={handleArticleChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-2">
+                    <label className="form-label">Minutes</label>
+                    <input
+                      name="minutes"
+                      type="number"
+                      min="0"
+                      className="form-control"
+                      value={articleForm.minutes}
+                      onChange={handleArticleChange}
+                    />
+                  </div>
+                  <div className="col-md-4 d-flex align-items-end">
+                    <div className="form-check">
+                      <input
+                        id="article_is_active"
+                        name="is_active"
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={articleForm.is_active}
+                        onChange={handleArticleChange}
+                      />
+                      <label
+                        htmlFor="article_is_active"
+                        className="form-check-label ms-1"
+                      >
+                        Active
+                      </label>
                     </div>
                   </div>
-                  <div className="d-flex align-items-center gap-2">
+
+                  <div className="col-12">
+                    <label className="form-label">Summary</label>
+                    <textarea
+                      name="summary"
+                      className="form-control"
+                      rows={3}
+                      value={articleForm.summary}
+                      onChange={handleArticleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">
+                      Tags (comma-separated, e.g. Burnout, Stress)
+                    </label>
+                    <input
+                      name="tags"
+                      type="text"
+                      className="form-control"
+                      value={articleForm.tags}
+                      onChange={handleArticleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Cover image URL</label>
+                    <input
+                      name="cover_url"
+                      type="text"
+                      className="form-control"
+                      value={articleForm.cover_url}
+                      onChange={handleArticleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-12">
+                    <label className="form-label">
+                      Link (external course / article URL)
+                    </label>
+                    <input
+                      name="href"
+                      type="text"
+                      className="form-control"
+                      value={articleForm.href}
+                      onChange={handleArticleChange}
+                    />
+                  </div>
+
+                  <div className="col-12 mt-3">
                     <button
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => handleArticleEdit(a)}
+                      type="submit"
+                      className="btn btn-primary me-2"
                       disabled={saving}
                     >
-                      Edit
+                      {saving
+                        ? "Saving…"
+                        : isEditingArticle
+                        ? "Save changes"
+                        : "Create article"}
                     </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleArticleDelete(a)}
-                      disabled={saving}
-                    >
-                      Delete
-                    </button>
+                    {isEditingArticle && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={resetArticleForm}
+                        disabled={saving}
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+              </form>
+            </section>
 
-        {/* ---------------------- Videos ---------------------- */}
-        <section className="mb-5">
-          <h2 className="display-font mb-3">
-            {isEditingVideo ? "Edit Video" : "Add Video"}
-          </h2>
-
-          <form onSubmit={handleVideoSubmit} className="mb-3">
-            <div className="row g-3">
-              <div className="col-md-5">
-                <label className="form-label body-font" htmlFor="video-title">
-                  Title
-                </label>
-                <input
-                  id="video-title"
-                  name="title"
-                  className="form-control"
-                  value={videoForm.title}
-                  onChange={handleVideoChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-7">
-                <label className="form-label body-font" htmlFor="video-href">
-                  Video URL
-                </label>
-                <input
-                  id="video-href"
-                  name="href"
-                  className="form-control"
-                  value={videoForm.href}
-                  onChange={handleVideoChange}
-                  placeholder="https://youtube.com/…"
-                />
-              </div>
-
-              <div className="col-md-3">
-                <label className="form-label body-font" htmlFor="video-duration">
-                  Duration (text)
-                </label>
-                <input
-                  id="video-duration"
-                  name="duration"
-                  className="form-control"
-                  value={videoForm.duration}
-                  onChange={handleVideoChange}
-                  placeholder="e.g. 12:30 or 1 hr"
-                />
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label body-font" htmlFor="video-tags">
-                  Tags (comma-separated)
-                </label>
-                <input
-                  id="video-tags"
-                  name="tagsText"
-                  className="form-control"
-                  value={videoForm.tagsText}
-                  onChange={handleVideoChange}
-                  placeholder="Stress, Trauma & Nervous System"
-                />
-              </div>
-
-              <div className="col-md-5">
-                <label
-                  className="form-label body-font"
-                  htmlFor="video-thumb_url"
-                >
-                  Thumbnail URL
-                </label>
-                <input
-                  id="video-thumb_url"
-                  name="thumb_url"
-                  className="form-control"
-                  value={videoForm.thumb_url}
-                  onChange={handleVideoChange}
-                  placeholder="https://example.com/thumb.jpg"
-                />
-              </div>
-
-              <div className="col-12 mt-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary me-2"
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Saving…"
-                    : isEditingVideo
-                    ? "Save changes"
-                    : "Add video"}
-                </button>
-
-                {isEditingVideo && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={handleVideoCancel}
-                    disabled={saving}
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </div>
-          </form>
-
-          <h3 className="display-font mb-3">Existing Videos</h3>
-          {videos.length === 0 ? (
-            <p>No videos yet.</p>
-          ) : (
-            <div className="list-group">
-              {videos.map((v) => (
-                <div
-                  key={v.id}
-                  className="list-group-item d-flex justify-content-between align-items-start"
-                >
-                  <div className="me-3">
-                    <div className="fw-semibold body-font">{v.title}</div>
-                    <div className="text-muted small body-font mb-1">
-                      {v.duration} · {(v.tags || []).join(", ")}
-                    </div>
-                    <div className="small">
-                      {v.href && (
-                        <a
-                          href={v.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="me-2"
+            <section>
+              <h2 className="display-font mb-3">Existing articles</h2>
+              {articles.length === 0 ? (
+                <p>No articles yet.</p>
+              ) : (
+                <div className="list-group">
+                  {articles.map((a) => (
+                    <div
+                      key={a.id}
+                      className="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <div className="fw-semibold">{a.title}</div>
+                        <div className="text-muted small">
+                          {a.minutes ? `${a.minutes} min · ` : ""}
+                          {(a.tags || []).join(", ") || "No tags"} ·{" "}
+                          {a.is_active ? "active" : "inactive"}
+                        </div>
+                      </div>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => editArticle(a)}
+                          disabled={saving}
                         >
-                          Open video ↗
-                        </a>
-                      )}
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => deleteArticle(a)}
+                          disabled={saving}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {/* VIDEOS FORM + LIST */}
+        {section === "videos" && (
+          <>
+            <section className="mb-5">
+              <h2 className="display-font mb-3">
+                {isEditingVideo ? "Edit video" : "Create video"}
+              </h2>
+              <form onSubmit={submitVideo} className="mb-3">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label">Title</label>
+                    <input
+                      name="title"
+                      type="text"
+                      className="form-control"
+                      value={videoForm.title}
+                      onChange={handleVideoChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Duration (e.g. 10 min)</label>
+                    <input
+                      name="duration"
+                      type="text"
+                      className="form-control"
+                      value={videoForm.duration}
+                      onChange={handleVideoChange}
+                    />
+                  </div>
+                  <div className="col-md-3 d-flex align-items-end">
+                    <div className="form-check">
+                      <input
+                        id="video_is_active"
+                        name="is_active"
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={videoForm.is_active}
+                        onChange={handleVideoChange}
+                      />
+                      <label
+                        htmlFor="video_is_active"
+                        className="form-check-label ms-1"
+                      >
+                        Active
+                      </label>
                     </div>
                   </div>
-                  <div className="d-flex align-items-center gap-2">
+
+                  <div className="col-md-6">
+                    <label className="form-label">
+                      Tags (comma-separated, e.g. Stress, Trauma)
+                    </label>
+                    <input
+                      name="tags"
+                      type="text"
+                      className="form-control"
+                      value={videoForm.tags}
+                      onChange={handleVideoChange}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Thumbnail URL</label>
+                    <input
+                      name="thumb_url"
+                      type="text"
+                      className="form-control"
+                      value={videoForm.thumb_url}
+                      onChange={handleVideoChange}
+                    />
+                  </div>
+
+                  <div className="col-md-12">
+                    <label className="form-label">Video link (URL)</label>
+                    <input
+                      name="href"
+                      type="text"
+                      className="form-control"
+                      value={videoForm.href}
+                      onChange={handleVideoChange}
+                    />
+                  </div>
+
+                  <div className="col-12 mt-3">
                     <button
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => handleVideoEdit(v)}
+                      type="submit"
+                      className="btn btn-primary me-2"
                       disabled={saving}
                     >
-                      Edit
+                      {saving
+                        ? "Saving…"
+                        : isEditingVideo
+                        ? "Save changes"
+                        : "Create video"}
                     </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleVideoDelete(v)}
-                      disabled={saving}
-                    >
-                      Delete
-                    </button>
+                    {isEditingVideo && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={resetVideoForm}
+                        disabled={saving}
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+              </form>
+            </section>
 
-        {/* ---------------------- Downloads ---------------------- */}
-        <section className="mb-5">
-          <h2 className="display-font mb-3">
-            {isEditingDownload ? "Edit Download" : "Add Download"}
-          </h2>
-
-          <form onSubmit={handleDownloadSubmit} className="mb-3">
-            <div className="row g-3">
-              <div className="col-md-5">
-                <label className="form-label body-font" htmlFor="download-title">
-                  Title
-                </label>
-                <input
-                  id="download-title"
-                  name="title"
-                  className="form-control"
-                  value={downloadForm.title}
-                  onChange={handleDownloadChange}
-                  required
-                />
-              </div>
-
-              <div className="col-md-5">
-                <label className="form-label body-font" htmlFor="download-href">
-                  Download URL
-                </label>
-                <input
-                  id="download-href"
-                  name="href"
-                  className="form-control"
-                  value={downloadForm.href}
-                  onChange={handleDownloadChange}
-                  placeholder="https://example.com/file.pdf"
-                />
-              </div>
-
-              <div className="col-md-2">
-                <label
-                  className="form-label body-font"
-                  htmlFor="download-file_size"
-                >
-                  File size / label
-                </label>
-                <input
-                  id="download-file_size"
-                  name="file_size"
-                  className="form-control"
-                  value={downloadForm.file_size}
-                  onChange={handleDownloadChange}
-                  placeholder="e.g. PDF – 2 MB"
-                />
-              </div>
-
-              <div className="col-12 mt-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary me-2"
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Saving…"
-                    : isEditingDownload
-                    ? "Save changes"
-                    : "Add download"}
-                </button>
-
-                {isEditingDownload && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={handleDownloadCancel}
-                    disabled={saving}
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </div>
-          </form>
-
-          <h3 className="display-font mb-3">Existing Downloads</h3>
-          {downloads.length === 0 ? (
-            <p>No downloads yet.</p>
-          ) : (
-            <div className="list-group">
-              {downloads.map((d) => (
-                <div
-                  key={d.id}
-                  className="list-group-item d-flex justify-content-between align-items-start"
-                >
-                  <div className="me-3">
-                    <div className="fw-semibold body-font">{d.title}</div>
-                    <div className="text-muted small body-font mb-1">
-                      {d.file_size}
-                    </div>
-                    <div className="small">
-                      {d.href && (
-                        <a
-                          href={d.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="me-2"
+            <section>
+              <h2 className="display-font mb-3">Existing videos</h2>
+              {videos.length === 0 ? (
+                <p>No videos yet.</p>
+              ) : (
+                <div className="list-group">
+                  {videos.map((v) => (
+                    <div
+                      key={v.id}
+                      className="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <div className="fw-semibold">{v.title}</div>
+                        <div className="text-muted small">
+                          {v.duration || "No duration"} ·{" "}
+                          {(v.tags || []).join(", ") || "No tags"} ·{" "}
+                          {v.is_active ? "active" : "inactive"}
+                        </div>
+                      </div>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => editVideo(v)}
+                          disabled={saving}
                         >
-                          Open file ↗
-                        </a>
-                      )}
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => deleteVideo(v)}
+                          disabled={saving}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => handleDownloadEdit(d)}
-                      disabled={saving}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDownloadDelete(d)}
-                      disabled={saving}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </div>
   );
