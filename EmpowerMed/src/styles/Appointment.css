@@ -245,3 +245,97 @@ textarea.admin-textarea {
 .appointment-item-card p:not(:first-of-type) {
   margin: 2px 0;
 }
+
+
+.modal-header-custom {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.modal-header-success {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.modal-header-error {
+  background-color: #1f1f1f;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.modal-body-custom {
+  background-color: #2a2a2a;
+  color: white;
+}
+
+.modal-body-success, 
+.modal-body-error {
+  background-color: #2a2a2a;
+  color: white;
+}
+
+.modal-footer-custom,
+.modal-footer-success,
+.modal-footer-error {
+  background-color: #1f1f1f;
+  border-top: 1px solid #333;
+  padding: 0.75rem;
+}
+
+.form-label-custom {
+  color: white;
+  font-weight: 500;
+}
+
+.form-control-custom {
+  background-color: #333;
+  border: 1px solid #444;
+  color: white;
+  resize: vertical;
+}
+
+.form-control-custom:focus {
+  background-color: #333;
+  border-color: #0d6efd;
+  color: white;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.success-icon,
+.error-icon {
+  color: #0d6efd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.success-message,
+.error-message {
+  white-space: pre-line;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.appointment-details {
+  background-color: #333;
+  border-left: 4px solid #0d6efd;
+}
+
+.message-card.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.message-card.clickable:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  transform: translateY(-1px);
+}
+
+.text-muted {
+  color: #aaa !important;
+}

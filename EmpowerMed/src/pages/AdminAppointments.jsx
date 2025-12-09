@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Modal, Button, Spinner } from "react-bootstrap";
+import { FiCheckCircle, FiAlertTriangle, FiAlertCircle, FiMessageSquare, FiCalendar, FiSend } from "react-icons/fi";
 import "../styles/Appointment.css";
 
 export default function AdminAppointments() {
@@ -10,11 +12,11 @@ export default function AdminAppointments() {
 
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
-
   const [messages, setMessages] = useState([]);
   const [reply, setReply] = useState("");
-
   const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   // FILTERS
   const [searchEmail, setSearchEmail] = useState("");
@@ -22,6 +24,14 @@ export default function AdminAppointments() {
   const [searchType, setSearchType] = useState("");
   const [statusFilter, setStatusFilter] = useState("upcoming");
   const [messageFilter, setMessageFilter] = useState("");
+
+  // MODAL STATES
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
 
   const GOOGLE_CALENDAR_EMBED =
     "https://calendar.google.com/calendar/embed?src=empowermeddev%40gmail.com&ctz=America%2FLos_Angeles";
@@ -67,27 +77,77 @@ export default function AdminAppointments() {
       setFilteredAppointments(data.appointments || []);
     } catch (err) {
       console.error("Error loading appointments:", err);
+      showError("Failed to load appointments. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // FETCH MESSAGES
+  // FETCH MESSAGES - UPDATED VERSION (Option 1)
   const fetchMessages = async () => {
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
       });
 
-      const res = await fetch(`${API_URL}/messages/admin`, {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
+      // Try different possible endpoints
+      const endpoints = [
+        `${API_URL}/api/messages/admin`,
+        `${API_URL}/api/admin/messages`,
+        `${API_URL}/messages`,
+        `${API_URL}/admin/messages`,
+        `${API_URL}/api/messages`
+      ];
 
-      const data = await res.json();
-      setMessages(data.messages || []);
+      let data = null;
+      let successfulEndpoint = null;
+      
+      // Try each endpoint until one works
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: "include",
+          });
+
+          if (res.ok) {
+            const responseData = await res.json();
+            data = responseData;
+            successfulEndpoint = endpoint;
+            console.log(`✓ Messages loaded from: ${endpoint}`);
+            break;
+          } else {
+            console.log(`✗ Endpoint ${endpoint} returned ${res.status}`);
+          }
+        } catch (err) {
+          console.log(`✗ Endpoint ${endpoint} failed:`, err.message);
+          continue;
+        }
+      }
+
+      if (data) {
+        // Handle different response formats
+        if (Array.isArray(data)) {
+          setMessages(data);
+        } else if (data.messages && Array.isArray(data.messages)) {
+          setMessages(data.messages);
+        } else if (data.data && Array.isArray(data.data)) {
+          setMessages(data.data);
+        } else {
+          console.warn("Unexpected messages response format:", data);
+          setMessages([]);
+        }
+      } else {
+        console.warn("No messages endpoint found, using empty array");
+        setMessages([]);
+      }
     } catch (err) {
       console.error("Error fetching messages:", err);
+      // Don't show error to user for this - just log it
+      setMessages([]);
     }
   };
 
@@ -155,8 +215,10 @@ export default function AdminAppointments() {
   }, [statusFilter, searchEmail, searchType, searchDate, appointments]);
 
   // CANCEL APPOINTMENT
-  const handleCancel = async (id) => {
-    if (!window.confirm("Cancel this appointment?")) return;
+  const handleCancel = async () => {
+    if (!selectedAppointment) return;
+    
+    setIsProcessing(true);
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
@@ -164,7 +226,7 @@ export default function AdminAppointments() {
 
       const csrfToken = getCsrfFromCookie();
 
-      await fetch(`${API_URL}/calendar/admin-cancel`, {
+      const res = await fetch(`${API_URL}/calendar/admin-cancel`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -172,12 +234,23 @@ export default function AdminAppointments() {
           Authorization: `Bearer ${token}`,
           "X-XSRF-TOKEN": csrfToken,
         },
-        body: JSON.stringify({ appointmentId: id }),
+        body: JSON.stringify({ appointmentId: selectedAppointment.id }),
       });
 
-      await fetchAppointments();
+      const data = await res.json();
+
+      if (data.success) {
+        showSuccess(`Appointment for ${selectedAppointment.email} has been successfully canceled.\n\nA cancellation email has been sent to the client.`);
+        await fetchAppointments();
+      } else {
+        showError(data.message || "Failed to cancel appointment. Please try again.");
+      }
     } catch (err) {
       console.error(err);
+      showError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsProcessing(false);
+      setShowCancelModal(false);
     }
   };
 
@@ -198,13 +271,14 @@ export default function AdminAppointments() {
     return `${formattedDate} @ ${formattedTime}`;
   };
 
-  // SEND REPLY
+  // SEND REPLY - WITHOUT MODAL
   const handleReply = async () => {
     if (!reply.trim()) {
-      alert("Message cannot be empty.");
+      showError("Message cannot be empty.");
       return;
     }
 
+    setSendingMessage(true);
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
@@ -212,27 +286,74 @@ export default function AdminAppointments() {
 
       const csrfToken = getCsrfFromCookie();
 
-      await fetch(`${API_URL}/messages/admin-send`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-XSRF-TOKEN": csrfToken,
-        },
-        body: JSON.stringify({ message: reply }),
-      });
+      // Try different possible endpoints for sending
+      const sendEndpoints = [
+        `${API_URL}/api/messages/admin-send`,
+        `${API_URL}/api/admin/messages/send`,
+        `${API_URL}/messages/admin-send`,
+        `${API_URL}/admin/messages/send`
+      ];
 
-      setReply("");
-      fetchMessages();
+      let sendSuccess = false;
+      
+      for (const endpoint of sendEndpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              "X-XSRF-TOKEN": csrfToken,
+            },
+            body: JSON.stringify({ message: reply }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              sendSuccess = true;
+              showSuccess("Your message has been sent successfully!");
+              setReply("");
+              fetchMessages();
+              break;
+            }
+          }
+        } catch (err) {
+          console.log(`Send endpoint ${endpoint} failed:`, err.message);
+          continue;
+        }
+      }
+
+      if (!sendSuccess) {
+        showError("Unable to send message. The messaging feature may not be fully implemented yet.");
+      }
     } catch (err) {
       console.error(err);
+      showError("Network error. Please check your connection and try again.");
+    } finally {
+      setSendingMessage(false);
     }
   };
 
-  /* ------------------------------------------------
-     UI RENDER
-  ------------------------------------------------ */
+  // MODAL HELPERS
+  const showSuccess = (message) => {
+    setModalMessage(message);
+    setModalTitle("Success");
+    setShowConfirmModal(true);
+  };
+
+  const showError = (message) => {
+    setModalMessage(message);
+    setModalTitle("Error");
+    setShowErrorModal(true);
+  };
+
+  const openCancelModal = (appt) => {
+    setSelectedAppointment(appt);
+    setShowCancelModal(true);
+  };
+
   return (
     <div className="admin-dashboard">
       {/* HERO */}
@@ -257,7 +378,6 @@ export default function AdminAppointments() {
                 <h2>Filter Appointments</h2>
 
                 <div className="filter-row">
-
                   {/* EMAIL */}
                   <input
                     type="text"
@@ -314,9 +434,12 @@ export default function AdminAppointments() {
 
                 <div className="scroll-box tall">
                   {loading ? (
-                    <p>Loading...</p>
+                    <div className="text-center">
+                      <Spinner animation="border" variant="primary" />
+                      <p className="mt-2">Loading appointments...</p>
+                    </div>
                   ) : filteredAppointments.length === 0 ? (
-                    <p>No appointments match filters.</p>
+                    <p className="text-muted text-center">No appointments match filters.</p>
                   ) : (
                     filteredAppointments.map((appt) => {
                       const statusLabel = appt.status || "scheduled";
@@ -345,7 +468,8 @@ export default function AdminAppointments() {
                           {canCancel && (
                             <button
                               className="time-button cancel"
-                              onClick={() => handleCancel(appt.id)}
+                              onClick={() => openCancelModal(appt)}
+                              disabled={isProcessing}
                             >
                               Cancel
                             </button>
@@ -373,19 +497,23 @@ export default function AdminAppointments() {
                 />
 
                 <div className="scroll-box">
-                  {messages
-                    .filter((m) =>
-                      (m.text || "")
-                        .toLowerCase()
-                        .includes(messageFilter.toLowerCase())
-                    )
-                    .map((msg) => (
-                      <div key={msg.id} className="message-card">
-                        <p><strong>{msg.from_email}</strong></p>
-                        <p>{msg.text}</p>
-                        <small>{new Date(msg.sent_at).toLocaleString()}</small>
-                      </div>
-                    ))}
+                  {messages.length === 0 ? (
+                    <p className="text-muted text-center">No messages available.</p>
+                  ) : (
+                    messages
+                      .filter((m) =>
+                        (m.text || "")
+                          .toLowerCase()
+                          .includes(messageFilter.toLowerCase())
+                      )
+                      .map((msg) => (
+                        <div key={msg.id} className="message-card">
+                          <p><strong>{msg.from_email || msg.email || 'Unknown'}</strong></p>
+                          <p>{msg.text || msg.message || 'No message content'}</p>
+                          <small>{msg.sent_at ? new Date(msg.sent_at).toLocaleString() : 'Unknown date'}</small>
+                        </div>
+                      ))
+                  )}
                 </div>
               </div>
 
@@ -396,10 +524,26 @@ export default function AdminAppointments() {
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
                   placeholder="Type your reply..."
+                  rows="4"
                 ></textarea>
 
-                <button className="book-button-wrapper" onClick={handleReply}>
-                  Send Message
+                <button 
+                  className="book-button-wrapper" 
+                  onClick={handleReply}
+                  disabled={sendingMessage || !reply.trim()}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  {sendingMessage ? (
+                    <>
+                      <Spinner animation="border" size="sm" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <FiSend size={16} />
+                      Send Message
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -420,6 +564,139 @@ export default function AdminAppointments() {
           </div>
         </div>
       </div>
+
+      {/* CANCEL APPOINTMENT MODAL */}
+      <Modal 
+        show={showCancelModal} 
+        onHide={() => !isProcessing && setShowCancelModal(false)} 
+        centered
+        backdrop={isProcessing ? "static" : true}
+        size="sm"
+      >
+        <Modal.Header className="modal-header-custom" closeButton={!isProcessing}>
+          <Modal.Title style={{ fontSize: "1rem" }}>
+            <FiAlertTriangle className="me-2" size={18} />
+            Confirm Cancellation
+          </Modal.Title>
+        </Modal.Header>
+        
+        <Modal.Body className="modal-body-custom text-center" style={{ padding: "1rem" }}>
+          {selectedAppointment && (
+            <>
+              <div className="error-icon mb-2">
+                <FiAlertTriangle size={36} />
+              </div>
+              <p className="mb-3" style={{ fontSize: "0.9rem" }}>
+                Are you sure you want to cancel this appointment?
+              </p>
+              <div className="appointment-details p-2 mb-3 rounded" style={{ fontSize: "0.85rem" }}>
+                <p className="mb-1"><strong>Client:</strong> {selectedAppointment.email}</p>
+                <p className="mb-1"><strong>Type:</strong> {selectedAppointment.appointment_type}</p>
+                <p className="mb-0"><strong>Date:</strong> {formatDateTime(selectedAppointment.date, selectedAppointment.start_time)}</p>
+              </div>
+              <p className="text-muted" style={{ fontSize: "0.8rem" }}>
+                A cancellation email will be sent to the client.
+              </p>
+            </>
+          )}
+        </Modal.Body>
+        
+        <Modal.Footer className="modal-footer-custom" style={{ padding: "0.75rem" }}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowCancelModal(false)}
+            disabled={isProcessing}
+            style={{ padding: "0.25rem 0.75rem", fontSize: "0.9rem" }}
+          >
+            No, Keep
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleCancel}
+            disabled={isProcessing}
+            style={{ padding: "0.25rem 0.75rem", fontSize: "0.9rem" }}
+          >
+            {isProcessing ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Canceling...
+              </>
+            ) : (
+              "Yes, Cancel"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* SUCCESS CONFIRMATION MODAL */}
+      <Modal 
+        show={showConfirmModal} 
+        onHide={() => setShowConfirmModal(false)} 
+        centered
+        backdrop="static"
+        size="sm"
+      >
+        <Modal.Header className="modal-header-success" closeButton>
+          <Modal.Title style={{ fontSize: "1rem" }}>
+            <FiCheckCircle className="me-2" size={18} />
+            {modalTitle}
+          </Modal.Title>
+        </Modal.Header>
+        
+        <Modal.Body className="modal-body-success text-center" style={{ padding: "1rem" }}>
+          <div className="success-icon mb-2">
+            <FiCheckCircle size={36} />
+          </div>
+          <p className="success-message" style={{ fontSize: "0.85rem" }}>
+            {modalMessage}
+          </p>
+        </Modal.Body>
+        
+        <Modal.Footer className="modal-footer-success justify-content-center" style={{ padding: "0.75rem" }}>
+          <Button 
+            variant="primary" 
+            onClick={() => setShowConfirmModal(false)}
+            style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
+          >
+            OK
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* ERROR MODAL */}
+      <Modal 
+        show={showErrorModal} 
+        onHide={() => setShowErrorModal(false)} 
+        centered
+        backdrop="static"
+        size="sm"
+      >
+        <Modal.Header className="modal-header-error" closeButton>
+          <Modal.Title style={{ fontSize: "1rem" }}>
+            <FiAlertCircle className="me-2" size={18} />
+            {modalTitle}
+          </Modal.Title>
+        </Modal.Header>
+        
+        <Modal.Body className="modal-body-error text-center" style={{ padding: "1rem" }}>
+          <div className="error-icon mb-2">
+            <FiAlertCircle size={36} />
+          </div>
+          <p className="error-message" style={{ fontSize: "0.85rem" }}>
+            {modalMessage}
+          </p>
+        </Modal.Body>
+        
+        <Modal.Footer className="modal-footer-error justify-content-center" style={{ padding: "0.75rem" }}>
+          <Button 
+            variant="primary" 
+            onClick={() => setShowErrorModal(false)}
+            style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
+          >
+            OK
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

@@ -129,17 +129,16 @@ section,
 /* ===== SECTION SPACING ===== */
 .hero-section {
   background: linear-gradient(135deg, var(--light-blue) 0%, var(--main-blue) 100%);
-  min-height: 55vh;
+  min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   position: relative;
-<<<<<<< HEAD
-  padding: 9rem 0 3rem;
-=======
   padding: 4rem 0 1rem;
->>>>>>> origin/prototype-frontend
+
+  padding: 5rem 0 .3rem;
+
 }
 
 .about-section {

@@ -1,7 +1,6 @@
 // src/pages/AdminBlog.jsx
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-//import "../styles/Admin.css"; // adjust if you have a different admin stylesheet
 
 const API_BASE = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5001"

@@ -21,15 +21,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .navbarBrand {
   text-decoration: none;
-  transition: all 0.3s ease;
   flex-shrink: 0;
 }
 
@@ -42,8 +41,8 @@
 }
 
 .navbarLogoImg {
-  width: 145px;
-  height: 145px;
+  width: 135px;
+  height: 135px;
   border-radius: 8px;
   object-fit: contain;
 }
@@ -53,13 +52,13 @@
   align-items: center;
   justify-content: space-between;
   flex: 1;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .navbarNav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex: 1;
   justify-content: center;
 }
@@ -70,56 +69,28 @@
   font-weight: 500;
   color: #3D52A0;
   text-decoration: none;
-  padding: 0.8rem 1.2rem;
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  padding: 0.9rem 1.2rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
   background: transparent;
-  overflow: hidden;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   border: none;
   cursor: pointer;
 }
 
-.navLink::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  transition: left 0.5s ease;
-}
-
-.navLink:hover::before {
-  left: 100%;
-}
-
 .navLink:hover {
   color: #7091E6;
   background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(61, 82, 160, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(61, 82, 160, 0.15);
 }
 
 .navLinkActive {
   color: #FFFFFF;
   background: linear-gradient(135deg, #3D52A0, #7091E6);
   font-weight: 600;
-  box-shadow: 0 4px 15px rgba(61, 82, 160, 0.3);
-}
-
-.navLinkActive::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 3px;
-  background: #FFFFFF;
-  border-radius: 2px;
+  box-shadow: 0 3px 10px rgba(61, 82, 160, 0.2);
 }
 
 /* More Menu Styles */
@@ -130,7 +101,7 @@
 .moreButton {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
   background: none;
   border: none;
   cursor: pointer;
@@ -143,10 +114,10 @@
   left: 0;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  padding: 0.8rem 0;
-  min-width: 180px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 0.6rem 0;
+  min-width: 160px;
   z-index: 1001;
   border: 1px solid rgba(255, 255, 255, 0.3);
   animation: fadeIn 0.2s ease-out;
@@ -155,7 +126,7 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -165,11 +136,11 @@
 
 .dropdownLink {
   display: block;
-  padding: 0.8rem 1.2rem;
+  padding: 0.6rem 1rem;
   color: #3D52A0;
   text-decoration: none;
   font-family: 'Lexend', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   border: none;
   background: none;
@@ -178,11 +149,7 @@
   cursor: pointer;
 }
 
-.dropdownLink:hover {
-  background: linear-gradient(135deg, #3D52A0, #7091E6);
-  color: white;
-}
-
+.dropdownLink:hover,
 .dropdownLinkActive {
   background: linear-gradient(135deg, #3D52A0, #7091E6);
   color: white;
@@ -197,57 +164,46 @@
 
 .authButtons {
   display: flex;
-  gap: 1rem;
+  gap: 0.8rem;
   font-family: 'Lexend', sans-serif;
-  font-size: 0.80rem;
+  font-size: 0.75rem;
   font-weight: 400;
   align-items: flex-end;
-  
 }
 
 .loginBtn {
-  position: relative;
-  padding: 0.8rem 1.8rem;
-  border-radius: 12px;
+  padding: 0.6rem 1.4rem;
+  border-radius: 10px;
   font-family: 'Lexend', sans-serif;
   font-weight: 600;
-  text-decoration: none;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  font-size: 0.95rem;
-  border: none;
-  cursor: pointer;
-  overflow: hidden;
-  white-space: nowrap;
-  min-width: 100px;
-}
-
-.loginBtn {
+  font-size: 0.9rem;
+  border: 2px solid #3D52A0;
   background: transparent;
   color: #3D52A0;
-  border: 2px solid #3D52A0;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 90px;
+  transition: all 0.3s ease;
 }
 
 .loginBtn:hover {
   background: #3D52A0;
   color: #FFFFFF;
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(61, 82, 160, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(61, 82, 160, 0.2);
 }
-
 
 /* User Dropdown */
 .userDropdown {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .userInfo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0.8rem 1.2rem;
-  border-radius: 12px;
+  gap: 8px;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.1);
@@ -256,24 +212,23 @@
 
 .userInfo:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .userAvatar {
-  width: 45px;
-  height: 45px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #3D52A0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .userName {
   font-family: 'Lexend', sans-serif;
   font-weight: 600;
   color: #3D52A0;
-  font-size: 0.95rem;
-  max-width: 120px;
+  font-size: 0.85rem;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -281,12 +236,7 @@
 
 .dropdownArrow {
   color: #3D52A0;
-  font-size: 0.7rem;
-  transition: transform 0.3s ease;
-}
-
-.userDropdown:hover .dropdownArrow {
-  transform: rotate(180deg);
+  font-size: 0.6rem;
 }
 
 .dropdownMenu {
@@ -295,14 +245,14 @@
   right: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  padding: 0.8rem 0;
-  min-width: 200px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 0.6rem 0;
+  min-width: 180px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateY(-8px);
+  transition: all 0.3s ease;
   z-index: 1000;
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -310,18 +260,18 @@
 .userDropdown:hover .dropdownMenu {
   opacity: 1;
   visibility: visible;
-  transform: translateY(5px);
+  transform: translateY(3px);
 }
 
 .dropdownItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0.8rem 1.2rem;
+  gap: 8px;
+  padding: 0.6rem 1rem;
   color: #3D52A0;
   text-decoration: none;
   font-family: 'Lexend', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   border: none;
   background: none;
@@ -338,13 +288,12 @@
 /* Mobile Toggle */
 .navbarToggle {
   display: none;
-  flex-direction: column;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
-  width: 40px;
-  height: 40px;
+  padding: 0.4rem;
+  width: 36px;
+  height: 36px;
   align-items: center;
   justify-content: center;
   color: #3D52A0;
@@ -359,11 +308,10 @@
   height: 100vh;
   background: linear-gradient(135deg, #EDE8F5, #ADBBDA);
   transform: translateX(-100%);
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.4s ease;
   z-index: 999;
-  padding-top: 100px;
+  padding-top: 90px;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .mobileNavOpen {
@@ -373,28 +321,26 @@
 .mobileNavContent {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 2rem;
-  min-height: calc(100vh - 100px);
+  gap: 0.8rem;
+  padding: 1.5rem;
+  min-height: calc(100vh - 90px);
 }
 
 .mobileNavContent a {
-  padding: 1.2rem;
-  font-size: 1.2rem;
+  padding: 1rem;
+  font-size: 1.1rem;
   color: #3D52A0;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.3s ease;
   font-family: 'Lexend', sans-serif;
   font-weight: 500;
-  border: none;
-  background: none;
   text-align: left;
 }
 
 .mobileNavContent a:hover {
   background: rgba(255, 255, 255, 0.3);
-  transform: translateX(10px);
+  transform: translateX(8px);
 }
 
 .mobileNavLinkActive {
@@ -404,24 +350,24 @@
 
 .mobileAuthSection {
   margin-top: auto;
-  padding-top: 2rem;
+  padding-top: 1.5rem;
   border-top: 1px solid rgba(61, 82, 160, 0.2);
 }
 
 .mobileAuth, .mobileUser {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
 .mobileAuth button, .mobileUser button, .mobileAccountBtn {
-  padding: 1.2rem;
-  border-radius: 12px;
+  padding: 1rem;
+  border-radius: 10px;
   border: none;
   font-family: 'Lexend', sans-serif;
   font-weight: 600;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1rem;
   text-align: center;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -452,16 +398,16 @@
 .mobileUserInfo {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.8rem;
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  margin-bottom: 1rem;
+  border-radius: 10px;
+  margin-bottom: 0.8rem;
 }
 
 .mobileUserAvatar {
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #3D52A0;
@@ -471,7 +417,7 @@
   font-family: 'Lexend', sans-serif;
   font-weight: 600;
   color: #3D52A0;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .mobileAccountBtn {
@@ -496,15 +442,26 @@
   color: #FFFFFF;
 }
 
-/* Responsive Design */
-@media (max-width: 1100px) {
+/* RESPONSIVE DESIGN */
+@media (max-width: 1200px) {
   .navbarNav {
-    gap: 0.3rem;
+    gap: 0.2rem;
   }
   
   .navLink {
-    padding: 0.7rem 1rem;
-    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .navbarNav {
+    gap: 0.1rem;
+  }
+  
+  .navLink {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -517,146 +474,18 @@
     display: none;
   }
 
-  .navbarContent {
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .logoContainer {
-    padding: 0.4rem 0.8rem;
-  }
-
-  .navbarLogoImg {
-<<<<<<< HEAD
-    width: 80px;
-    height: 80px;
-=======
-    width: 65px;
-    height: 65px;
->>>>>>> origin/prototype-frontend
-  }
-}
-
-@media (max-width: 480px) {
-  .navbarContent {
-    padding: 0.8rem 1rem;
-  }
-
-  .logoContainer {
-    gap: 0.8rem;
-  }
-
-  .navbarLogoImg {
-    width: 65px;
-    height: 65px;
-  }
-
-  .mobileNavContent {
-    padding: 1.5rem;
-  }
-
-  .mobileNavContent a {
-    padding: 1rem;
-    font-size: 1.1rem;
-  }
-
-  .mobileAuth button, .mobileUser button, .mobileAccountBtn {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-}
-/* Add space between last primary link (Products) and More button */
-.moreMenu {
-  margin-left: 1.5rem;        /* ⬅️ this creates clean spacing */
-}
-
-/* Ensure the primary nav items don't collapse too tightly */
-.navbarNav {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;                /* ⬅️ increases spacing between all links */
-}
-
-/* On smaller screens before mobile menu kicks in */
-@media (max-width: 1100px) {
-  .navbarNav {
-    gap: 0.8rem;              /* slightly tighter, but still prevents overlap */
-  }
-
-  .moreMenu {
-    margin-left: 1rem;
-  }
-}
-/* Add these responsive fixes at the end of your CSS file */
-
-/* iPhone 15 specific adjustments (viewport width is 393px) */
-@media (max-width: 430px) {
-  .navbarContent {
-    padding: 0.7rem 1rem;
-    gap: 1rem;
-  }
-  
-  .navbarLogoImg {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .logoText {
-    font-size: 0.6rem;
-  }
-  
-  /* Ensure toggle button is visible */
-  .navbarToggle {
-    width: 36px;
-    height: 36px;
-    padding: 0.4rem;
-  }
-  
-  /* Mobile menu fixes */
-  .mobileNavContent {
-    padding: 1.5rem 1rem;
-  }
-  
-  .mobileNavContent a {
-    padding: 1rem 0.8rem;
-    font-size: 1rem;
-  }
-  
-  /* Mobile auth buttons full width */
-  .mobileAuth button, 
-  .mobileUser button, 
-  .mobileAccountBtn,
-  .mobileLogoutBtn {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Specifically target logout button in mobile */
-  .mobileLogoutBtn {
-    background: transparent;
-    color: #dc3545;
-    border: 2px solid #dc3545;
-    padding: 1rem;
-    border-radius: 12px;
-    font-family: 'Lexend', sans-serif;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 1rem;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    margin-top: 1rem;
-  }
-}
-
-/* Additional responsive fixes for all mobile devices */
-@media (max-width: 900px) {
-  /* Ensure the navbar auth section is hidden on mobile */
   .navbarAuth {
     display: none;
   }
+
+  .navbarLogoImg {
+    width: 65px;
+    height: 65px;
+
+    width: 85px !important;
+    height: 85px !important;
+  }
   
-  /* Make mobile menu logout button more prominent */
   .mobileLogoutBtn {
     background: linear-gradient(135deg, #dc3545, #e35d6a);
     color: white;
@@ -666,24 +495,64 @@
   
   .mobileLogoutBtn:hover {
     background: linear-gradient(135deg, #c82333, #dc3545);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    transform: translateY(-1px);
   }
   
-  /* Improve mobile user section */
   .mobileUser {
-    padding-top: 2rem;
-    margin-top: 2rem;
-    border-top: 2px solid rgba(61, 82, 160, 0.2);
-  }
-  
-  .mobileUserInfo {
-    background: rgba(255, 255, 255, 0.4);
-    margin-bottom: 1.5rem;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(61, 82, 160, 0.2);
+
   }
 }
 
-/* Prevent horizontal scrolling on mobile */
+@media (max-width: 480px) {
+  .navbarContent {
+    padding: 0.6rem 1rem;
+  }
+
+  .navbarLogoImg {
+    width: 85px !important;
+    height: 85px !important;
+  }
+
+  .mobileNavContent {
+    padding: 1.2rem;
+  }
+
+  .mobileNavContent a {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .mobileAuth button, .mobileUser button, .mobileAccountBtn {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .navbarContent {
+    padding: 0.5rem 0.8rem;
+    gap: 0.8rem;
+  }
+  
+  .navbarToggle {
+    width: 32px;
+    height: 32px;
+    padding: 0.3rem;
+  }
+  
+  .mobileNavContent {
+    padding: 1rem 0.8rem;
+  }
+  
+  .mobileNavContent a {
+    padding: 0.8rem 0.6rem;
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 768px) {
   body, html {
     overflow-x: hidden;
@@ -692,18 +561,12 @@
   .mobileNav {
     width: 100vw;
   }
-  
-  /* Ensure all mobile buttons are visible */
-  .mobileAuthSection {
-    padding-bottom: 2rem;
-  }
 }
 
-/* Fix for iPhone notch/safe areas */
 @supports (padding: max(0px)) {
   .navbar {
-    padding-left: max(0.5rem, env(safe-area-inset-left));
-    padding-right: max(0.5rem, env(safe-area-inset-right));
+    padding-left: max(0.4rem, env(safe-area-inset-left));
+    padding-right: max(0.4rem, env(safe-area-inset-right));
   }
   
   .mobileNav {
@@ -712,27 +575,181 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+/* Add to your existing CSS file */
 
-/* High DPI screen adjustments */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .navbarLogoImg {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
+/* Signup link container */
+.signupContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 0.5rem; /* Space between Login button and Signup link */
+}
+
+/* Signup link styling */
+.signupLink {
+  color: #3D52A0;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: color 0.2s ease;
+}
+
+.signupLink:hover {
+  color: #7091E6;
+}
+
+
+.signupLine1 {
+  font-size: 0.7rem;
+  color: #6C757D; 
+  margin-bottom: 2px; 
+}
+
+
+.signupLine2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3D52A0;
+  text-decoration: underline;
+}
+
+.signupLink:hover .signupLine2 {
+  color: #7091E6;
+}
+
+
+.authButtons {
+  display: flex;
+  gap: 0.5rem; 
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  align-items: center;
+}
+/* Add these styles to your existing CSS */
+
+/* Signup link container - updated with better spacing */
+.signupContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 1rem; /* Increased space between Login button and Signup link */
+  padding-top: 0.3rem; /* Lower the position slightly */
+}
+
+/* Signup link styling */
+.signupLink {
+  color: #3D52A0;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: color 0.2s ease;
+}
+
+.signupLink:hover {
+  color: #7091E6;
+}
+
+/* First line - "New User?" */
+.signupLine1 {
+  font-size: 0.7rem;
+  color: #FFFFFF !important; /* Force white color */
+  margin-bottom: 2px;
+  font-weight: 400;
+}
+
+/* Second line - "Sign Up" */
+.signupLine2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: black; /* Changed to white */
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.signupLink:hover .signupLine2 {
+  color: #ADBBDA; /* Slightly lighter on hover */
+}
+
+
+.authButtons {
+  display: flex;
+  gap: 1rem; 
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  align-items: center;
+  padding: 0.2rem 0; 
+}
+
+
+.loginBtn {
+  margin-bottom: 0.1rem; 
+}
+
+
+.moreMenu {
+  position: relative;
+}
+
+/* Mobile auth section adjustments */
+.mobileAuth {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; 
+}
+
+.mobileAuth button {
+  padding: 1rem;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+
+@media (max-width: 1200px) {
+  .signupContainer {
+    margin-left: 0.8rem;
+  }
+  
+  .authButtons {
+    gap: 0.8rem;
   }
 }
 
-/* Fix for very small screens */
-@media (max-width: 360px) {
-  .navbarContent {
-    padding: 0.6rem 0.8rem;
+@media (max-width: 1100px) {
+  .signupContainer {
+    margin-left: 0.6rem;
   }
   
-  .navbarLogoImg {
-    width: 35px;
-    height: 35px;
+  .authButtons {
+    gap: 0.6rem;
   }
-  
-  .logoText {
-    display: none; /* Hide text on very small screens */
-  }
+}
+
+
+.navbarAuth {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }

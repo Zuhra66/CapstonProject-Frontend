@@ -1,5 +1,4 @@
-// src/components/Navbar.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import logoCropped from "../assets/logo.png";
@@ -15,33 +14,31 @@ const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").repla
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-
-  const {
-    isAuthenticated,
-    isLoading,
-    user,
+  const { 
+    isAuthenticated, 
+    isLoading: auth0Loading, 
+    user, 
     getAccessTokenSilently,
     loginWithRedirect,
     logout,
   } = useAuth0();
-
+  
   const [backendUser, setBackendUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
+  const [fetchingBackendUser, setFetchingBackendUser] = useState(false);
 
-  // Fetch backend user (to know role/is_admin)
+  // Optimized: Fetch backend user only when needed
   useEffect(() => {
     let alive = true;
 
-    const fetchBackendUser = async () => {
-      if (!isAuthenticated) {
+    const fetchBackendUserIfNeeded = async () => {
+      if (!isAuthenticated || !user) {
         setBackendUser(null);
-        setUserLoading(false);
         return;
       }
 
+      setFetchingBackendUser(true);
+      
       try {
-        setUserLoading(true);
-
         const token = await getAccessTokenSilently({
           authorizationParams: {
             audience: import.meta.env.VITE_AUTH0_AUDIENCE,
@@ -60,25 +57,22 @@ export default function Navbar() {
 
         if (response.ok) {
           const data = await response.json();
-          setBackendUser(data.user || null);
-        } else {
-          console.error("Navbar: /api/auth/me failed with status", response.status);
-          setBackendUser(null);
+          setBackendUser(data.user);
         }
       } catch (error) {
-        console.error("Navbar: error fetching backend user", error);
-        setBackendUser(null);
+        console.debug("Navbar: Could not fetch backend user", error);
       } finally {
-        if (alive) setUserLoading(false);
+        if (alive) setFetchingBackendUser(false);
       }
     };
 
-    fetchBackendUser();
-
+    const timer = setTimeout(fetchBackendUserIfNeeded, 1000);
+    
     return () => {
       alive = false;
+      clearTimeout(timer);
     };
-  }, [isAuthenticated, getAccessTokenSilently]);
+  }, [isAuthenticated, user, getAccessTokenSilently]);
 
   // Lock scroll when mobile menu open
   useEffect(() => {
@@ -93,14 +87,13 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  // Display name logic
-  const getDisplayName = () => {
+  const displayName = useMemo(() => {
+    if (!isAuthenticated || !user) return null;
+    
     if (backendUser?.first_name && backendUser?.last_name) {
       return `${backendUser.first_name} ${backendUser.last_name.charAt(0)}.`;
     }
-    if (backendUser?.name) {
-      return backendUser.name;
-    }
+    
     if (user?.given_name && user?.family_name) {
       return `${user.given_name} ${user.family_name.charAt(0)}.`;
     }
@@ -111,14 +104,14 @@ export default function Navbar() {
       return user.email.split("@")[0];
     }
     return "Account";
-  };
+  }, [isAuthenticated, user, backendUser]);
 
-  const displayName = getDisplayName();
-  const isAdmin = !!(
-    backendUser?.is_admin ||
-    backendUser?.isAdmin ||
-    backendUser?.role === "Administrator"
-  );
+  const isAdmin = useMemo(() => {
+    if (backendUser) {
+      return !!(backendUser.is_admin || backendUser.role === 'Administrator');
+    }
+    return false;
+  }, [backendUser]);
 
   const handleLogin = () => {
     loginWithRedirect({
@@ -141,43 +134,26 @@ export default function Navbar() {
     });
   };
 
-  // Primary nav links
-  const primaryLinks = [
+  // UPDATED: Appointments is now always in More menu (visible to everyone)
+  const moreLinks = useMemo(() => {
+    const links = [
+      { to: "/blog", label: "Blog" },
+      { to: "/education", label: "Education" },
+      { to: "/appointment", label: "Appointments" }, // ALWAYS VISIBLE
+    ];
+    
+    return links;
+  }, []); // Removed isAuthenticated dependency
+
+  // Primary links remain the same
+  const primaryLinks = useMemo(() => [
     { to: "/", label: "Home" },
     { to: "/about", label: "About" },
     { to: "/services", label: "Services" },
     { to: "/membership", label: "Membership" },
     { to: "/products", label: "Products" },
-  ];
-
-  // More dropdown links
-  const moreLinks = [
-    { to: "/blog", label: "Blog" },
-    { to: "/education", label: "Education" },
     { to: "/events", label: "Events" },
-  ];
-
-  if (isLoading || userLoading) {
-    return (
-      <nav className={styles.navbar}>
-        <div className="container">
-          <div className={styles.navbarContent}>
-            <Link to="/" className={styles.navbarBrand}>
-              <div className={styles.logoContainer}>
-                <img
-                  src={logoCropped}
-                  alt="EmpowerMEd Logo"
-                  className={styles.navbarLogoImg}
-                />
-                <span className={styles.logoText}>EmpowerMEd</span>
-              </div>
-            </Link>
-            <div className={styles.navbarAuth} />
-          </div>
-        </div>
-      </nav>
-    );
-  }
+  ], []);
 
   return (
     <nav className={styles.navbar}>
@@ -186,20 +162,21 @@ export default function Navbar() {
           {/* Brand */}
           <Link to="/" className={styles.navbarBrand}>
             <div className={styles.logoContainer}>
-              <img
-                src={logoCropped}
-                alt="EmpowerMEd Logo"
-                className={styles.navbarLogoImg}
+              <img 
+                src={logoCropped} 
+                alt="EmpowerMEd Logo" 
+                className={styles.navbarLogoImg} 
+                loading="eager"
               />
-              <span className={styles.logoText}>EmpowerMEd</span>
             </div>
           </Link>
 
           {/* Desktop nav */}
           <div className={styles.navbarMain}>
             <div className={styles.navbarNav}>
-              {primaryLinks.map((link) => (
-                <NavLink
+              {/* Primary Links */}
+              {primaryLinks.map(link => (
+                <NavLink 
                   key={link.to}
                   to={link.to}
                   end={link.to === "/"}
@@ -213,22 +190,8 @@ export default function Navbar() {
                 </NavLink>
               ))}
 
-              {/* Appointments link visible only when authenticated */}
-              {isAuthenticated && (
-                <NavLink
-                  to="/appointment"
-                  className={({ isActive }) =>
-                    isActive
-                      ? `${styles.navLink} ${styles.navLinkActive}`
-                      : styles.navLink
-                  }
-                >
-                  Appointments
-                </NavLink>
-              )}
-
-              {/* More dropdown */}
-              <div
+              {/* More Menu - Now includes Appointments for everyone */}
+              <div 
                 className={styles.moreMenu}
                 onMouseEnter={() => setShowMoreMenu(true)}
                 onMouseLeave={() => setShowMoreMenu(false)}
@@ -252,8 +215,8 @@ export default function Navbar() {
                         {link.label}
                       </NavLink>
                     ))}
-                    {isAdmin && (
-                      <NavLink
+                    {isAdmin && !fetchingBackendUser && (
+                      <NavLink 
                         to="/admin/dashboard"
                         className={({ isActive }) =>
                           isActive
@@ -269,16 +232,8 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Optional separate Admin link */}
-              {isAdmin && !showMoreMenu && (
-                <NavLink
-                  to="/admin/dashboard"
-                  className={({ isActive }) =>
-                    isActive
-                      ? `${styles.navLink} ${styles.navLinkActive}`
-                      : styles.navLink
-                  }
-                >
+              {isAdmin && !showMoreMenu && !fetchingBackendUser && (
+                <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>
                   Admin
                 </NavLink>
               )}
@@ -286,35 +241,36 @@ export default function Navbar() {
 
             {/* Auth section (desktop) */}
             <div className={styles.navbarAuth}>
-              {!isAuthenticated ? (
+              {auth0Loading ? (
+                <div className={styles.authLoading}>
+                  <div className={styles.loadingDot}></div>
+                </div>
+              ) : !isAuthenticated ? (
                 <div className={styles.authButtons}>
-                  <button className={styles.loginBtn} onClick={handleLogin}>
-                    Login
-                  </button>
-                  <a
-                    style={{
-                      color: "black",
-                      textDecoration: "none",
-                      cursor: "pointer",
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSignup();
-                    }}
-                  >
-                    New User?
-                    <p>Sign Up</p>
-                  </a>
+                  <button className={styles.loginBtn} onClick={handleLogin}>Login</button>
+                  {/* Updated Sign Up Section */}
+                  <div className={styles.signupContainer}>
+                    <a 
+                      className={styles.signupLink}
+                      onClick={handleSignup}
+                    >
+                      <span className={styles.signupLine1} style={{ color: '#FFFFFF' }}>New User?</span>
+                      <span className={styles.signupLine2}>Sign Up</span>
+                    </a>
+                  </div>
                 </div>
               ) : (
                 <div className={styles.userDropdown}>
                   <div className={styles.userInfo}>
-                    <img
-                      src={user?.picture || "/default-avatar.png"}
-                      alt="User avatar"
-                      className={styles.userAvatar}
+                    <img 
+                      src={user?.picture || "/default-avatar.png"} 
+                      alt="User avatar" 
+                      className={styles.userAvatar} 
+                      loading="eager"
                     />
-                    <span className={styles.userName}>{displayName}</span>
+                    {displayName && (
+                      <span className={styles.userName}>{displayName}</span>
+                    )}
                     <div className={styles.dropdownArrow}>▼</div>
                   </div>
                   <div className={styles.dropdownMenu}>
@@ -360,17 +316,14 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile nav */}
-        <div
-          className={`${styles.mobileNav} ${
-            isOpen ? styles.mobileNavOpen : ""
-          }`}
-        >
+        {/* Mobile Nav */}
+        <div className={`${styles.mobileNav} ${isOpen ? styles.mobileNavOpen : ""}`}>
           <div className={styles.mobileNavContent}>
-            {[...primaryLinks, ...moreLinks].map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
+            {/* Primary links */}
+            {primaryLinks.map(link => (
+              <NavLink 
+                key={link.to} 
+                to={link.to} 
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   isActive ? styles.mobileNavLinkActive : ""
@@ -380,18 +333,17 @@ export default function Navbar() {
               </NavLink>
             ))}
 
-            {/* Mobile-only Appointments link when logged in */}
-            {isAuthenticated && (
-              <NavLink
-                to="/appointment"
+            {/* More links - Appointments always visible */}
+            {moreLinks.map(link => (
+              <NavLink 
+                key={link.to} 
+                to={link.to} 
                 onClick={() => setIsOpen(false)}
-                className={({ isActive }) =>
-                  isActive ? styles.mobileNavLinkActive : ""
-                }
+                className={({ isActive }) => isActive ? styles.mobileNavLinkActive : ""}
               >
-                Appointments
+                {link.label}
               </NavLink>
-            )}
+            ))}
 
             {isAdmin && (
               <NavLink
@@ -427,12 +379,10 @@ export default function Navbar() {
               ) : (
                 <div className={styles.mobileUser}>
                   <div className={styles.mobileUserInfo}>
-                    <img
-                      src={user?.picture || "/default-avatar.png"}
-                      alt="User"
-                      className={styles.mobileUserAvatar}
-                    />
-                    <span className={styles.mobileUserName}>{displayName}</span>
+                    <img src={user?.picture || "/default-avatar.png"} alt="User" className={styles.mobileUserAvatar} />
+                    {displayName && (
+                      <span className={styles.mobileUserName}>{displayName}</span>
+                    )}
                   </div>
                   <Link
                     to="/account"
