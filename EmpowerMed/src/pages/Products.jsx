@@ -42,9 +42,9 @@ export default function Products() {
         if (!alive) return;
 
         rows = (rows || []).map((c) => {
-          const name = c.name ?? c.slug ?? "Unknown";
-          const slug = (c.slug ?? name)
-            ?.toString()
+          const name = c.name || c.slug || "Unknown";
+          const slug = (c.slug || name)
+            .toString()
             .trim()
             .toLowerCase()
             .replace(/\s+/g, "-");
@@ -53,7 +53,8 @@ export default function Products() {
 
         setCategories([{ name: "All", slug: "all" }, ...rows]);
       } catch (e) {
-        console.warn("Categories load failed:", e);
+        if (!alive) return;
+        setCategories([{ name: "All", slug: "all" }]);
       }
     })();
 
@@ -86,7 +87,7 @@ export default function Products() {
       } catch (e) {
         console.error("Products load error:", e);
         if (!alive) return;
-        setErr("We couldn’t load products. Please try again.");
+        setErr("We couldn't load products. Please try again.");
       } finally {
         if (alive) setLoading(false);
       }
@@ -108,7 +109,7 @@ export default function Products() {
     if (!ql && cl === "all") return list;
 
     return list.filter((p) => {
-      const hay = `${p.name ?? ""} ${(p.tags || []).join(" ")}`.toLowerCase();
+      const hay = `${p.name || ""} ${(p.tags || []).join(" ")}`.toLowerCase();
       const matchesQ = ql ? hay.includes(ql) : true;
 
       let matchesCat = true;
@@ -176,10 +177,10 @@ export default function Products() {
                 product={{
                   id: p.id,
                   name: p.name,
-                  price: p.price,          // dollars
+                  price: p.price, // dollars
                   price_cents: p.price_cents, // legacy safety
                   image_url: p.image_url,
-                  tags: p.tags,
+                  tags: p.tags || [],
                   external_url: p.external_url,
                 }}
               />

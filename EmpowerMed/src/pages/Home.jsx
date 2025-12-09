@@ -175,7 +175,7 @@ export default function Home() {
               Become a Member
             </motion.a>
             <motion.a
-              href="/appointment"
+              href="/booking"
               className="btn btn-secondary"
               initial={{ opacity: 0, y: -40 }}
               animate={{ opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut', delay: 0.3 } }}

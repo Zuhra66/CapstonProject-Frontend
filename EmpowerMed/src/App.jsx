@@ -27,10 +27,15 @@ import AdminEvents from './pages/AdminEvents.jsx';
 import AdminBlog from './pages/AdminBlog.jsx';
 import AdminNewsletter from './components/AdminNewsletter.jsx'; 
 import AdminRoute from './lib/AdminRoute.jsx';
+import AdminAppointments from "./pages/AdminAppointments.jsx";
 import NotFound from './pages/NotFound.jsx';
+import { useAuth } from "./lib/useAuth"; 
 import AdminAuditLogs from './components/AdminAuditLogs.jsx';
 
 function App() {
+  const { user, ready } = useAuth();   
+  if (!ready) return <div>Loading...</div>; 
+
   return (
     <>
       <Navbar />
@@ -51,7 +56,7 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:slug" element={<EventDetail />} />
-            <Route path="/booking" element={<Booking />} />
+            <Route path="/booking" element={<Booking userId={user?.id} />} />
             <Route path="/membership" element={<Membership />} />
 
             {/* Admin routes */}
@@ -78,6 +83,14 @@ function App() {
               }
             />
 
+            <Route
+              path="/admin/appointments"
+              element={
+                <AdminRoute>
+                  <AdminAppointments />
+                </AdminRoute>
+              }
+            />
             <Route
               path="/admin/audit"
               element={
@@ -125,7 +138,7 @@ function App() {
 
             {/* 404 fallback */}
             <Route
-              path="/admin/newsletter"  // Add this route
+              path="/admin/newsletter"
               element={
                 <AdminRoute>
                   <AdminNewsletter />

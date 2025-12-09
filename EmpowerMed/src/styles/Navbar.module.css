@@ -48,15 +48,6 @@
   object-fit: contain;
 }
 
-.logoText {
-  font-family: 'Lexend', cursive;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #3D52A0;
-  letter-spacing: 1px;
-  margin-top: 0.3rem;
-}
-
 .navbarMain {
   display: flex;
   align-items: center;
@@ -536,8 +527,13 @@
   }
 
   .navbarLogoImg {
+<<<<<<< HEAD
     width: 80px;
     height: 80px;
+=======
+    width: 65px;
+    height: 65px;
+>>>>>>> origin/prototype-frontend
   }
 }
 
@@ -551,8 +547,8 @@
   }
 
   .navbarLogoImg {
-    width: 45px;
-    height: 45px;
+    width: 65px;
+    height: 65px;
   }
 
   .mobileNavContent {

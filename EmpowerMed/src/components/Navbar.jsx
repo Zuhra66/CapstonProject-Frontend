@@ -186,7 +186,12 @@ export default function Navbar() {
           {/* Brand */}
           <Link to="/" className={styles.navbarBrand}>
             <div className={styles.logoContainer}>
-              <img src={logoCropped} alt="EmpowerMEd Logo" className={styles.navbarLogoImg} />
+              <img
+                src={logoCropped}
+                alt="EmpowerMEd Logo"
+                className={styles.navbarLogoImg}
+              />
+              <span className={styles.logoText}>EmpowerMEd</span>
             </div>
           </Link>
 
@@ -207,6 +212,20 @@ export default function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
+
+              {/* Appointments link visible only when authenticated */}
+              {isAuthenticated && (
+                <NavLink
+                  to="/appointment"
+                  className={({ isActive }) =>
+                    isActive
+                      ? `${styles.navLink} ${styles.navLinkActive}`
+                      : styles.navLink
+                  }
+                >
+                  Appointments
+                </NavLink>
+              )}
 
               {/* More dropdown */}
               <div
@@ -360,6 +379,19 @@ export default function Navbar() {
                 {link.label}
               </NavLink>
             ))}
+
+            {/* Mobile-only Appointments link when logged in */}
+            {isAuthenticated && (
+              <NavLink
+                to="/appointment"
+                onClick={() => setIsOpen(false)}
+                className={({ isActive }) =>
+                  isActive ? styles.mobileNavLinkActive : ""
+                }
+              >
+                Appointments
+              </NavLink>
+            )}
 
             {isAdmin && (
               <NavLink

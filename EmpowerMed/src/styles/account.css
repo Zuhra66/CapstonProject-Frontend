@@ -304,3 +304,32 @@
     padding: 0.2rem 0.6rem;
   }
 }
+
+/* -----------------------------
+   MEMBERSHIP STATUS BADGES
+------------------------------*/
+
+.status-indicator.active {
+  background: rgba(81, 207, 102, 0.2);
+  color: #51CF66;
+  border: 1px solid #51CF66;
+}
+
+.status-indicator.inactive,
+.status-indicator.none {
+  background: rgba(134, 142, 150, 0.2);
+  color: #868E96;
+  border: 1px solid #868E96;
+}
+
+.status-indicator.past_due {
+  background: rgba(255, 153, 0, 0.2);
+  color: #FF9900;
+  border: 1px solid #FF9900;
+}
+
+.status-indicator.cancelled {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid #F44336;
+}
