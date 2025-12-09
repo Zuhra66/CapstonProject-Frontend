@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styles from "../styles/Products.module.css";
 import ProductCard, { HeroCarousel } from "../components/ProductCard";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -13,42 +13,44 @@ export default function Products() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
 
-  // Load categories
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch(`${API}/api/categories`, {
-          credentials: "include",
-        });
-        
-        if (!res.ok) {
-          setCategories([{ name: "All", slug: "all" }]);
-          return;
-        }
-        
-        let rows = await res.json();
-        if (!alive) return;
+  // Load products
+useEffect(() => {
+  let alive = true;
+  setLoading(true);
+  setErr("");
+  (async () => {
+    try {
+      const url = new URL(`${API}/api/products`);
+      if (q) url.searchParams.set("q", q);
+      if (cat && cat !== "all") url.searchParams.set("category", cat);
 
-        rows = (rows || []).map((c) => {
-          const name = c.name || c.slug || "Unknown";
-          const slug = (c.slug || name)
-            .toString()
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "-");
-          return { name, slug };
-        });
+      const res = await fetch(url.toString(), {
+        credentials: "include",
+      });
 
-        setCategories([{ name: "All", slug: "all" }, ...rows]);
-      } catch (e) {
-        setCategories([{ name: "All", slug: "all" }]);
+      if (!res.ok) {
+        throw new Error(`Failed to load products`);
       }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
+
+      const json = await res.json();
+      if (!alive) return;
+
+      // handle either shape: [{...}] OR { products: [...] }
+      const rows = Array.isArray(json) ? json : json.products || [];
+      setProducts(rows);
+    } catch (e) {
+      if (!alive) return;
+      setErr("We couldn't load products. Please try again.");
+    } finally {
+      if (alive) setLoading(false);
+    }
+  })();
+
+  return () => {
+    alive = false;
+  };
+}, [q, cat]);
+
 
   // Load products
   useEffect(() => {

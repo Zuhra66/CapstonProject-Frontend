@@ -1,422 +1,611 @@
 // src/pages/AdminProducts.jsx
-import { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { NavLink } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import {
-  adminCreateProduct,
-  adminUpdateProduct,
-  adminDeleteProduct,
-} from "../lib/api";
 
-// Same-origin by default (works with your Vite proxy). If you deploy the API
-// elsewhere, set VITE_API_URL to that full origin. We'll just prefix it.
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001")
+  .replace(/\/+$/, "");
+
+// 1) Add this helper ABOVE authFetchWithToken
+function getCookie(name) {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+// 2) Put your authFetchWithToken RIGHT AFTER getCookie
+async function authFetchWithToken(getAccessTokenSilently, path, options = {}) {
+  const token = await getAccessTokenSilently({
+    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+  });
+
+  const { data, ...restOptions } = options;
+
+  // base headers: auth + (optional) CSRF
+  const headers = {
+    ...(restOptions.headers || {}),
+    Authorization: `Bearer ${token}`,
+  };
+
+  // grab CSRF token from cookie and send as header
+  const xsrf = getCookie("XSRF-TOKEN");
+  if (xsrf) {
+    headers["x-xsrf-token"] = xsrf;
+  }
+
+  if (data !== undefined && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const fetchOptions = {
+    ...restOptions,
+    headers,
+    credentials: "include",         // keep cookies flowing
+    body: data !== undefined ? JSON.stringify(data) : restOptions.body,
+  };
+
+  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+
+  const res = await fetch(url, fetchOptions);
+
+  let json = null;
+  try {
+    json = await res.json();
+  } catch {
+    json = null;
+  }
+
+  if (!res.ok) {
+    const message =
+      json?.message || json?.error || `Request failed with status ${res.status}`;
+    const err = new Error(message);
+    err.response = { status: res.status, data: json };
+    throw err;
+  }
+
+  return { data: json };
+}
 
 export default function AdminProducts() {
-  const { getAccessTokenSilently } = useAuth0();
+  const {
+    isAuthenticated,
+    isLoading,
+    loginWithRedirect,
+    getAccessTokenSilently,
+  } = useAuth0();
 
-  // Provide a token *getter* (function), not the token string
-  const tokenGetter = useCallback(
-    () =>
-      getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      }),
-    [getAccessTokenSilently]
-  );
-
-  const [list, setList] = useState([]);
-  const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editPriceCents, setEditPriceCents] = useState("");
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
+  const fileInputRef = useRef(null);
+
+  // form state – price is in *dollars*
   const [form, setForm] = useState({
+    id: null,
     name: "",
-    price_cents: 0,
+    price: "",
     image_url: "",
     external_url: "",
-    category_id: null,
+    category_id: "",
     is_active: true,
   });
 
-  // Ensure CSRF cookie exists (server serves /csrf-token)
+  const isEditing = form.id !== null;
+
+  /* -------------------------- Helpers -------------------------- */
+  const resetForm = () =>
+    setForm({
+      id: null,
+      name: "",
+      price: "",
+      image_url: "",
+      external_url: "",
+      category_id: "",
+      is_active: true,
+    });
+
+  const formatMoney = (v) => {
+    if (v === null || v === undefined || v === "") return "$0.00";
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "$0.00";
+    return n.toLocaleString(undefined, {
+      style: "currency",
+      currency: "USD",
+    });
+  };
+
+  /* -------------------------- Load data -------------------------- */
   useEffect(() => {
-    fetch(`${API_BASE}/csrf-token`, { credentials: "include" }).catch(() => {});
-  }, []);
+    let alive = true;
 
-  async function loadAll() {
+    (async () => {
+      try {
+        if (isLoading) return;
+
+        if (!isAuthenticated) {
+          await loginWithRedirect({
+            appState: { returnTo: window.location.pathname },
+          });
+          return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        const [productsRes, categoriesRes] = await Promise.all([
+          authFetchWithToken(getAccessTokenSilently, `/api/admin/products?limit=200`),
+          fetch(`${API_BASE}/api/categories`, {
+            credentials: "include",
+          }),
+        ]);
+
+        const productsJson = productsRes.data; // { products, pagination }
+        const rows = productsJson?.products || [];
+
+        const categoriesJson = categoriesRes.ok
+          ? await categoriesRes.json().catch(() => [])
+          : [];
+
+        if (!alive) return;
+
+        setProducts(rows);
+        setCategories(categoriesJson.categories || categoriesJson || []);
+      } catch (err) {
+        if (!alive) return;
+        console.error("Admin products load error:", err);
+        setError("Failed to load products.");
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [isLoading, isAuthenticated, loginWithRedirect, getAccessTokenSilently]);
+
+  /* -------------------------- Form handlers -------------------------- */
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((f) => ({
+      ...f,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleEdit = (product) => {
+    setForm({
+      id: product.id,
+      name: product.name || "",
+      price:
+        product.price !== null && product.price !== undefined
+          ? String(product.price)
+          : "",
+      image_url: product.image_url || "",
+      external_url: product.external_url || "",
+      category_id: product.category_id ?? "",
+      is_active: product.is_active ?? true,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
+  };
+
+  const handleDeactivateToggle = async (product) => {
     try {
-      setLoading(true);
-      setError("");
-      const [pRes, cRes] = await Promise.all([
-        fetch(`${API_BASE}/api/products`, { credentials: "include" }),
-        fetch(`${API_BASE}/api/categories`, { credentials: "include" }),
-      ]);
-      if (!pRes.ok) throw new Error(`Products ${pRes.status}`);
-      if (!cRes.ok) throw new Error(`Categories ${cRes.status}`);
-      const [products, categories] = await Promise.all([pRes.json(), cRes.json()]);
-      setList(products || []);
-      setCats(categories || []);
-    } catch (e) {
-      setError(e.message || "Failed to load products/categories");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadAll();
-  }, []);
-
-  const validForm = useMemo(() => {
-    if (!form.name.trim()) return false;
-    if (!Number.isFinite(+form.price_cents) || +form.price_cents < 0) return false;
-    return true;
-  }, [form]);
-
-  function updateForm(prop, val) {
-    setForm((f) => ({ ...f, [prop]: val }));
-  }
-
-  async function create() {
-    if (!validForm) return;
-    try {
-      setBusy(true);
-      await adminCreateProduct(
+      setSaving(true);
+      const res = await authFetchWithToken(
+        getAccessTokenSilently,
+        `/api/admin/products/${product.id}`,
         {
-          ...form,
-          price_cents: Number(form.price_cents) | 0,
-          category_id:
-            form.category_id === "" || form.category_id === null
-              ? null
-              : Number(form.category_id),
-        },
-        tokenGetter
+          method: "PUT",
+          data: {
+            is_active: !product.is_active,
+          },
+        }
       );
-      setForm({
-        name: "",
-        price_cents: 0,
-        image_url: "",
-        external_url: "",
-        category_id: null,
-        is_active: true,
-      });
-      await loadAll();
-    } catch (e) {
-      alert(e?.message || "Create failed");
-    } finally {
-      setBusy(false);
-    }
-  }
 
-  async function quickToggleActive(p) {
+      const updated = res.data;
+      setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    } catch (err) {
+      console.error("Deactivate product error:", err);
+      alert("Failed to update product status.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (product) => {
+    if (!window.confirm(`Delete "${product.name}"? This cannot be undone.`)) {
+      return;
+    }
+
     try {
-      setBusy(true);
-      await adminUpdateProduct(p.id, { is_active: !p.is_active }, tokenGetter);
-      await loadAll();
-    } catch (e) {
-      alert(e?.message || "Update failed");
-    } finally {
-      setBusy(false);
-    }
-  }
+      setSaving(true);
+      await authFetchWithToken(
+        getAccessTokenSilently,
+        `/api/admin/products/${product.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-  async function remove(id) {
-    if (!confirm("Delete product?")) return;
+      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+      if (form.id === product.id) {
+        resetForm();
+      }
+    } catch (err) {
+      console.error("Delete product error:", err);
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to delete product.";
+      alert(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // when user selects a file for the image
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        // store as data URL in image_url
+        setForm((f) => ({ ...f, image_url: result }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerFilePicker = (e) => {
+    e.preventDefault();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     try {
-      setBusy(true);
-      await adminDeleteProduct(id, tokenGetter);
-      await loadAll();
-    } catch (e) {
-      alert(e?.message || "Delete failed");
+      setSaving(true);
+
+      const priceNumber = Number(form.price);
+      if (!form.name || !Number.isFinite(priceNumber)) {
+        alert("Please provide both a name and a numeric price in dollars.");
+        setSaving(false);
+        return;
+      }
+
+      const payload = {
+        name: form.name.trim(),
+        price: priceNumber, // dollars (matches backend)
+        image_url: form.image_url || null, // may be URL OR data URL
+        external_url: form.external_url.trim() || null,
+        category_id: form.category_id || null,
+        is_active: !!form.is_active,
+      };
+
+      let res;
+      if (isEditing) {
+        res = await authFetchWithToken(
+          getAccessTokenSilently,
+          `/api/admin/products/${form.id}`,
+          {
+            method: "PUT",
+            data: payload,
+          }
+        );
+      } else {
+        res = await authFetchWithToken(
+          getAccessTokenSilently,
+          `/api/admin/products`,
+          {
+            method: "POST",
+            data: payload,
+          }
+        );
+      }
+
+      const saved = res.data;
+
+      if (isEditing) {
+        setProducts((prev) => prev.map((p) => (p.id === saved.id ? saved : p)));
+      } else {
+        setProducts((prev) => [saved, ...prev]);
+      }
+
+      resetForm();
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (err) {
+      console.error("Save product error:", err);
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to save product.";
+      alert(message);
     } finally {
-      setBusy(false);
+      setSaving(false);
     }
+  };
+
+  /* -------------------------- Render states -------------------------- */
+  if (isLoading) {
+    return (
+      <div className="page-content pt-small">
+        <div className="container">
+          <p>Auth0 is loading…</p>
+        </div>
+      </div>
+    );
   }
 
-  // Inline edit helpers
-  function startEdit(p) {
-    setEditingId(p.id);
-    setEditPriceCents(String(p.price_cents ?? 0));
-  }
-  function cancelEdit() {
-    setEditingId(null);
-    setEditPriceCents("");
-  }
-  async function saveEdit(id) {
-    try {
-      setBusy(true);
-      await adminUpdateProduct(id, { price_cents: Number(editPriceCents) | 0 }, tokenGetter);
-      setEditingId(null);
-      await loadAll();
-    } catch (e) {
-      alert(e?.message || "Save failed");
-    } finally {
-      setBusy(false);
-    }
+  if (loading) {
+    return (
+      <div className="page-content pt-small">
+        <div className="container">
+          <p>Loading products…</p>
+        </div>
+      </div>
+    );
   }
 
-  const fmtUSD = (cents) =>
-    typeof cents === "number"
-      ? (cents / 100).toLocaleString(undefined, { style: "currency", currency: "USD" })
-      : "—";
+  if (error) {
+    return (
+      <div className="page-content pt-small">
+        <div className="container">
+          <div className="alert alert-danger">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
+  /* -------------------------- Main render -------------------------- */
   return (
-    <main className="page-content" style={{ paddingTop: 90 }}>
+    <div className="page-content pt-small">
       <div className="container">
-        <h2 style={{ marginBottom: "1rem" }}>Products (Admin)</h2>
-
-        {loading && <div>Loading…</div>}
-        {error && <div style={{ color: "crimson", marginBottom: "1rem" }}>{error}</div>}
-
-        {/* Create card */}
-        <div
-          className="card"
-          style={{
-            border: "1px solid #e5e7eb",
-            padding: "1rem",
-            borderRadius: 8,
-            marginBottom: "1.25rem",
-            background: "#fff",
-          }}
-        >
-          <h3 style={{ marginTop: 0 }}>Create product</h3>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 180px",
-              gap: "0.75rem 1rem",
-              alignItems: "center",
-              maxWidth: 800,
-            }}
-          >
-            <label>
-              <div>Name</div>
-              <input
-                value={form.name}
-                onChange={(e) => updateForm("name", e.target.value)}
-                placeholder="Visage Super Serum"
-                style={{ width: "100%" }}
-              />
-            </label>
-
-            <label>
-              <div>Price (cents)</div>
-              <input
-                type="number"
-                min={0}
-                value={form.price_cents}
-                onChange={(e) => updateForm("price_cents", e.target.value)}
-                placeholder="15900"
-                style={{ width: "100%" }}
-              />
-            </label>
-
-            <label style={{ gridColumn: "1 / -1" }}>
-              <div>Image URL</div>
-              <input
-                value={form.image_url}
-                onChange={(e) => updateForm("image_url", e.target.value)}
-                placeholder="/images/visage.jpg or https://…"
-                style={{ width: "100%" }}
-              />
-            </label>
-
-            <label style={{ gridColumn: "1 / -1" }}>
-              <div>External URL</div>
-              <input
-                value={form.external_url}
-                onChange={(e) => updateForm("external_url", e.target.value)}
-                placeholder="https://threeinternational.com/…"
-                style={{ width: "100%" }}
-              />
-            </label>
-
-            <label>
-              <div>Category</div>
-              <select
-                value={form.category_id ?? ""}
-                onChange={(e) =>
-                  updateForm("category_id", e.target.value ? Number(e.target.value) : null)
-                }
-                style={{ width: "100%" }}
-              >
-                <option value="">— none —</option>
-                {cats.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={!!form.is_active}
-                onChange={(e) => updateForm("is_active", e.target.checked)}
-              />
-              Active
-            </label>
-
-            <div style={{ gridColumn: "1 / -1" }}>
-              <button
-                onClick={create}
-                disabled={!validForm || busy}
-                style={{
-                  padding: "0.5rem 0.9rem",
-                  borderRadius: 6,
-                  background: validForm && !busy ? "#0ea5e9" : "#93c5fd",
-                  color: "white",
-                  border: "none",
-                }}
-              >
-                {busy ? "Saving…" : "Create"}
-              </button>
-            </div>
-          </div>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="display-font mb-0">Products (Admin)</h1>
+          <NavLink to="/products" className="btn btn-outline-secondary btn-sm">
+            View storefront
+          </NavLink>
         </div>
 
-        {/* List */}
-        <div
-          className="card"
-          style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "1rem", background: "#fff" }}
-        >
-          <h3 style={{ marginTop: 0 }}>Existing products</h3>
-          {!list.length && <div>No products found.</div>}
+        {/* Create / edit form */}
+        <section className="mb-5">
+          <h2 className="display-font mb-3">
+            {isEditing ? "Edit product" : "Create product"}
+          </h2>
 
-          <ul className="list" style={{ listStyle: "none", paddingLeft: 0 }}>
-            {list.map((p) => {
-              const isEditing = editingId === p.id;
-              return (
-                <li
+          <form onSubmit={handleSubmit} className="mb-3">
+            <div className="row g-3">
+              <div className="col-md-4">
+                <label htmlFor="name" className="form-label body-font">
+                  Name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  className="form-control"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="col-md-2">
+                <label htmlFor="price" className="form-label body-font">
+                  Price (USD)
+                </label>
+                <input
+                  id="price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="form-control"
+                  value={form.price}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="col-md-3">
+                <label htmlFor="category_id" className="form-label body-font">
+                  Category
+                </label>
+                <select
+                  id="category_id"
+                  name="category_id"
+                  className="form-select"
+                  value={form.category_id}
+                  onChange={handleChange}
+                >
+                  <option value="">Uncategorized</option>
+                  {categories.map((c) => (
+                    <option key={c.id ?? c.slug ?? c.name} value={c.id}>
+                      {c.name || "Untitled"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-3 d-flex align-items-end">
+                <div className="form-check">
+                  <input
+                    id="is_active"
+                    name="is_active"
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={form.is_active}
+                    onChange={handleChange}
+                  />
+                  <label
+                    className="form-check-label body-font ms-1"
+                    htmlFor="is_active"
+                  >
+                    Active
+                  </label>
+                </div>
+              </div>
+
+              {/* IMAGE: URL + upload from computer */}
+              <div className="col-md-6">
+                <label htmlFor="image_url" className="form-label body-font">
+                  Image
+                </label>
+                <div className="input-group">
+                  <input
+                    id="image_url"
+                    name="image_url"
+                    type="text"
+                    className="form-control"
+                    value={form.image_url}
+                    onChange={handleChange}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={triggerFilePicker}
+                    type="button"
+                  >
+                    Upload…
+                  </button>
+                </div>
+                <small className="text-muted body-font">
+                  Paste an image URL, or click <strong>Upload…</strong> to pick a
+                  file from your computer.
+                </small>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileSelect}
+                />
+              </div>
+
+              <div className="col-md-6">
+                <label htmlFor="external_url" className="form-label body-font">
+                  External link URL
+                </label>
+                <input
+                  id="external_url"
+                  name="external_url"
+                  type="url"
+                  className="form-control"
+                  value={form.external_url}
+                  onChange={handleChange}
+                  placeholder="https://vendor.com/product"
+                />
+              </div>
+
+              <div className="col-12 mt-3">
+                <button
+                  type="submit"
+                  className="btn btn-primary me-2"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving…"
+                    : isEditing
+                    ? "Save changes"
+                    : "Create product"}
+                </button>
+
+                {isEditing && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          </form>
+        </section>
+
+        {/* Existing products */}
+        <section>
+          <h2 className="display-font mb-3">Existing products</h2>
+
+          {products.length === 0 ? (
+            <p>No products yet.</p>
+          ) : (
+            <div className="list-group">
+              {products.map((p) => (
+                <div
                   key={p.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "minmax(220px,1fr) 160px 140px 120px 110px 110px",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "0.5rem 0",
-                    borderBottom: "1px solid #f1f5f9",
-                  }}
+                  className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <div>
-                    <div style={{ fontWeight: 600 }}>{p.name}</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}>
-                      {p.category?.name ?? "—"} • {p.is_active ? "active" : "inactive"}
+                    <div className="fw-semibold body-font">{p.name}</div>
+                    <div className="text-muted small body-font">
+                      {p.category?.name || "Uncategorized"} ·{" "}
+                      {p.is_active ? "active" : "inactive"}
                     </div>
                   </div>
 
-                  {/* Price */}
-                  <div>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        min={0}
-                        value={editPriceCents}
-                        onChange={(e) => setEditPriceCents(e.target.value)}
-                        style={{ width: 140 }}
-                      />
-                    ) : (
-                      <span>{fmtUSD(p.price_cents)}</span>
-                    )}
-                  </div>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="body-font">{formatMoney(p.price)}</div>
 
-                  {/* External link */}
-                  <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {p.external_url ? (
-                      <a href={p.external_url} target="_blank" rel="noreferrer">
+                    {p.external_url && (
+                      <a
+                        href={p.external_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-link btn-sm"
+                      >
                         External link ↗
                       </a>
-                    ) : (
-                      <span style={{ color: "#94a3b8" }}>no link</span>
                     )}
+
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => handleEdit(p)}
+                      disabled={saving}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => handleDeactivateToggle(p)}
+                      disabled={saving}
+                    >
+                      {p.is_active ? "Deactivate" : "Activate"}
+                    </button>
+
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDelete(p)}
+                      disabled={saving}
+                    >
+                      Delete
+                    </button>
                   </div>
-
-                  {/* Edit/Save */}
-                  <div>
-                    {isEditing ? (
-                      <>
-                        <button
-                          disabled={busy}
-                          onClick={() => saveEdit(p.id)}
-                          style={{
-                            padding: "0.35rem 0.6rem",
-                            borderRadius: 6,
-                            border: "1px solid #22c55e",
-                            background: "#dcfce7",
-                            color: "#166534",
-                            marginRight: 6,
-                          }}
-                        >
-                          Save
-                        </button>
-                        <button
-                          disabled={busy}
-                          onClick={cancelEdit}
-                          style={{
-                            padding: "0.35rem 0.6rem",
-                            borderRadius: 6,
-                            border: "1px solid #cbd5e1",
-                            background: "#fff",
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        disabled={busy}
-                        onClick={() => startEdit(p)}
-                        style={{
-                          padding: "0.35rem 0.6rem",
-                          borderRadius: 6,
-                          border: "1px solid #cbd5e1",
-                          background: "#fff",
-                        }}
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Activate/Deactivate */}
-                  <button
-                    disabled={busy}
-                    onClick={() => quickToggleActive(p)}
-                    style={{
-                      padding: "0.35rem 0.6rem",
-                      borderRadius: 6,
-                      border: "1px solid #cbd5e1",
-                      background: "#fff",
-                    }}
-                  >
-                    {p.is_active ? "Deactivate" : "Activate"}
-                  </button>
-
-                  {/* Delete */}
-                  <button
-                    disabled={busy}
-                    onClick={() => remove(p.id)}
-                    style={{
-                      padding: "0.35rem 0.6rem",
-                      borderRadius: 6,
-                      border: "1px solid #ef4444",
-                      background: "#fee2e2",
-                      color: "#b91c1c",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
-    </main>
+    </div>
   );
 }
