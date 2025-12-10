@@ -423,12 +423,11 @@
 .mobileAccountBtn {
   background: rgba(255, 255, 255, 0.3);
   color: #3D52A0;
-  border: 2px solid #3D52A0;
 }
 
 .mobileAccountBtn:hover {
   background: #3D52A0;
-  color: #FFFFFF;
+  color: #111111;
 }
 
 .mobileLogoutBtn {

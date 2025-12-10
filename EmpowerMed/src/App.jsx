@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -29,11 +28,12 @@ import AdminAppointments from "./pages/AdminAppointments.jsx";
 import NotFound from './pages/NotFound.jsx';
 import { useAuth } from "./lib/useAuth"; 
 import AdminAuditLogs from './components/AdminAuditLogs.jsx';
-import AdminEvents from "./pages/AdminEvents.jsx";   // ✅ NEW
+import AdminEvents from "./pages/AdminEvents.jsx";
+import AdminBlog from './pages/AdminBlog.jsx';
+import AdminComments from './components/AdminComments.jsx';
 
 function App() {
-  const { user, ready } = useAuth();   
-  if (!ready) return <div>Loading...</div>; 
+  const { user } = useAuth();   
 
   return (
     <>
@@ -87,7 +87,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/events"         // ✅ NEW
+              path="/admin/events"
               element={
                 <AdminRoute>
                   <AdminEvents />
@@ -115,6 +115,22 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminNewsletter />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/blog"
+              element={
+                <AdminRoute>
+                  <AdminBlog />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/comments"
+              element={
+                <AdminRoute>
+                  <AdminComments />
                 </AdminRoute>
               }
             />
