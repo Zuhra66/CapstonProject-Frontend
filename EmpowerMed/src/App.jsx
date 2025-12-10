@@ -29,6 +29,7 @@ import AdminAppointments from "./pages/AdminAppointments.jsx";
 import NotFound from './pages/NotFound.jsx';
 import { useAuth } from "./lib/useAuth"; 
 import AdminAuditLogs from './components/AdminAuditLogs.jsx';
+import AdminEvents from "./pages/AdminEvents.jsx";   // ✅ NEW
 
 function App() {
   const { user, ready } = useAuth();   
@@ -52,7 +53,9 @@ function App() {
             <Route path="/appointment" element={<Appointment />} />
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/events/:slug" element={<EventDetail />} />
+            
+            <Route path="/events/:id" element={<EventDetail />} />
+
             <Route path="/booking" element={<Booking userId={user?.id} />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
@@ -80,6 +83,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAppointments />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/events"         // ✅ NEW
+              element={
+                <AdminRoute>
+                  <AdminEvents />
                 </AdminRoute>
               }
             />
