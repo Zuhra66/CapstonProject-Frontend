@@ -3,78 +3,72 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import "../styles/Events.css";
 
-// ✅ Use backend env variable (Render) or localhost (dev)
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5001"
+).replace(/\/+$/, "");
 
-function extractTitle(page) {
-  const t = page?.properties?.Name?.title?.[0]?.plain_text;
-  return t || "Event";
+// Normalize whatever backend sends (`/uploads/...`, `uploads/...`, full URL, etc.)
+function getRawFilePath(ev) {
+  const raw = ev.imageUrl || ev.image_url;
+  if (!raw) return null;
+  // if backend already returned a full URL, keep it
+  if (/^https?:\/\//i.test(raw)) return raw;
+  // otherwise force it to start with a single /
+  return raw.startsWith("/") ? raw : `/${raw}`;
 }
 
-function extractDate(page) {
-  const d = page?.properties?.["Event Date"]?.date?.start;
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+function formatDateTime(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString();
 }
 
-function extractBodyImages(blocks = []) {
-  return blocks
-    .filter((b) => b.type === "image")
-    .map((b) => {
-      const img = b.image;
-      if (img.type === "file") return img.file.url;
-      if (img.type === "external") return img.external.url;
-      return null;
-    })
-    .filter(Boolean);
-}
-
-function extractParagraphs(blocks = []) {
-  return blocks
-    .filter((b) => b.type === "paragraph")
-    .map((b) =>
-      (b.paragraph.rich_text || [])
-        .map((rt) => rt.plain_text || "")
-        .join("")
-        .trim()
-    )
-    .filter((txt) => txt.length > 0);
+// For IMAGES we’re fine using absolute URLs
+function resolveImageUrl(ev) {
+  const raw = getRawFilePath(ev);
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `${API_BASE_URL}${raw}`;
 }
 
 export default function EventDetail() {
-  const { slug } = useParams();
-  const [page, setPage] = useState(null);
-  const [blocks, setBlocks] = useState([]);
-  const [error, setError] = useState(null);
+  const { id } = useParams();
+
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    let alive = true;
+
     async function loadEvent() {
       try {
         setLoading(true);
         setError(null);
 
-        // ✅ FIXED: use API_BASE_URL instead of localhost
-        const res = await fetch(`${API_BASE_URL}/api/events/${slug}`);
+        const res = await fetch(`${API_BASE_URL}/api/events/${id}`);
         if (!res.ok) throw new Error("Failed to fetch event");
 
-        const data = await res.json();
-        setPage(data.page);
-        setBlocks(data.blocks || []);
+        const json = await res.json();
+        if (!alive) return;
+
+        const ev = json.event || json;
+        setEvent(ev);
       } catch (err) {
         console.error("Error fetching event:", err);
+        if (!alive) return;
         setError("Could not load this event.");
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     }
 
     loadEvent();
-  }, [slug]);
+    return () => {
+      alive = false;
+    };
+  }, [id]);
 
   if (loading) {
     return (
@@ -84,7 +78,7 @@ export default function EventDetail() {
     );
   }
 
-  if (error || !page) {
+  if (error || !event) {
     return (
       <div className="event-detail">
         <p className="event-error">{error || "Could not load this event."}</p>
@@ -95,10 +89,18 @@ export default function EventDetail() {
     );
   }
 
-  const title = extractTitle(page);
-  const date = extractDate(page);
-  const images = extractBodyImages(blocks);
-  const paragraphs = extractParagraphs(blocks);
+  const rawPath = getRawFilePath(event);
+  const isPdf = rawPath && /\.pdf(\?|#|$)/i.test(rawPath);
+
+  // Images: use full API URL
+  const imageUrl = !isPdf ? resolveImageUrl(event) : null;
+
+  // PDFs: keep SAME-ORIGIN path when possible so iframe works
+  const pdfUrl = isPdf
+    ? /^https?:\/\//i.test(rawPath)
+      ? rawPath
+      : rawPath // e.g. "/uploads/events/1234-flyer.pdf"
+    : null;
 
   return (
     <div className="event-detail">
@@ -108,29 +110,61 @@ export default function EventDetail() {
 
       <div className="event-detail-card">
         <header className="event-detail-header">
-          <h1 className="event-detail-title">{title}</h1>
-          {date && <p className="event-detail-date">{date}</p>}
+          <h1 className="event-detail-title">
+            {event.title || "Untitled event"}
+          </h1>
+          {(event.startTime || event.start_time) && (
+            <p className="event-detail-date">
+              {formatDateTime(event.startTime || event.start_time)}
+            </p>
+          )}
+          {event.location && (
+            <p className="event-card-location">{event.location}</p>
+          )}
         </header>
 
-        {images.length > 0 && (
-          <div className="event-detail-images">
-            {images.map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`${title} flyer ${idx + 1}`}
-                className="event-detail-image"
+        {/* MEDIA AREA: PDF in a big box OR image */}
+        {pdfUrl && (
+          <div className="event-detail-media">
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="event-detail-pdf-link"
+            >
+              View event flyer (PDF)
+            </a>
+
+            <div className="event-detail-pdf-box">
+              <iframe
+                src={pdfUrl}
+                title="Event flyer"
+                className="event-detail-pdf-iframe"
               />
-            ))}
+            </div>
           </div>
         )}
 
-        {paragraphs.length > 0 && (
-          <div className="event-detail-body">
-            {paragraphs.map((text, idx) => (
-              <p key={idx}>{text}</p>
-            ))}
+        {imageUrl && !pdfUrl && (
+          <div className="event-detail-media">
+            <img
+              src={imageUrl}
+              alt={event.title || "Event image"}
+              className="event-detail-image"
+            />
           </div>
+        )}
+
+        {event.description && (
+          <div className="event-detail-body">
+            <p>{event.description}</p>
+          </div>
+        )}
+
+        {(event.endTime || event.end_time) && (
+          <p className="event-card-time-range">
+            Ends: {formatDateTime(event.endTime || event.end_time)}
+          </p>
         )}
       </div>
     </div>
