@@ -307,3 +307,21 @@
     font-size: 0.72rem;
   }
 }
+
+@media (max-width: 480px) {
+  .events-header {
+    margin-bottom: 2.25rem;
+  }
+
+  .events-grid {
+    gap: 1.25rem;
+  }
+
+  .event-card-content {
+    padding: 0.9rem 0.9rem 1.05rem;
+  }
+
+  .event-card-date {
+    font-size: 0.72rem;
+  }
+}

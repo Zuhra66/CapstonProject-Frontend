@@ -75,13 +75,11 @@ export default function Navbar() {
     };
 
     fetchBackendUser();
-
     return () => {
       isActive = false;
     };
   }, [isAuthenticated, auth0User, getAccessTokenSilently, isAuthReady]);
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -167,7 +165,6 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       <div className="container">
         <div className={styles.navbarContent}>
-          {/* Logo */}
           <Link to="/" className={styles.navbarBrand}>
             <div className={styles.logoContainer}>
               <img 
@@ -179,7 +176,6 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className={styles.navbarMain}>
             <div className={styles.navbarNav}>
               {primaryLinks.map(link => (
@@ -253,7 +249,6 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Auth Section */}
             <div className={styles.navbarAuth}>
               {showLoading ? (
                 <div className={styles.authLoading}>
@@ -287,27 +282,35 @@ export default function Navbar() {
                   
                   <div className={styles.dropdownMenu}>
                     <Link to="/account" className={styles.dropdownItem}>
-                      <UserCog className={styles.icon} size={18} strokeWidth={1.8} />
+                      <UserCog
+                        className={styles.icon}
+                        size={18}
+                        strokeWidth={1.8}
+                      />
                       Account Settings
                     </Link>
-
                     {isAdminUser && (
-                      <Link to="/admin/dashboard" className={styles.dropdownItem}>
-                        <UserCog className={styles.icon} size={18} strokeWidth={1.8} />
+                      <Link
+                        to="/admin/dashboard"
+                        className={styles.dropdownItem}
+                      >
+                        <UserCog
+                          className={styles.icon}
+                          size={18}
+                          strokeWidth={1.8}
+                        />
                         Admin Dashboard
                       </Link>
                     )}
 
-                    <button className={styles.dropdownItem} onClick={handleLogout}>
+                    <div className={styles.dropdownItem} onClick={handleLogout}>
                       Logout
-                    </button>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Mobile Menu Toggle */}
           <button
             className={styles.navbarToggle}
             onClick={() => setIsOpen(!isOpen)}
@@ -396,7 +399,7 @@ export default function Navbar() {
                       <span className={styles.mobileUserName}>{displayName}</span>
                     )}
                   </div>
-                  
+
                   <Link
                     to="/account"
                     className={styles.mobileAccountBtn}
@@ -404,7 +407,7 @@ export default function Navbar() {
                   >
                     Account Settings
                   </Link>
-                  
+
                   {isAdminUser && (
                     <Link
                       to="/admin/dashboard"
@@ -414,7 +417,6 @@ export default function Navbar() {
                       Admin Dashboard
                     </Link>
                   )}
-                  
                   <button
                     className={styles.mobileLogoutBtn}
                     onClick={() => {

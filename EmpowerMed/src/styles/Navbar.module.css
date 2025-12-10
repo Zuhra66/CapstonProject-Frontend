@@ -564,14 +564,30 @@
   }
 
   .navbarLogoImg {
-    width: 85px;
-    height: 85px;
+    width: 65px;
+    height: 65px;
+
+    width: 85px !important;
+    height: 85px !important;
+  }
+  
+  .mobileLogoutBtn {
+    background: linear-gradient(135deg, #dc3545, #e35d6a);
+    color: white;
+    border: none;
+    margin-top: auto;
+  }
+  
+  .mobileLogoutBtn:hover {
+    background: linear-gradient(135deg, #c82333, #dc3545);
+    transform: translateY(-1px);
   }
   
   .mobileUser {
     padding-top: 1.5rem;
     margin-top: 1.5rem;
     border-top: 1px solid rgba(61, 82, 160, 0.2);
+
   }
 }
 
