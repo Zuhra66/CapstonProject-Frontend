@@ -1,3 +1,4 @@
+/* Navbar.module.css - Complete CSS */
 @import url('https://fonts.googleapis.com/css2?family=Aboreto&family=Lexend:wght@300;400;500;600;700&display=swap');
 
 .navbar {
@@ -9,12 +10,6 @@
   z-index: 1000;
   backdrop-filter: blur(15px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.navbar.scrolled {
-  background: rgba(237, 232, 245, 0.98);
-  box-shadow: 0 2px 25px rgba(61, 82, 160, 0.15);
 }
 
 .navbarContent {
@@ -93,7 +88,6 @@
   box-shadow: 0 3px 10px rgba(61, 82, 160, 0.2);
 }
 
-/* More Menu Styles */
 .moreMenu {
   position: relative;
 }
@@ -155,20 +149,22 @@
   color: white;
 }
 
-/* Auth Section */
 .navbarAuth {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .authButtons {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   font-family: 'Lexend', sans-serif;
   font-size: 0.75rem;
   font-weight: 400;
-  align-items: flex-end;
+  align-items: center;
+  padding: 0.2rem 0;
 }
 
 .loginBtn {
@@ -184,6 +180,7 @@
   white-space: nowrap;
   min-width: 90px;
   transition: all 0.3s ease;
+  margin-bottom: 0.1rem;
 }
 
 .loginBtn:hover {
@@ -193,7 +190,51 @@
   box-shadow: 0 6px 15px rgba(61, 82, 160, 0.2);
 }
 
-/* User Dropdown */
+.signupContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 1rem;
+  padding-top: 0.3rem;
+}
+
+.signupLink {
+  color: #3D52A0;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: color 0.2s ease;
+}
+
+.signupLink:hover {
+  color: #7091E6;
+}
+
+.signupLine1 {
+  font-size: 0.7rem;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+  font-weight: 400;
+}
+
+.signupLine2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: black;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.signupLink:hover .signupLine2 {
+  color: #ADBBDA;
+}
+
 .userDropdown {
   position: relative;
 }
@@ -285,7 +326,6 @@
   color: white;
 }
 
-/* Mobile Toggle */
 .navbarToggle {
   display: none;
   background: transparent;
@@ -299,7 +339,6 @@
   color: #3D52A0;
 }
 
-/* Mobile Navigation */
 .mobileNav {
   position: fixed;
   top: 0;
@@ -432,17 +471,47 @@
 }
 
 .mobileLogoutBtn {
-  background: transparent;
-  color: #dc3545;
-  border: 2px solid #dc3545;
+  background: linear-gradient(135deg, #dc3545, #e35d6a);
+  color: white;
+  border: none;
+  margin-top: auto;
 }
 
 .mobileLogoutBtn:hover {
-  background: #dc3545;
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #c82333, #dc3545);
+  transform: translateY(-1px);
 }
 
-/* RESPONSIVE DESIGN */
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+.authLoading,
+.mobileLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 100px;
+}
+
+.mobileLoading {
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
 @media (max-width: 1200px) {
   .navbarNav {
     gap: 0.2rem;
@@ -451,6 +520,14 @@
   .navLink {
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;
+  }
+  
+  .signupContainer {
+    margin-left: 0.8rem;
+  }
+  
+  .authButtons {
+    gap: 0.8rem;
   }
 }
 
@@ -462,6 +539,14 @@
   .navLink {
     padding: 0.5rem 0.7rem;
     font-size: 0.8rem;
+  }
+  
+  .signupContainer {
+    margin-left: 0.6rem;
+  }
+  
+  .authButtons {
+    gap: 0.6rem;
   }
 }
 
@@ -479,20 +564,8 @@
   }
 
   .navbarLogoImg {
-    width: 85px !important;
-    height: 85px !important;
-  }
-  
-  .mobileLogoutBtn {
-    background: linear-gradient(135deg, #dc3545, #e35d6a);
-    color: white;
-    border: none;
-    margin-top: auto;
-  }
-  
-  .mobileLogoutBtn:hover {
-    background: linear-gradient(135deg, #c82333, #dc3545);
-    transform: translateY(-1px);
+    width: 85px;
+    height: 85px;
   }
   
   .mobileUser {
@@ -508,8 +581,8 @@
   }
 
   .navbarLogoImg {
-    width: 85px !important;
-    height: 85px !important;
+    width: 85px;
+    height: 85px;
   }
 
   .mobileNavContent {
@@ -570,182 +643,4 @@
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
   }
-}
-/* Add to your existing CSS file */
-
-/* Signup link container */
-.signupContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-left: 0.5rem; /* Space between Login button and Signup link */
-}
-
-/* Signup link styling */
-.signupLink {
-  color: #3D52A0;
-  text-decoration: none;
-  cursor: pointer;
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  line-height: 1.2;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  transition: color 0.2s ease;
-}
-
-.signupLink:hover {
-  color: #7091E6;
-}
-
-
-.signupLine1 {
-  font-size: 0.7rem;
-  color: #6C757D; 
-  margin-bottom: 2px; 
-}
-
-
-.signupLine2 {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #3D52A0;
-  text-decoration: underline;
-}
-
-.signupLink:hover .signupLine2 {
-  color: #7091E6;
-}
-
-
-.authButtons {
-  display: flex;
-  gap: 0.5rem; 
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 400;
-  align-items: center;
-}
-/* Add these styles to your existing CSS */
-
-/* Signup link container - updated with better spacing */
-.signupContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-left: 1rem; /* Increased space between Login button and Signup link */
-  padding-top: 0.3rem; /* Lower the position slightly */
-}
-
-/* Signup link styling */
-.signupLink {
-  color: #3D52A0;
-  text-decoration: none;
-  cursor: pointer;
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  line-height: 1.2;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  transition: color 0.2s ease;
-}
-
-.signupLink:hover {
-  color: #7091E6;
-}
-
-/* First line - "New User?" */
-.signupLine1 {
-  font-size: 0.7rem;
-  color: #FFFFFF !important; /* Force white color */
-  margin-bottom: 2px;
-  font-weight: 400;
-}
-
-/* Second line - "Sign Up" */
-.signupLine2 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: black; /* Changed to white */
-  text-decoration: underline;
-  transition: color 0.2s ease;
-}
-
-.signupLink:hover .signupLine2 {
-  color: #ADBBDA; /* Slightly lighter on hover */
-}
-
-
-.authButtons {
-  display: flex;
-  gap: 1rem; 
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 400;
-  align-items: center;
-  padding: 0.2rem 0; 
-}
-
-
-.loginBtn {
-  margin-bottom: 0.1rem; 
-}
-
-
-.moreMenu {
-  position: relative;
-}
-
-/* Mobile auth section adjustments */
-.mobileAuth {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem; 
-}
-
-.mobileAuth button {
-  padding: 1rem;
-  border-radius: 10px;
-  border: none;
-  font-family: 'Lexend', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  text-align: center;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-
-@media (max-width: 1200px) {
-  .signupContainer {
-    margin-left: 0.8rem;
-  }
-  
-  .authButtons {
-    gap: 0.8rem;
-  }
-}
-
-@media (max-width: 1100px) {
-  .signupContainer {
-    margin-left: 0.6rem;
-  }
-  
-  .authButtons {
-    gap: 0.6rem;
-  }
-}
-
-
-.navbarAuth {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
 }
