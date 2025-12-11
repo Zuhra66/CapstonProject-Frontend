@@ -128,6 +128,14 @@ export default function AdminDashboard() {
       gradient: "card-blue",
       link: "/admin/blog"
     },
+    // 🔹 NEW: Education Hub card (uses education stats, links to AdminEducation)
+    { 
+      icon: FiMessageCircle,
+      title: "Education Hub", 
+      value: (stats?.education?.articles ?? 0) + (stats?.education?.videos ?? 0),
+      gradient: "card-green",
+      link: "/admin/education"
+    },
   ];
 
   const detailStats = [
@@ -275,6 +283,17 @@ export default function AdminDashboard() {
           >
             <FiBookOpen className="dashboard-icon" />
             Blog
+          </NavLink>
+
+          {/* 🔹 NEW: link to AdminEducation page */}
+          <NavLink 
+            to="/admin/education" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiMessageCircle className="dashboard-icon" />
+            Education Hub
           </NavLink>
         </nav>
 

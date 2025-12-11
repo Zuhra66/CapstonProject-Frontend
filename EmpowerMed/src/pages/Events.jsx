@@ -176,7 +176,7 @@ function Events() {
       {/* Hero banner */}
       <section className="events-hero">
         <div className="events-hero-text">
-          <h1 className="events-hero-title">Event Management</h1>
+          <h1 className="events-hero-title">EVENTS</h1>
           <p className="events-hero-subtitle">
             Discover upcoming EmpowerMed workshops, health events, and
             community gatherings—all in one place.

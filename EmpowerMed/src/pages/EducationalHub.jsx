@@ -1,17 +1,84 @@
+// src/pages/EducationalHub.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import s from "../styles/EducationalHub.module.css";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
+// Tags used for filter pills
 const TAGS = [
   "All",
-  "New to EmpowerMed",
-  "Hydration",
-  "IV Therapy",
-  "Skincare",
-  "Routines",
-  "Supplements",
-  "Wellness",
+  "Burnout",
+  "Stress",
+  "Trauma & Nervous System",
+  "Boundaries",
+  "Faith & Spiritual",
+  "Lifestyle",
+  "Free Course",
+  "Spanish / English",
 ];
+
+// Could be populated later if you have video-specific links
+const STATIC_VIDEOS = [];
+
+const STATIC_DOWNLOADS = [
+  {
+    id: "reflection-worksheets",
+    title: "Reflection Worksheets",
+    href: "#",
+    file_size: "PDF – coming soon",
+  },
+  {
+    id: "weekly-wellness-tools",
+    title: "Weekly Wellness Tools",
+    href: "#",
+    file_size: "PDF – coming soon",
+  },
+  {
+    id: "mindset-challenges",
+    title: "Mindset Challenges",
+    href: "#",
+    file_size: "PDF – coming soon",
+  },
+  {
+    id: "printable-guides",
+    title: "Printable Guides",
+    href: "#",
+    file_size: "PDF – coming soon",
+  },
+  {
+    id: "spanish-english-resources",
+    title: "Spanish / English Resources",
+    href: "#",
+    file_size: "Bilingual PDFs – coming soon",
+  },
+  {
+    id: "biblical-affirmations",
+    title: "Biblical Affirmations",
+    href: "#",
+    file_size: "Printable cards – coming soon",
+  },
+];
+
+// 🔎 Helper: derive a thumbnail for videos
+function getVideoThumb(v) {
+  // 1) Prefer explicit thumbnail URL from API/DB
+  if (v.thumb_url) return v.thumb_url;
+  if (v.thumb) return v.thumb;
+
+  // 2) Try to infer from YouTube link
+  if (v.href) {
+    const match = v.href.match(
+      /(?:youtube\.com\/.*v=|youtu\.be\/)([A-Za-z0-9_-]+)/
+    );
+    if (match && match[1]) {
+      const id = match[1];
+      return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+  }
+
+  // 3) Fallback: no thumbnail
+  return "";
+}
 
 export default function EducationalHub() {
   const [articles, setArticles] = useState([]);
@@ -22,7 +89,7 @@ export default function EducationalHub() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // Load content whenever q/tag changes
+  // Load content from API only (no hard-coded articles)
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -35,16 +102,30 @@ export default function EducationalHub() {
         if (tag && tag !== "All") url.searchParams.set("tag", tag);
 
         const res = await fetch(url.toString(), { credentials: "include" });
-        if (!res.ok) throw new Error(`Education ${res.status}`);
-        const data = await res.json();
 
+        if (!res.ok) {
+          throw new Error(`Education API error ${res.status}`);
+        }
+
+        const data = await res.json();
         if (!alive) return;
-        setArticles(data.articles || []);
-        setVideos(data.videos || []);
-        setDownloads(data.downloads || []);
+
+        const apiArticles = data.articles || [];
+        const apiVideos = data.videos || [];
+        const apiDownloads = data.downloads || [];
+
+        setArticles(apiArticles);
+        setVideos([...STATIC_VIDEOS, ...apiVideos]);
+        setDownloads([...STATIC_DOWNLOADS, ...apiDownloads]);
       } catch (e) {
         console.error(e);
-        if (alive) setErr("We couldn’t load education content. Please try again.");
+        if (!alive) return;
+
+        // If API fails, just show no articles and keep static downloads
+        setArticles([]);
+        setVideos(STATIC_VIDEOS);
+        setDownloads(STATIC_DOWNLOADS);
+        setErr("Unable to load education resources right now.");
       } finally {
         if (alive) setLoading(false);
       }
@@ -55,15 +136,19 @@ export default function EducationalHub() {
     };
   }, [q, tag]);
 
+  // Apply client-side search & tag filtering to articles
   const filteredArticles = useMemo(() => {
     if (!articles.length) return [];
-    if (!q && (tag === "All" || !tag)) return articles;
 
     return articles.filter((a) => {
       const tags = a.tags || [];
       const byTag = tag === "All" || tags.includes(tag);
-      const hay = `${a.title ?? ""} ${a.summary ?? ""} ${tags.join(" ")}`.toLowerCase();
-      const byQ = q ? hay.includes(q.toLowerCase()) : true;
+
+      const haystack = `${a.title ?? ""} ${a.summary ?? ""} ${tags.join(
+        " "
+      )}`.toLowerCase();
+      const byQ = q ? haystack.includes(q.toLowerCase()) : true;
+
       return byTag && byQ;
     });
   }, [articles, q, tag]);
@@ -73,8 +158,11 @@ export default function EducationalHub() {
       {/* Hero */}
       <section className={s.hero}>
         <div className={s.heroInner}>
-          <h1 className={s.title}>Educational Hub</h1>
-          <p className={s.subtitle}>Clinician-reviewed guides and resources.</p>
+          <h1 className={s.title}>Education &amp; Resources</h1>
+          <p className={s.subtitle}>
+            EmpowerMEd provides educational tools designed to strengthen your
+            mental, emotional, spiritual, and physical wellness.
+          </p>
 
           <div className={s.toolbar}>
             <div className={s.search}>
@@ -82,7 +170,7 @@ export default function EducationalHub() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search topics…"
+                placeholder="Search topics (burnout, stress, faith, boundaries)…"
                 aria-label="Search education content"
               />
             </div>
@@ -102,40 +190,66 @@ export default function EducationalHub() {
         </div>
       </section>
 
+      {/* Status messages */}
       <section className={s.wrap}>
-        {loading && <div className={s.muted}>Loading…</div>}
+        {loading && <div className={s.muted}>Loading resources…</div>}
         {err && !loading && <div className={s.muted}>{err}</div>}
       </section>
 
-      {/* Featured Articles */}
+      {/* Core topics overview / purpose */}
       {!loading && !err && (
         <section className={s.wrap}>
-          <h2 className={s.sectionTitle}>Featured Articles</h2>
-          <div className={s.grid}>
-            {filteredArticles.map((a) => (
+          <h2 className={s.sectionTitle}>Core Topics</h2>
+          <p className={s.cardSummary}>
+            Our educational materials focus on understanding burnout, stress and
+            emotional regulation, trauma and the nervous system, healthy
+            boundaries, faith &amp; spiritual resilience, and lifestyle
+            wellness. The goal is to{" "}
+            <strong>teach, empower, and equip individuals</strong> to make
+            sustainable changes that support lifelong wellness.
+          </p>
+        </section>
+      )}
+
+      {/* Featured Articles & Courses */}
+      <section className={s.wrap}>
+        <h2 className={s.sectionTitle}>Featured Articles &amp; Courses</h2>
+        <div className={s.grid}>
+          {filteredArticles.map((a) => {
+            const coverUrl = a.cover_url || a.cover || "";
+            return (
               <article key={a.id} className={s.card}>
-                <a href={a.href} target="_blank" rel="noopener noreferrer">
-                  {/* API uses cover_url */}
-                  {a.cover_url ? (
-                    <img className={s.thumb} src={a.cover_url} alt={a.title} />
-                  ) : (
-                    <div className={s.thumb} aria-label="No image available" />
-                  )}
-                </a>
-                <div className={s.cardBody}>
-                  <a
-                    className={s.cardTitle}
-                    href={a.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {a.title}
+                {a.href && a.href !== "#" ? (
+                  <a href={a.href} target="_blank" rel="noopener noreferrer">
+                    {coverUrl ? (
+                      <img className={s.thumb} src={coverUrl} alt={a.title} />
+                    ) : (
+                      <div className={s.thumb} aria-label="No image available" />
+                    )}
                   </a>
+                ) : (
+                  <div className={s.thumb} aria-label="No image available" />
+                )}
+
+                <div className={s.cardBody}>
+                  {a.href && a.href !== "#" ? (
+                    <a
+                      className={s.cardTitle}
+                      href={a.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {a.title}
+                    </a>
+                  ) : (
+                    <div className={s.cardTitle}>{a.title}</div>
+                  )}
+
                   <p className={s.cardSummary}>{a.summary}</p>
                   <div className={s.metaRow}>
-                    <span className={s.meta}>
-                      {(a.minutes ?? 3)} min read
-                    </span>
+                    {a.minutes && (
+                      <span className={s.meta}>{a.minutes} min read</span>
+                    )}
                     <div className={s.tagRow}>
                       {(a.tags || []).map((t) => (
                         <span key={t} className={s.tag}>
@@ -146,20 +260,27 @@ export default function EducationalHub() {
                   </div>
                 </div>
               </article>
-            ))}
-            {!filteredArticles.length && (
-              <div className={s.muted}>No results. Try a different tag or search.</div>
-            )}
-          </div>
-        </section>
-      )}
+            );
+          })}
+          {!filteredArticles.length && !loading && (
+            <div className={s.muted}>
+              No results for this filter. Try a different tag or search term.
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Video Guides */}
-      {!loading && !err && (
-        <section className={s.wrap}>
-          <h2 className={s.sectionTitle}>Video Guides</h2>
-          <div className={s.gridSmall}>
-            {videos.map((v) => (
+      <section className={s.wrap}>
+        <h2 className={s.sectionTitle}>Video Guides</h2>
+        <p className={s.muted}>
+          Video-based trainings and workshops will appear here as they become
+          available.
+        </p>
+        <div className={s.gridSmall}>
+          {videos.map((v) => {
+            const thumbUrl = getVideoThumb(v);
+            return (
               <a
                 key={v.id}
                 className={s.videoCard}
@@ -167,9 +288,8 @@ export default function EducationalHub() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {/* API uses thumb_url */}
-                {v.thumb_url ? (
-                  <img className={s.videoThumb} src={v.thumb_url} alt={v.title} />
+                {thumbUrl ? (
+                  <img className={s.videoThumb} src={thumbUrl} alt={v.title} />
                 ) : (
                   <div className={s.videoThumb} aria-label="No thumbnail" />
                 )}
@@ -182,31 +302,26 @@ export default function EducationalHub() {
                   </div>
                 </div>
               </a>
-            ))}
-            {!videos.length && <div className={s.muted}>No videos yet.</div>}
-          </div>
-        </section>
-      )}
+            );
+          })}
+          {!videos.length && !loading && (
+            <div className={s.muted}>No videos yet.</div>
+          )}
+        </div>
+      </section>
 
-      {/* Downloads */}
+      {/* Purpose section at the bottom */}
       {!loading && !err && (
         <section className={s.wrap}>
-          <h2 className={s.sectionTitle}>Downloads</h2>
-          <ul className={s.downloads}>
-            {downloads.map((d) => (
-              <li key={d.id} className={s.downloadItem}>
-                <div>
-                  <div className={s.dlTitle}>{d.title}</div>
-                  {/* API uses file_size */}
-                  <div className={s.muted}>{d.file_size}</div>
-                </div>
-                <a className={s.dlBtn} href={d.href} download>
-                  Download
-                </a>
-              </li>
-            ))}
-            {!downloads.length && <div className={s.muted}>No downloads yet.</div>}
-          </ul>
+          <h2 className={s.sectionTitle}>Our Educational Purpose</h2>
+          <p className={s.cardSummary}>
+            The purpose of EmpowerMEd’s educational material is to{" "}
+            <strong>teach, empower, and equip</strong> individuals to make
+            sustainable changes that support lifelong wellness. We believe that
+            combining evidence-based tools, faith-informed practices, and
+            practical resources creates a pathway toward mental, emotional,
+            spiritual, and physical wholeness.
+          </p>
         </section>
       )}
     </div>
