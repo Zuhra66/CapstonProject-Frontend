@@ -2,7 +2,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import s from "../styles/EducationalHub.module.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(
+  /\/+$/,
+  ""
+);
 
 // Tags used for filter pills
 const TAGS = [
@@ -59,11 +62,19 @@ const STATIC_DOWNLOADS = [
   },
 ];
 
+// 🔧 Helper: if URL is relative (/uploads/...), prefix with backend base URL
+function withApiBase(url) {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return `${API_BASE}${url}`;
+  return url; // some other relative URL; leave as-is
+}
+
 // 🔎 Helper: derive a thumbnail for videos
 function getVideoThumb(v) {
   // 1) Prefer explicit thumbnail URL from API/DB
-  if (v.thumb_url) return v.thumb_url;
-  if (v.thumb) return v.thumb;
+  if (v.thumb_url) return withApiBase(v.thumb_url);
+  if (v.thumb) return withApiBase(v.thumb);
 
   // 2) Try to infer from YouTube link
   if (v.href) {
@@ -216,7 +227,7 @@ export default function EducationalHub() {
         <h2 className={s.sectionTitle}>Featured Articles &amp; Courses</h2>
         <div className={s.grid}>
           {filteredArticles.map((a) => {
-            const coverUrl = a.cover_url || a.cover || "";
+            const coverUrl = withApiBase(a.cover_url || a.cover || "");
             return (
               <article key={a.id} className={s.card}>
                 {a.href && a.href !== "#" ? (
@@ -227,6 +238,8 @@ export default function EducationalHub() {
                       <div className={s.thumb} aria-label="No image available" />
                     )}
                   </a>
+                ) : coverUrl ? (
+                  <img className={s.thumb} src={coverUrl} alt={a.title} />
                 ) : (
                   <div className={s.thumb} aria-label="No image available" />
                 )}
