@@ -53,9 +53,7 @@ function App() {
             <Route path="/appointment" element={<Appointment />} />
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
-            
             <Route path="/events/:id" element={<EventDetail />} />
-
             <Route path="/booking" element={<Booking userId={user?.id} />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
@@ -91,6 +89,15 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminEvents />
+                </AdminRoute>
+              }
+            />
+            {/* ✅ NEW: admin-protected EducationAdmin route */}
+            <Route
+              path="/admin/education"
+              element={
+                <AdminRoute>
+                  <EducationAdmin />
                 </AdminRoute>
               }
             />
