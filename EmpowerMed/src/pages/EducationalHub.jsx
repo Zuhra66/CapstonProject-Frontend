@@ -100,7 +100,7 @@ export default function EducationalHub() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // Load content from API only (no hard-coded articles)
+  // ✅ Load content from API ONCE; client-side handles search & tags
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -108,11 +108,9 @@ export default function EducationalHub() {
 
     (async () => {
       try {
-        const url = new URL(`${API_BASE}/api/education`);
-        if (q) url.searchParams.set("q", q);
-        if (tag && tag !== "All") url.searchParams.set("tag", tag);
-
-        const res = await fetch(url.toString(), { credentials: "include" });
+        const res = await fetch(`${API_BASE}/api/education`, {
+          credentials: "include",
+        });
 
         if (!res.ok) {
           throw new Error(`Education API error ${res.status}`);
@@ -145,17 +143,19 @@ export default function EducationalHub() {
     return () => {
       alive = false;
     };
-  }, [q, tag]);
+  }, []); // 👈 no q/tag deps
 
-  // Apply client-side search & tag filtering to articles
+  // ✅ Client-side search & tag filtering
   const filteredArticles = useMemo(() => {
     if (!articles.length) return [];
 
-    return articles.filter((a) => {
-      const tags = a.tags || [];
-      const byTag = tag === "All" || tags.includes(tag);
+    const selectedTag = tag.toLowerCase();
 
-      const haystack = `${a.title ?? ""} ${a.summary ?? ""} ${tags.join(
+    return articles.filter((a) => {
+      const tags = (a.tags || []).map((t) => t.toLowerCase());
+      const byTag = tag === "All" || tags.includes(selectedTag);
+
+      const haystack = `${a.title ?? ""} ${a.summary ?? ""} ${(a.tags || []).join(
         " "
       )}`.toLowerCase();
       const byQ = q ? haystack.includes(q.toLowerCase()) : true;
@@ -275,7 +275,7 @@ export default function EducationalHub() {
               </article>
             );
           })}
-          {!filteredArticles.length && !loading && (
+          {!filteredArticles.length && !loading && !err && (
             <div className={s.muted}>
               No results for this filter. Try a different tag or search term.
             </div>

@@ -386,16 +386,20 @@ export default function AdminEvents() {
                             {ev.location ? ` · ${ev.location}` : ""}
                           </div>
                         </div>
-                        <div>
+
+                        {/* ✅ stack Edit / Delete vertically so they don't overlap */}
+                        <div className="admin-event-actions">
                           <button
-                            className="btn btn-sm btn-outline-primary me-2"
+                            className="btn btn-sm btn-outline-primary"
                             onClick={() => startEdit(ev)}
+                            type="button"
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-outline-danger"
                             onClick={() => handleDelete(ev)}
+                            type="button"
                           >
                             Delete
                           </button>
