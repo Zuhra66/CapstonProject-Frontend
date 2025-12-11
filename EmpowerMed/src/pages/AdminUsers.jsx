@@ -287,36 +287,48 @@ export default function AdminUsers() {
   };
 
   const getMembershipBadge = (user) => {
-    if (
-      !user.membership || 
-      user.membership.status == null || 
-      user.membership.plan_name == null
-    ) {
-      return (
-        <span className="badge" style={{
-          padding: '0.25em 0.5em',
-          fontSize: '0.7em',
-          fontWeight: '600',
-          background: '#b6b6b6',
-          color: '#333'
-        }}>
-          No Membership
-        </span>
-      );
-    }
+  const membership = user.membership;
 
-    const status = user.membership.status;
-
-    const colors = {
-      active:    { bg: "#00FF00", text: "black" },
-      past_due:  { bg: "#FF9900", text: "black" },
-      cancelled: { bg: "#F44336", text: "white" },
-      inactive:  { bg: "#868E96", text: "white" }
-    };
-
-    const c = colors[status] || colors["inactive"];
-
+  if (!membership || !membership.plan_name) {
     return (
+      <span className="badge" style={{
+        padding: '0.25em 0.5em',
+        fontSize: '0.7em',
+        fontWeight: '600',
+        background: '#b6b6b6',
+        color: '#333'
+      }}>
+        No Membership
+      </span>
+    );
+  }
+
+  const status = membership.status;
+  const plan = membership.plan_name; // e.g. "Student Membership", "General Membership"
+
+  const colors = {
+    active:    { bg: "#00FF00", text: "black" },
+    past_due:  { bg: "#FF9900", text: "black" },
+    cancelled: { bg: "#F44336", text: "white" },
+    inactive:  { bg: "#868E96", text: "white" }
+  };
+
+  const c = colors[status] || colors["inactive"];
+
+  return (
+    <div className="d-flex flex-column">
+      {/* PLAN NAME */}
+      <span className="badge mb-1" style={{
+        padding: '0.25em 0.5em',
+        fontSize: '0.7em',
+        fontWeight: '600',
+        background: '#3D52A0',
+        color: 'white',
+      }}>
+        {plan}
+      </span>
+
+      {/* STATUS */}
       <span className="badge" style={{
         padding: '0.25em 0.5em',
         fontSize: '0.7em',
@@ -325,10 +337,11 @@ export default function AdminUsers() {
         color: c.text,
         border: '1px solid rgba(0,0,0,0.1)'
       }}>
-        {status === "active" ? "Member" : status.replace("_", " ").toUpperCase()}
+        {status.toUpperCase().replace("_", " ")}
       </span>
-    );
-  };
+    </div>
+  );
+};
 
   const getToggleStatusButtonStyle = (user) => {
     if (user.is_active) {

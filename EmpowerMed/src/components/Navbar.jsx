@@ -134,11 +134,16 @@ export default function Navbar() {
     const links = [
       { to: "/blog", label: "Blog" },
       { to: "/education", label: "Education" },
-      { to: "/appointment", label: "Appointments" }, // ALWAYS VISIBLE
+      { to: "/booking", label: "Book An Appointment" },
+      //{ to: "/appointment", label: "Appointments" }, // The appointment page is intended for users only, the page will be blank for anyone that doesnt have an account and may confuse admin. 
     ];
+
+    if (isAuthenticated && !isAdmin) {
+    links.push({ to: "/appointment", label: "My Appointments" });
+  }
     
     return links;
-  }, []); // Removed isAuthenticated dependency
+  }, [isAuthenticated, isAdmin]); // Removed isAuthenticated dependency << reinserted 
 
   // Primary links remain the same
   const primaryLinks = useMemo(() => [
