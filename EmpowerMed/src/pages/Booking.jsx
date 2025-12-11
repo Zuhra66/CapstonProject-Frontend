@@ -29,7 +29,58 @@ export default function Booking({ userId }) {
   const appointmentTypes = [
     "Membership Appointment",
     "General Appointment",
-  ];
+    "Student Appointment"
+  ]
+
+  const userTimeZone =
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles";
+  const providerTimeZone = "America/Los_Angeles";
+  const userIsInProviderTZ = userTimeZone === providerTimeZone;
+
+
+function getTZAbbreviation(timeZone, date = new Date()) {
+  try {
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "short"
+    });
+    const parts = dtf.formatToParts(date);
+    const tz = parts.find(p => p.type === "timeZoneName");
+    return tz ? tz.value : "";
+  } catch {
+    return "";
+  }
+}
+
+  // -------------------------
+  // TIMEZONE HANDLING
+  // -------------------------
+function convertToUserTime(pstTime, date) {
+  if (!pstTime || !date) return pstTime;
+
+  const [time, modifier] = pstTime.split(" ");
+  let [hours, minutes] = time.split(":");
+  hours = parseInt(hours, 10);
+
+  if (modifier === "PM" && hours !== 12) hours += 12;
+  if (modifier === "AM" && hours === 12) hours = 0;
+
+  const dateStr = date.toISOString().split("T")[0];
+
+  // Build the "provider time" in their timezone
+  const providerDate = new Date(
+    new Date(`${dateStr}T${String(hours).padStart(2, "0")}:${minutes}:00`)
+      .toLocaleString("en-US", { timeZone: providerTimeZone })
+  );
+
+  // Convert to the user's timezone
+  return providerDate.toLocaleTimeString("en-US", {
+    timeZone: userTimeZone,
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
 
   // Fetch available times
   useEffect(() => {
@@ -113,9 +164,14 @@ export default function Booking({ userId }) {
       const data = await res.json();
 
       if (data.success) {
-        showSuccess(`Your appointment has been booked successfully!\n\nDetails:\n• Date: ${selectedDate.toDateString()}\n• Time: ${selectedTime}\n• Type: ${selectedType}\n\nA confirmation has been sent to ${email}`);
-        
-        // Update available times
+        const userTime = convertToUserTime(selectedTime, selectedDate);
+
+        showSuccess(
+          `Your appointment has been booked successfully!\n\nDetails:\n• Date: ${selectedDate.toDateString()}\n• Time: ${userTime}${
+            !userIsInProviderTZ ? ` (${selectedTime} PST)` : ""
+          }\n• Type: ${selectedType}\n\nA confirmation has been sent to ${email}`
+        );
+
         setAvailableTimes((prev) => prev.filter((t) => t !== selectedTime));
         
         // Reset form
@@ -161,18 +217,29 @@ export default function Booking({ userId }) {
                 </div>
               ) : availableTimes.length > 0 ? (
                 <div className="times-grid">
-                  {availableTimes.map((time) => (
-                    <button
-                      key={time}
-                      className={`time-button ${
-                        selectedTime === time ? "selected-time" : ""
-                      }`}
-                      onClick={() => handleTimeClick(time)}
-                      disabled={isSubmitting}
-                    >
-                      {time}
-                    </button>
-                  ))}
+                  {availableTimes.map((time) => {
+                    const userTime = convertToUserTime(time, selectedDate);
+
+                    return (
+                      <button
+                        key={time}
+                        className={`time-button ${selectedTime === time ? "selected-time" : ""}`}
+                        onClick={() => handleTimeClick(time)}
+                        disabled={isSubmitting}
+                      >
+
+                        {/* User time with user's timezone abbreviation */}
+                        {userTime} ({getTZAbbreviation(userTimeZone, selectedDate)})
+
+                        {/* Provider time shown ONLY if user is not in PST */}
+                        {!userIsInProviderTZ && (
+                          <div className="provider-time-label">
+                            (Provider time: {time} {getTZAbbreviation(providerTimeZone, selectedDate)})
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center">
@@ -207,7 +274,8 @@ export default function Booking({ userId }) {
               <strong>Date:</strong> {selectedDate.toDateString()}
             </p>
             <p className="mb-0">
-              <strong>Time:</strong> {selectedTime}
+              <strong>Time:</strong> {convertToUserTime(selectedTime, selectedDate)}
+              {!userIsInProviderTZ && ` (${selectedTime} PST)`}
             </p>
           </div>
 
@@ -226,7 +294,7 @@ export default function Booking({ userId }) {
                 checked={selectedType === type}
                 onChange={(e) => setSelectedType(e.target.value)}
                 disabled={isSubmitting}
-                className="mb-1 form-check-custom"
+                className="mb-1 form-check-custom appointment-radio" // Added to change appointment type color
                 style={{ fontSize: "0.9rem" }}
               />
             ))}

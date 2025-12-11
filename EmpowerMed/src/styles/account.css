@@ -333,3 +333,18 @@
   color: #F44336;
   border: 1px solid #F44336;
 }
+
+.cancel-membership-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 12px;       
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.account-detail:has(.cancel-membership-btn) {
+  align-items: flex-start !important; 
+}
+
