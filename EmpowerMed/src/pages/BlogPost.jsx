@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react"; // Use the same hook as Admin
+import { useAuth0 } from "@auth0/auth0-react";
 import ReactMarkdown from "react-markdown";
+import { authedJson } from "../lib/api";
 import "../styles/Blog.css";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5001").replace(/\/+$/, "");
 
 export default function BlogPost() {
     const { slug } = useParams();
-    // Use the same Auth0 hook as your Admin components
     const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0();
     
     const [post, setPost] = useState(null);
@@ -19,6 +19,7 @@ export default function BlogPost() {
     const [replyTo, setReplyTo] = useState(null);
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         loadPost();
@@ -38,7 +39,6 @@ export default function BlogPost() {
             setLikeCount(data.post.like_count);
         } catch (err) {
             setError("Failed to load blog post");
-            console.error("Load post error:", err);
         } finally {
             setLoading(false);
         }
@@ -51,28 +51,16 @@ export default function BlogPost() {
         }
 
         try {
-            const token = await getAccessTokenSilently({
-                authorizationParams: {
-                    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-                    scope: "openid profile email"
-                }
-            });
+            const data = await authedJson(
+                `/api/blog/${slug}/like`,
+                { method: "POST" },
+                getAccessTokenSilently
+            );
             
-            const response = await fetch(`${API_BASE_URL}/api/blog/${slug}/like`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setLiked(data.liked);
-                setLikeCount(prev => data.liked ? prev + 1 : prev - 1);
-            }
+            setLiked(data.liked);
+            setLikeCount(prev => data.liked ? prev + 1 : prev - 1);
         } catch (error) {
-            console.error("Like error:", error);
+            // Silent fail for likes
         }
     };
 
@@ -95,40 +83,33 @@ export default function BlogPost() {
             return;
         }
 
-        try {
-            const token = await getAccessTokenSilently({
-                authorizationParams: {
-                    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-                    scope: "openid profile email"
-                }
-            });
-            
-            const response = await fetch(`${API_BASE_URL}/api/blog/${slug}/comments`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    content: newComment.trim(),
-                    parent_id: replyTo
-                })
-            });
+        setSubmitting(true);
 
-            if (response.ok) {
-                const data = await response.json();
-                setComments(prev => {
-                    if (replyTo) {
-                        return addReplyToComments(prev, replyTo, data.comment);
+        try {
+            const data = await authedJson(
+                `/api/blog/${slug}/comments`,
+                {
+                    method: "POST",
+                    body: {
+                        content: newComment.trim(),
+                        parent_id: replyTo
                     }
-                    return [data.comment, ...prev];
-                });
-                setNewComment("");
-                setReplyTo(null);
-            }
+                },
+                getAccessTokenSilently
+            );
+            
+            setComments(prev => {
+                if (replyTo) {
+                    return addReplyToComments(prev, replyTo, data.comment);
+                }
+                return [data.comment, ...prev];
+            });
+            setNewComment("");
+            setReplyTo(null);
         } catch (error) {
-            console.error("Comment error:", error);
-            alert("Failed to post comment");
+            alert("Failed to post comment. Please try again.");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -224,6 +205,7 @@ export default function BlogPost() {
                         <button 
                             className={`blog-post-like ${liked ? 'liked' : ''}`}
                             onClick={handleLike}
+                            disabled={submitting}
                         >
                             ♥ {likeCount}
                         </button>
@@ -241,13 +223,18 @@ export default function BlogPost() {
 
                         {!isAuthenticated ? (
                             <div className="blog-comments-login">
-                                <p>Please <button onClick={() => loginWithRedirect({
-                                    authorizationParams: {
-                                        redirect_uri: window.location.origin,
-                                        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-                                        scope: 'openid profile email'
-                                    }
-                                })}>login</button> to post comments</p>
+                                <p>Please <button 
+                                    onClick={() => loginWithRedirect({
+                                        authorizationParams: {
+                                            redirect_uri: window.location.origin,
+                                            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+                                            scope: 'openid profile email'
+                                        }
+                                    })}
+                                    className="blog-login-button"
+                                >
+                                    login
+                                </button> to post comments</p>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmitComment} className="blog-comment-form">
@@ -256,6 +243,7 @@ export default function BlogPost() {
                                     onChange={(e) => setNewComment(e.target.value)}
                                     placeholder={replyTo ? "Write a reply..." : "Add a comment..."}
                                     rows="4"
+                                    disabled={submitting}
                                 />
                                 <div className="blog-comment-form-actions">
                                     {replyTo && (
@@ -263,12 +251,17 @@ export default function BlogPost() {
                                             type="button"
                                             onClick={() => setReplyTo(null)}
                                             className="blog-comment-cancel-reply"
+                                            disabled={submitting}
                                         >
                                             Cancel Reply
                                         </button>
                                     )}
-                                    <button type="submit" className="blog-comment-submit">
-                                        {replyTo ? "Post Reply" : "Post Comment"}
+                                    <button 
+                                        type="submit" 
+                                        className="blog-comment-submit"
+                                        disabled={submitting || !newComment.trim()}
+                                    >
+                                        {submitting ? "Posting..." : replyTo ? "Post Reply" : "Post Comment"}
                                     </button>
                                 </div>
                             </form>
@@ -300,15 +293,21 @@ function Comment({ comment, onReply, isAuthenticated }) {
                     alt={comment.user_name}
                     className="blog-comment-avatar"
                 />
-                <div>
-                    <span className="blog-comment-author">{comment.user_name}</span>
-                    {comment.user_role && (
-                        <span className={`blog-comment-role ${comment.user_role.toLowerCase()}`}>
-                            {comment.user_role}
-                        </span>
-                    )}
+                <div className="blog-comment-user-info">
+                    <div className="blog-comment-name-wrapper">
+                        <span className="blog-comment-author">{comment.user_name}</span>
+                        {comment.user_role && comment.user_role !== 'Patient' && (
+                            <span className={`blog-comment-role ${comment.user_role.toLowerCase()}`}>
+                                {comment.user_role}
+                            </span>
+                        )}
+                    </div>
                     <span className="blog-comment-date">
-                        {new Date(comment.created_at).toLocaleDateString()}
+                        {new Date(comment.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                        })}
                     </span>
                 </div>
             </div>

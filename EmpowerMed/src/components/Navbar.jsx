@@ -116,7 +116,9 @@ export default function Navbar() {
 
   const handleSignup = () => {
     loginWithRedirect({
-      screen_hint: "signup",
+      authorizationParams: {
+        screen_hint: "signup"
+      },
       appState: { returnTo: window.location.pathname }
     });
   };
@@ -233,7 +235,7 @@ export default function Navbar() {
               ) : !isAuthenticated ? (
                 <div className={styles.authButtons}>
                   <button className={styles.loginBtn} onClick={handleLogin}>Login</button>
-                  {/* Updated Sign Up Section */}
+                  {/* Updated Sign Up Section - Now properly linked to Auth0 signup */}
                   <div className={styles.signupContainer}>
                     <a 
                       className={styles.signupLink}

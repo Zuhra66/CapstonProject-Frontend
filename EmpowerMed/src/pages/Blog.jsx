@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react"; // Use the same hook as Admin
+import { useAuth0 } from "@auth0/auth0-react";
+import { authedJson } from "../lib/api";
 import "../styles/Blog.css";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5001").replace(/\/+$/, "");
@@ -30,27 +31,16 @@ function BlogCard({ post, isAuthenticated, getAccessTokenSilently }) {
         }
 
         try {
-            const token = await getAccessTokenSilently({
-                authorizationParams: {
-                    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-                    scope: "openid profile email"
-                }
-            });
+            const data = await authedJson(
+                `/api/blog/${post.slug}/like`,
+                { method: "POST" },
+                getAccessTokenSilently
+            );
             
-            const response = await fetch(`${API_BASE_URL}/api/blog/${post.slug}/like`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            });
-
-            if (response.ok) {
-                setLiked(!liked);
-                setLikeCount(prev => liked ? prev - 1 : prev + 1);
-            }
+            setLiked(data.liked);
+            setLikeCount(prev => data.liked ? prev + 1 : prev - 1);
         } catch (error) {
-            console.error("Like error:", error);
+            // Silent fail for likes
         }
     };
 
@@ -110,8 +100,6 @@ export default function Blog() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({ hasMore: false, offset: 0, limit: 9 });
-    
-    // Use the same Auth0 hook as your Admin components
     const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 
     const loadPosts = async (reset = false) => {
@@ -138,7 +126,6 @@ export default function Blog() {
             }));
         } catch (err) {
             setError("Failed to load blog posts");
-            console.error("Load posts error:", err);
         } finally {
             setLoading(false);
         }
