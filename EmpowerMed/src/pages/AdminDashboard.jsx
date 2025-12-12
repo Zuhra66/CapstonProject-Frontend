@@ -298,7 +298,11 @@ export default function AdminDashboard() {
         </nav>
 
         <button 
-          onClick={() => logout({ returnTo: window.location.origin })} 
+          onClick={() => logout({ 
+            logoutParams: { 
+              returnTo: window.location.origin 
+            } 
+          })} 
           className="btn btn-secondary logout-btn btn-sm"
           style={{padding: '0.375rem 0.75rem', fontSize: '0.875rem'}}
         >
