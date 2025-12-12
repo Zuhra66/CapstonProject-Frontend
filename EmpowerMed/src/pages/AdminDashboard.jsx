@@ -8,7 +8,7 @@ import {
   FiMail, FiShield, FiDatabase, FiActivity 
 } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
   const { isAuthenticated, isLoading, getAccessTokenSilently, logout } = useAuth0();
@@ -94,14 +94,14 @@ export default function AdminDashboard() {
       link: "/admin/newsletter"
     },
     { 
-      icon: FiClipboard,            // changed from FiCalendar
+      icon: FiClipboard,            
       title: "Appointments", 
       value: stats?.appointments?.total,
       gradient: "card-orange",
       link: "/admin/appointments"
     },
     { 
-      icon: FiCalendar,             // NEW events card
+      icon: FiCalendar,           
       title: "Upcoming Events", 
       value: stats?.events?.upcoming || 0,
       gradient: "card-blue",
