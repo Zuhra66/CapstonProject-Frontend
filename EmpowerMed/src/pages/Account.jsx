@@ -207,13 +207,19 @@ export default function Account() {
                   {backendUser?.is_active ? 'Active' : 'Inactive'}
                 </span>
 
-                {!backendUser?.membership ? (
-                  <span className="badge badge-status inactive" style={{ background: '#b6b6b6', color: '#333' }}>
-                    No Active Membership
+                {backendUser?.membership?.status === "active" ? (
+                  <span
+                    className="badge badge-status active"
+                    style={{ background: '#6f79ff', color: 'white' }}
+                  >
+                    Membership
                   </span>
                 ) : (
-                  <span className="badge badge-status active" style={{ background: '#6f79ff', color: 'white' }}>
-                    Membership
+                  <span
+                    className="badge badge-status inactive"
+                    style={{ background: '#b6b6b6', color: '#333' }}
+                  >
+                    No Active Membership
                   </span>
                 )}
               </div>
@@ -319,6 +325,14 @@ export default function Account() {
               {backendUser?.membership && (
                 <div className="detail-grid">
 
+                  <div className="account-detail">
+                    <span className="detail-label display-font">Plan</span>
+                    <span className="detail-value">
+                      {backendUser.membership.plan_name}
+                    </span>
+                  </div>
+
+
                   {/* STATUS ALWAYS SHOWN */}
                   <div className="account-detail">
                     <span className="detail-label display-font">Status</span>
@@ -335,16 +349,22 @@ export default function Account() {
                       <div className="account-detail">
                         <span className="detail-label display-font">Member Since</span>
                         <span className="detail-value">
-                          {formatDate(backendUser.membership.start_date)}
+                          {backendUser.membership.start_date
+                            ? formatDate(backendUser.membership.start_date)
+                            : "—"}
                         </span>
                       </div>
+
 
                       <div className="account-detail">
                         <span className="detail-label display-font">Membership Renews</span>
                         <span className="detail-value">
-                          {formatDate(backendUser.membership.end_date)}
+                          {backendUser.membership.provider === "paypal"
+                            ? "Auto-renews monthly"
+                            : formatDate(backendUser.membership.end_date)}
                         </span>
                       </div>
+
 
                       <div className="account-detail">
                         <button
