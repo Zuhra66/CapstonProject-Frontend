@@ -410,7 +410,10 @@ const confirmDowngrade = async () => {
   }
 
   const status = membership.status;
-  const plan = membership.plan_name; // e.g. "Student Membership", "General Membership"
+  const plan =
+  membership.plan_name
+    ?.replace(" Membership", "")
+    ?.replace(" membership", "");
 
   const colors = {
     active:    { bg: "#00FF00", text: "black" },
