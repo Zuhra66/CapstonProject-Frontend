@@ -31,6 +31,8 @@ import AdminAuditLogs from './components/AdminAuditLogs.jsx';
 import AdminEvents from "./pages/AdminEvents.jsx";
 import AdminBlog from './pages/AdminBlog.jsx';
 import AdminComments from './components/AdminComments.jsx';
+import MembershipSuccess from "./pages/MembershipSuccess";
+
 
 function App() {
   const { user } = useAuth();   
@@ -57,6 +59,8 @@ function App() {
             <Route path="/booking" element={<Booking userId={user?.id} />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
+            <Route path="/membership/success" element={<MembershipSuccess />} />
+
 
             {/* Admin Routes */}
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

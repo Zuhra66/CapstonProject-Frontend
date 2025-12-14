@@ -1,16 +1,70 @@
 import "../styles/Membership.css";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
 
+export default function CheckoutDrawer({ plan, onClose }) {
+  const navigate = useNavigate();
 
-export default function CheckoutDrawer({ plan, onClose, hasConsult = false }) {
-  const isStudent = plan.type === "student";
-  const isGeneral = plan.type === "general";
+  const {
+    isAuthenticated,
+    loginWithRedirect,
+    getAccessTokenSilently,
+  } = useAuth0();
+
+  const isStudent = plan?.type === "student";
+  const isGeneral = plan?.type === "general";
+
+  async function startPayPalCheckout(planType) {
+    try {
+      const token = await getAccessTokenSilently();
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/memberships/paypal/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ planType }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.approvalUrl) {
+        console.error("No approval URL returned", data);
+        alert("Unable to start PayPal checkout.");
+        return;
+      }
+
+      window.location.href = data.approvalUrl;
+    } catch (err) {
+      console.error("PayPal checkout error:", err);
+      alert("Authentication error. Please refresh and try again.");
+    }
+  }
+
+  async function handleCheckout(planType) {
+    if (!isAuthenticated) {
+      await loginWithRedirect({
+        appState: {
+          returnTo: "/membership",
+          resumeCheckout: true,
+          planType,
+        },
+      });
+      return;
+    }
+
+    startPayPalCheckout(planType);
+  }
 
   return (
     <div className="drawer-overlay">
       <div className="drawer">
-
         {/* CLOSE BUTTON */}
-        <button className="drawer-close" onClick={onClose}>×</button>
+        <button className="drawer-close" onClick={onClose}></button>
 
         {/* TITLE */}
         <h2 className="drawer-title">
@@ -47,26 +101,44 @@ export default function CheckoutDrawer({ plan, onClose, hasConsult = false }) {
           )}
         </div>
 
-        {/* BUTTON OPTIONS */}
+        {/* ACTION BUTTONS */}
         <div className="drawer-actions">
+          {/* OPTIONAL CONSULTATION CTA (STUDENT ONLY) */}
+          {isStudent && (
+            <div className="consult-cta">
+              <p className="consult-text">
+                Before starting your student membership, you may schedule a{" "}
+                <strong>free 60-minute consultation.</strong>
+              </p>
 
-          {/* STUDENT FLOW — FREE CONSULT BUTTON */}
-          {isStudent && !hasConsult && (
-            <a href="/booking" className="drawer-button primary">
-              Book Free Consultation
-            </a>
+              <button
+                className="drawer-button secondary"
+                onClick={() => {
+                  onClose();
+                  navigate("/booking");
+                }}
+              >
+                Click Here to Book Your Free Consultation
+              </button>
+            </div>
           )}
 
-          {/* STUDENT FLOW — AFTER CONSULT, ENABLE MEMBERSHIP PURCHASE */}
-          {isStudent && hasConsult && (
-            <button className="drawer-button primary">
-              Begin Student Membership – $70 (3 Sessions)
+          {/* STUDENT MEMBERSHIP CHECKOUT */}
+          {isStudent && (
+            <button
+              className="drawer-button primary"
+              onClick={() => handleCheckout("student")}
+            >
+              Begin Student Membership – $70/month
             </button>
           )}
 
-          {/* GENERAL MEMBERSHIP BUTTON */}
+          {/* GENERAL MEMBERSHIP CHECKOUT */}
           {isGeneral && (
-            <button className="drawer-button primary">
+            <button
+              className="drawer-button primary"
+              onClick={() => handleCheckout("general")}
+            >
               Begin General Membership – $99/month
             </button>
           )}
@@ -76,7 +148,6 @@ export default function CheckoutDrawer({ plan, onClose, hasConsult = false }) {
             Cancel
           </button>
         </div>
-
       </div>
     </div>
   );

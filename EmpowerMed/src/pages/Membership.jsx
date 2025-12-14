@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import CheckoutDrawer from "../components/CheckoutDrawer.jsx";
 import "../styles/Membership.css";
 
@@ -7,6 +9,9 @@ const membershipImg =
   "https://images.unsplash.com/photo-1636240976456-2c91842b79a0?q=80&w=2070&auto=format&fit=crop";
 
 export default function Membership() {
+  const location = useLocation();
+  const { isAuthenticated } = useAuth0();
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
@@ -44,6 +49,22 @@ export default function Membership() {
       transition: { duration: 1, delay: 0.15 },
     },
   };
+
+useEffect(() => {
+  const state = location.state;
+
+  if (
+    isAuthenticated &&
+    state?.resumeCheckout &&
+    state?.planType
+  ) {
+    setSelectedPlan(
+      state.planType === "student" ? studentPlan : generalPlan
+    );
+    setDrawerOpen(true);
+  }
+}, [isAuthenticated, location.state]);
+
 
   return (
     <div className="membership-page">
@@ -162,7 +183,7 @@ export default function Membership() {
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           plan={selectedPlan}
-          hasConsult={false}
+          hasConsult={true}
         />
       )}
     </div>

@@ -47,6 +47,13 @@ async function authedJson(path, { method = "GET", body, headers = {} } = {}, get
 
 export default function AdminUsers() {
   const { getAccessTokenSilently } = useAuth0();
+
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignUser, setAssignUser] = useState(null);
+  const [membershipType, setMembershipType] = useState(null);
+  const [showDowngradeModal, setShowDowngradeModal] = useState(false);
+  const [pendingRoleChange, setPendingRoleChange] = useState(null);
+  const [membershipAssigned, setMembershipAssigned] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -150,31 +157,130 @@ export default function AdminUsers() {
     });
   };
 
-  const updateEditForm = (field, value) => {
-    setEditForm(prev => ({ ...prev, [field]: value }));
-  };
+  // CONFIRM MEMBERSHIP 
+const confirmMembershipOverride = async () => {
+  if (!assignUser || !membershipType) return;
+
+  try {
+    setBusy(true);
+
+    await authedJson(
+      "/memberships/admin/assign",
+      {
+        method: "POST",
+        body: {
+          userId: assignUser.id,
+          membershipType, // "general" | "student"
+        },
+      },
+      tokenGetter
+    );
+
+    // Reflect change locally so UI updates immediately
+    setEditForm(prev => ({
+      ...prev,
+      role: "Member",
+    }));
+
+    setMembershipAssigned(true);
+    setShowAssignModal(false);
+    setAssignUser(null);
+    setMembershipType(null);
+
+    await loadUsers(); // refresh table
+  } catch (err) {
+    alert(err.message || "Failed to assign membership");
+  } finally {
+    setBusy(false);
+  }
+};
+
+const confirmDowngrade = async () => {
+  try {
+    setBusy(true);
+
+    await authedJson(
+      "/memberships/admin/cancel",
+      {
+        method: "POST",
+        body: { userId: editingId },
+      },
+      tokenGetter
+    );
+
+    // reflect change locally
+    setEditForm(prev => ({
+      ...prev,
+      role: "User",
+    }));
+
+    setShowDowngradeModal(false);
+    setPendingRoleChange(null);
+
+    await loadUsers(); // refresh table
+  } catch (err) {
+    alert(err.message || "Failed to cancel membership");
+  } finally {
+    setBusy(false);
+  }
+};
+
+ const updateEditForm = (field, value) => {
+  // Assign Member (FREE admin override)
+  if (field === "role" && value === "Member") {
+    setAssignUser({
+      id: editingId,
+      email: editForm.email,
+    });
+
+    setMembershipType(null);
+    setShowAssignModal(true);
+    return;
+  }
+
+  // Downgrade Member → User (CONFIRM FIRST)
+  if (field === "role" && editForm.role === "Member" && value === "User") {
+    setPendingRoleChange("User");
+    setShowDowngradeModal(true);
+    return;
+  }
+
+  setEditForm(prev => ({ ...prev, [field]: value }));
+};
 
   const saveUser = async (userId) => {
-    try {
-      setBusy(true);
-      
-      const responseData = await authedJson(
-        `/api/admin/users/${userId}`,
-        {
-          method: "PUT",
-          body: editForm
-        },
-        tokenGetter
-      );
-      
-      await loadUsers();
-      setEditingId(null);
-    } catch (err) {
-      alert(err.message || "Failed to update user");
-    } finally {
-      setBusy(false);
-    }
-  };
+  try {
+    setBusy(true);
+
+    const payload = {
+      first_name: editForm.first_name,
+      last_name: editForm.last_name,
+      name: editForm.name,
+      email: editForm.email,
+      is_active: editForm.is_active,
+      is_admin: editForm.is_admin,
+    };
+
+    // ❌ NEVER send role or membership here
+    await authedJson(
+      `/api/admin/users/${userId}`,
+      {
+        method: "PUT",
+        body: payload,
+      },
+      tokenGetter
+    );
+
+    setEditingId(null);
+    await loadUsers(); // refresh UI
+
+  } catch (err) {
+    alert(err.message || "Failed to update user");
+  } finally {
+    setBusy(false);
+  }
+};
+
 
   const toggleUserStatus = async (user) => {
     if (!window.confirm(`Are you sure you want to ${user.is_active ? 'deactivate' : 'activate'} this user?`)) return;
@@ -304,7 +410,10 @@ export default function AdminUsers() {
   }
 
   const status = membership.status;
-  const plan = membership.plan_name; // e.g. "Student Membership", "General Membership"
+  const plan =
+  membership.plan_name
+    ?.replace(" Membership", "")
+    ?.replace(" membership", "");
 
   const colors = {
     active:    { bg: "#00FF00", text: "black" },
@@ -541,7 +650,7 @@ export default function AdminUsers() {
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Email</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Role</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Status</th>
-                    <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Membership</th>
+                    <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Membership Type</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Account Created</th>
                     <th style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Last Updated</th>
                     <th className="text-center" style={{ color: '#3D52A0', borderColor: '#8697C4', fontSize: '0.8rem', padding: '0.5rem' }}>Actions</th>
@@ -789,6 +898,120 @@ export default function AdminUsers() {
           </div>
         </div>
       </div>
+
+      <Modal
+        show={showAssignModal}
+        onHide={() => !busy && setShowAssignModal(false)}
+        centered
+      >
+          <Modal.Header closeButton={!busy}>
+            <Modal.Title>⚠️ Assign Membership</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <p>
+              You are manually assigning <strong>{assignUser?.email}</strong> as a
+              <strong> Member</strong>.
+            </p>
+
+            <p>Please choose the membership type:</p>
+
+            <div className="mt-3 d-flex flex-column gap-2">
+              <label>
+                <input
+                  type="radio"
+                  name="membershipType"
+                  value="general"
+                  checked={membershipType === "general"}
+                  onChange={() => setMembershipType("general")}
+                />{" "}
+                General Membership
+              </label>
+
+              <label>
+                <input
+                  type="radio"
+                  name="membershipType"
+                  value="student"
+                  checked={membershipType === "student"}
+                  onChange={() => setMembershipType("student")}
+                />{" "}
+                Student Membership
+              </label>
+            </div>
+
+            <div className="alert alert-warning mt-3" style={{ fontSize: "0.85rem" }}>
+              This is a manual admin override. No billing or PayPal subscription will occur.
+            </div>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => setShowAssignModal(false)}
+              disabled={busy}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="primary"
+              disabled={!membershipType || busy}
+              onClick={confirmMembershipOverride}
+            >
+              {busy ? "Assigning..." : "Confirm Assignment"}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal
+        show={showDowngradeModal}
+        onHide={() => !busy && setShowDowngradeModal(false)}
+        centered
+      >
+        <Modal.Header closeButton={!busy}>
+          <Modal.Title>⚠️ Cancel Membership</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <p>
+            Downgrading this user to <strong>User</strong> will:
+          </p>
+
+          <ul style={{ fontSize: "0.9rem" }}>
+            <li>Cancel their active membership</li>
+            <li>Revoke member access</li>
+            <li>Stop future billing (if applicable)</li>
+          </ul>
+
+          <div className="alert alert-warning mt-3" style={{ fontSize: "0.85rem" }}>
+            This action cannot be undone.
+          </div>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => {
+              setShowDowngradeModal(false);
+              setPendingRoleChange(null);
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="danger"
+            disabled={busy}
+            onClick={confirmDowngrade}
+          >
+            Confirm Downgrade
+          </Button>
+
+        </Modal.Footer>
+      </Modal>
+
 
       <Modal 
         show={showDeleteModal} 
