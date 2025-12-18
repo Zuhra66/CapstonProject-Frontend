@@ -1,10 +1,18 @@
 // src/pages/AdminAppointments.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Modal, Button, Spinner } from "react-bootstrap";
-import { FiCheckCircle, FiAlertTriangle, FiAlertCircle, FiMessageSquare, FiCalendar, FiSend } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiAlertTriangle,
+  FiAlertCircle,
+  FiSend,
+} from "react-icons/fi";
+
 import "../styles/Appointment.css";
+
+import ConversationPanel from "../components/ConversationPanel";
 
 export default function AdminAppointments() {
   const API_URL = import.meta.env.VITE_API_URL;
@@ -12,20 +20,23 @@ export default function AdminAppointments() {
 
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
+
+  // Raw messages from /messages/admin
   const [messages, setMessages] = useState([]);
-  const [reply, setReply] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
+
+  // ✅ backendUser must be loaded so we know admin user id/email
+  const [backendUser, setBackendUser] = useState(null);
 
   // FILTERS
   const [searchEmail, setSearchEmail] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [searchType, setSearchType] = useState("");
   const [statusFilter, setStatusFilter] = useState("upcoming");
-  const [messageFilter, setMessageFilter] = useState("");
 
-  // MODAL STATES
+  // MODALS
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -33,10 +44,30 @@ export default function AdminAppointments() {
   const [modalMessage, setModalMessage] = useState("");
   const [modalTitle, setModalTitle] = useState("");
 
+  // ---------------------------
+  // Admin messaging UI state
+  // ---------------------------
+  const [activeUserEmail, setActiveUserEmail] = useState(null);
+  const [activeUserId, setActiveUserId] = useState(null);
+
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [userResults, setUserResults] = useState([]);
+  const [sendingMessage, setSendingMessage] = useState(false);
+
+  // ✅ If you already have an admin-search endpoint, set it here.
+  // Example options you might already have:
+  // - `${API_URL}/admin/users/search?email=...`
+  // - `${API_URL}/admin/users?search=...`
+  // - `${API_URL}/users/admin-search?email=...`
+  const USER_SEARCH_ENDPOINT = `${API_URL}/admin/users/search`; // <-- CHANGE THIS IF NEEDED
+
   const GOOGLE_CALENDAR_EMBED =
     "https://calendar.google.com/calendar/embed?src=empowermeddev%40gmail.com&ctz=America%2FLos_Angeles";
 
-  // CSRF Helpers
+  // ---------------------------
+  // CSRF helpers
+  // ---------------------------
   const fetchCsrfToken = async () => {
     try {
       await fetch(`${API_URL}/csrf-token`, {
@@ -53,105 +84,231 @@ export default function AdminAppointments() {
     return m ? decodeURIComponent(m[1]) : null;
   };
 
-  // INITIAL LOAD
-  useEffect(() => {
-    fetchCsrfToken();
-    fetchAppointments();
-    fetchMessages();
-  }, []);
-
-  // FETCH APPOINTMENTS
-  const fetchAppointments = async () => {
+  // ---------------------------
+  // Auth helper: fetch backend user (admin)
+  // ---------------------------
+  const fetchBackendUser = async () => {
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
       });
 
-      const res = await fetch(`${API_URL}/calendar/admin-appointments`, {
+      const res = await fetch(`${API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
         credentials: "include",
       });
 
       const data = await res.json();
-      setAppointments(data.appointments || []);
-      setFilteredAppointments(data.appointments || []);
+      if (res.ok && data?.user) setBackendUser(data.user);
+      else setBackendUser(null);
     } catch (err) {
-      console.error("Error loading appointments:", err);
-      showError("Failed to load appointments. Please try again.");
-    } finally {
-      setLoading(false);
+      console.error("Error fetching backend user:", err);
+      setBackendUser(null);
     }
   };
 
-  // FETCH MESSAGES - UPDATED VERSION (Option 1)
-  const fetchMessages = async () => {
+  // ---------------------------
+  // Initial load
+  // ---------------------------
+  useEffect(() => {
+    (async () => {
+      await fetchCsrfToken();
+      await fetchBackendUser();
+      await fetchAppointments();
+      await fetchMessages();
+    })();
+  }, []);
+
+  // ---------------------------
+  // Fetch appointments
+  // ---------------------------
+  const fetchAppointments = async () => {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+        });
+
+        const res = await fetch(`${API_URL}/calendar/admin-appointments`, {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
+        });
+
+        const data = await res.json();
+        setAppointments(data.appointments || []);
+        setFilteredAppointments(data.appointments || []);
+      } catch (err) {
+        console.error("Error loading appointments:", err);
+        showError("Failed to load appointments. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // ---------------------------
+    // Fetch messages (admin)
+    // ---------------------------
+    const fetchMessages = async () => {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        },
+      });
+
+      const res = await fetch(`${API_URL}/messages/admin`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("📨 Messages loaded:", data.messages);
+
+      setMessages(data.messages || []);
+    } catch (err) {
+      console.error("fetchMessages failed:", err);
+    }
+  };
+
+
+
+  // ---------------------------
+// DERIVED: conversations from messages
+// ---------------------------
+const conversations = useMemo(() => {
+  const map = new Map();
+
+  messages.forEach((msg) => {
+    const otherEmail =
+      msg.sender_role === "admin"
+        ? msg.receiver_email
+        : msg.sender_email;
+
+    if (!otherEmail) return;
+
+    if (!map.has(otherEmail)) {
+      map.set(otherEmail, {
+        email: otherEmail,
+        userId: msg.sender_role === "admin"
+          ? msg.receiver_id
+          : msg.sender_id,
+        messages: [],
+        unreadCount: 0,
+        lastMessage: null,
+      });
+    }
+
+    const conv = map.get(otherEmail);
+    conv.messages.push(msg);
+    conv.lastMessage = msg;
+
+    if (!msg.read_at && msg.receiver_role === "admin") {
+      conv.unreadCount += 1;
+    }
+  });
+
+  return Array.from(map.values());
+}, [messages]);
+
+
+  // -----------------------
+  // DERIVE ACTIVE CONVERSATION
+  // -----------------------
+  const activeConversation = useMemo(() => {
+    if (!activeUserEmail) return null;
+    return conversations.find(c => c.email === activeUserEmail) || null;
+  }, [activeUserEmail, conversations]);
+
+
+  // ---------------------------
+  // Admin user search by email
+  // ---------------------------
+  async function searchUsers(query) {
+  if (!query) return;
+
+  try {
+    const token = await getAccessTokenSilently({
+      authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+      },
+    });
+
+    const res = await fetch(
+      `${API_URL}/messages/admin-users?email=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      }
+    );
+
+    if (!res.ok) throw new Error(res.status);
+
+    const data = await res.json();
+    setUserResults(data.users);
+  } catch (err) {
+    console.error("searchUsers failed:", err);
+  }
+}
+
+  // ---------------------------
+  // Send admin message (with CSRF retry once)
+  // ---------------------------
+  const sendAdminMessage = async (receiverId, message) => {
+    const msg = (message || "").trim();
+    if (!receiverId || !msg) throw new Error("Missing receiverId or message");
+
+    setSendingMessage(true);
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
       });
 
-      // Try different possible endpoints
-      const endpoints = [
-        `${API_URL}/api/messages/admin`,
-        `${API_URL}/api/admin/messages`,
-        `${API_URL}/messages`,
-        `${API_URL}/admin/messages`,
-        `${API_URL}/api/messages`
-      ];
+      const attempt = async () => {
+        const csrfToken = getCsrfFromCookie();
 
-      let data = null;
-      let successfulEndpoint = null;
-      
-      // Try each endpoint until one works
-      for (const endpoint of endpoints) {
-        try {
-          const res = await fetch(endpoint, {
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            credentials: "include",
-          });
+        return fetch(`${API_URL}/messages/admin-send`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": csrfToken || "",
+          },
+          credentials: "include",
+          body: JSON.stringify({ userId: receiverId, message: msg }),
+        });
+      };
 
-          if (res.ok) {
-            const responseData = await res.json();
-            data = responseData;
-            successfulEndpoint = endpoint;
-            console.log(`✓ Messages loaded from: ${endpoint}`);
-            break;
-          } else {
-            console.log(`✗ Endpoint ${endpoint} returned ${res.status}`);
-          }
-        } catch (err) {
-          console.log(`✗ Endpoint ${endpoint} failed:`, err.message);
-          continue;
-        }
+      let res = await attempt();
+
+      // If CSRF invalid, refetch token once and retry
+      if (res.status === 403) {
+        await fetchCsrfToken();
+        res = await attempt();
       }
 
-      if (data) {
-        // Handle different response formats
-        if (Array.isArray(data)) {
-          setMessages(data);
-        } else if (data.messages && Array.isArray(data.messages)) {
-          setMessages(data.messages);
-        } else if (data.data && Array.isArray(data.data)) {
-          setMessages(data.data);
-        } else {
-          console.warn("Unexpected messages response format:", data);
-          setMessages([]);
-        }
-      } else {
-        console.warn("No messages endpoint found, using empty array");
-        setMessages([]);
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error("sendAdminMessage failed:", res.status, body);
+        throw new Error("Failed to send message");
       }
-    } catch (err) {
-      console.error("Error fetching messages:", err);
-      // Don't show error to user for this - just log it
-      setMessages([]);
+
+      await fetchMessages();
+    } finally {
+      setSendingMessage(false);
     }
   };
 
-  // APPLY FILTERS
+
+  // ---------------------------
+  // Appointment filters
+  // ---------------------------
   useEffect(() => {
     const now = new Date();
     const hasDateFilter = !!searchDate;
@@ -163,7 +320,6 @@ export default function AdminAppointments() {
       return new Date(d).toISOString().split("T")[0];
     };
 
-    // STATUS FILTER (only applied when date filter is NOT active)
     if (!hasDateFilter) {
       results = results.filter((appt) => {
         const status = appt.status || "scheduled";
@@ -187,18 +343,15 @@ export default function AdminAppointments() {
       });
     }
 
-    // EMAIL filter
     if (searchEmail.trim() !== "") {
       const needle = searchEmail.toLowerCase();
       results = results.filter((a) =>
         (a.email || "").toLowerCase().includes(needle)
       );
     } else {
-      // Email cleared → reset base results then reapply other filters without email
       results = [...appointments];
     }
 
-    // TYPE filter (membership/general)
     if (searchType) {
       const needle = searchType.toLowerCase();
       results = results.filter((a) =>
@@ -206,7 +359,6 @@ export default function AdminAppointments() {
       );
     }
 
-    // DATE filter overrides status
     if (hasDateFilter) {
       results = results.filter((a) => normalizeDate(a.date) === searchDate);
     }
@@ -214,10 +366,12 @@ export default function AdminAppointments() {
     setFilteredAppointments(results);
   }, [statusFilter, searchEmail, searchType, searchDate, appointments]);
 
-  // CANCEL APPOINTMENT
+  // ---------------------------
+  // Cancel appointment
+  // ---------------------------
   const handleCancel = async () => {
     if (!selectedAppointment) return;
-    
+
     setIsProcessing(true);
     try {
       const token = await getAccessTokenSilently({
@@ -240,7 +394,9 @@ export default function AdminAppointments() {
       const data = await res.json();
 
       if (data.success) {
-        showSuccess(`Appointment for ${selectedAppointment.email} has been successfully canceled.\n\nA cancellation email has been sent to the client.`);
+        showSuccess(
+          `Appointment for ${selectedAppointment.email} has been successfully canceled.\n\nA cancellation email has been sent to the client.`
+        );
         await fetchAppointments();
       } else {
         showError(data.message || "Failed to cancel appointment. Please try again.");
@@ -254,7 +410,6 @@ export default function AdminAppointments() {
     }
   };
 
-  // DATE DISPLAY FORMATTER
   const formatDateTime = (date, time) => {
     const formattedDate = new Date(date).toLocaleDateString("en-US", {
       weekday: "short",
@@ -271,72 +426,9 @@ export default function AdminAppointments() {
     return `${formattedDate} @ ${formattedTime}`;
   };
 
-  // SEND REPLY - WITHOUT MODAL
-  const handleReply = async () => {
-    if (!reply.trim()) {
-      showError("Message cannot be empty.");
-      return;
-    }
-
-    setSendingMessage(true);
-    try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
-
-      const csrfToken = getCsrfFromCookie();
-
-      // Try different possible endpoints for sending
-      const sendEndpoints = [
-        `${API_URL}/api/messages/admin-send`,
-        `${API_URL}/api/admin/messages/send`,
-        `${API_URL}/messages/admin-send`,
-        `${API_URL}/admin/messages/send`
-      ];
-
-      let sendSuccess = false;
-      
-      for (const endpoint of sendEndpoints) {
-        try {
-          const res = await fetch(endpoint, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-              "X-XSRF-TOKEN": csrfToken,
-            },
-            body: JSON.stringify({ message: reply }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success) {
-              sendSuccess = true;
-              showSuccess("Your message has been sent successfully!");
-              setReply("");
-              fetchMessages();
-              break;
-            }
-          }
-        } catch (err) {
-          console.log(`Send endpoint ${endpoint} failed:`, err.message);
-          continue;
-        }
-      }
-
-      if (!sendSuccess) {
-        showError("Unable to send message. The messaging feature may not be fully implemented yet.");
-      }
-    } catch (err) {
-      console.error(err);
-      showError("Network error. Please check your connection and try again.");
-    } finally {
-      setSendingMessage(false);
-    }
-  };
-
-  // MODAL HELPERS
+  // ---------------------------
+  // Modal helpers
+  // ---------------------------
   const showSuccess = (message) => {
     setModalMessage(message);
     setModalTitle("Success");
@@ -354,9 +446,11 @@ export default function AdminAppointments() {
     setShowCancelModal(true);
   };
 
+  // ---------------------------
+  // Render
+  // ---------------------------
   return (
     <div className="admin-dashboard">
-      {/* HERO */}
       <section className="mini-hero">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
@@ -378,7 +472,6 @@ export default function AdminAppointments() {
                 <h2>Filter Appointments</h2>
 
                 <div className="filter-row">
-                  {/* EMAIL */}
                   <input
                     type="text"
                     placeholder="Search email..."
@@ -386,14 +479,12 @@ export default function AdminAppointments() {
                     onChange={(e) => setSearchEmail(e.target.value)}
                   />
 
-                  {/* DATE */}
                   <input
                     type="date"
                     value={searchDate}
                     onChange={(e) => setSearchDate(e.target.value)}
                   />
 
-                  {/* TYPE DROPDOWN */}
                   <div className="dropdown-wrapper">
                     <label className="filter-label">Type:</label>
                     <select
@@ -411,7 +502,6 @@ export default function AdminAppointments() {
                     </select>
                   </div>
 
-                  {/* STATUS DROPDOWN */}
                   <div className="dropdown-wrapper">
                     <label className="filter-label">Status:</label>
                     <select
@@ -439,20 +529,19 @@ export default function AdminAppointments() {
                       <p className="mt-2">Loading appointments...</p>
                     </div>
                   ) : filteredAppointments.length === 0 ? (
-                    <p className="text-muted text-center">No appointments match filters.</p>
+                    <p className="text-muted text-center">
+                      No appointments match filters.
+                    </p>
                   ) : (
                     filteredAppointments.map((appt) => {
                       const statusLabel = appt.status || "scheduled";
 
-                      // determine cancelability
                       let canCancel = false;
                       let end;
 
                       if (appt.end_time) end = new Date(appt.end_time);
-                      else if (appt.start_time)
-                        end = new Date(appt.start_time);
-                      else if (appt.date)
-                        end = new Date(`${appt.date}T23:59:59`);
+                      else if (appt.start_time) end = new Date(appt.start_time);
+                      else if (appt.date) end = new Date(`${appt.date}T23:59:59`);
 
                       if (end && end > new Date() && appt.status !== "canceled") {
                         canCancel = true;
@@ -460,10 +549,14 @@ export default function AdminAppointments() {
 
                       return (
                         <div key={appt.id} className="appointment-item-card">
-                          <p><strong>{appt.email}</strong></p>
+                          <p>
+                            <strong>{appt.email}</strong>
+                          </p>
                           <p>{appt.appointment_type}</p>
                           <p>{formatDateTime(appt.date, appt.start_time)}</p>
-                          <p><strong>Status:</strong> {statusLabel}</p>
+                          <p>
+                            <strong>Status:</strong> {statusLabel}
+                          </p>
 
                           {canCancel && (
                             <button
@@ -483,72 +576,118 @@ export default function AdminAppointments() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: MESSAGES */}
-          <div className="col">
-            <div className="gradient-card">
-              <div className="inner-card">
-                <h2>Messages Received</h2>
+          {/* RIGHT COLUMN: ADMIN MESSAGING */}
+            <div className="col">
+              <div className="gradient-card" style={{ height: "100%" }}>
+                <div
+                  className="inner-card admin-messages-layout"
+                  style={{ height: "100%" }}
+                >
 
-                <input
-                  type="text"
-                  placeholder="Search messages..."
-                  value={messageFilter}
-                  onChange={(e) => setMessageFilter(e.target.value)}
-                />
+                  {/* LEFT: INBOX + SEARCH */}
+                  <div className="messages-sidebar">
 
-                <div className="scroll-box">
-                  {messages.length === 0 ? (
-                    <p className="text-muted text-center">No messages available.</p>
-                  ) : (
-                    messages
-                      .filter((m) =>
-                        (m.text || "")
-                          .toLowerCase()
-                          .includes(messageFilter.toLowerCase())
-                      )
-                      .map((msg) => (
-                        <div key={msg.id} className="message-card">
-                          <p><strong>{msg.from_email || msg.email || 'Unknown'}</strong></p>
-                          <p>{msg.text || msg.message || 'No message content'}</p>
-                          <small>{msg.sent_at ? new Date(msg.sent_at).toLocaleString() : 'Unknown date'}</small>
-                        </div>
-                      ))
-                  )}
+                    {/* HEADER */}
+                    <div className="messages-header d-flex justify-content-between align-items-center mb-2">
+                      <h2 className="mb-0">Messages</h2>
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => {
+                          setShowUserSearch(true);
+                          setUserSearch("");
+                          setUserResults([]);
+                        }}
+                      >
+                        + New Message
+                      </button>
+                    </div>
+
+                    {/* USER SEARCH */}
+                    {showUserSearch && (
+                      <div className="user-search-box mb-3">
+                        <input
+                          type="text"
+                          className="form-control mb-2"
+                          placeholder="Search user by email..."
+                          value={userSearch}
+                          onChange={(e) => {
+                            setUserSearch(e.target.value);
+                            searchUsers(e.target.value);
+                          }}
+                        />
+
+                        {userResults.map((u) => (
+                          <div
+                            key={u.id}
+                            className="user-result"
+                            onClick={() => {
+                              setActiveUserEmail(u.email);
+                              setActiveUserId(u.id);
+                              setShowUserSearch(false);
+                            }}
+                          >
+                            <strong>{u.email}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* INBOX LIST */}
+                    <div className="admin-inbox">
+                      {conversations.length === 0 ? (
+                        <p className="text-muted text-center">No conversations yet</p>
+                      ) : (
+                        conversations.map((conv) => (
+                          <div
+                            key={`conv-${conv.email}`}
+                            className={`inbox-item ${
+                              activeUserEmail === conv.email ? "active" : ""
+                            }`}
+                            onClick={() => {
+                              setActiveUserEmail(conv.email);
+                              setActiveUserId(conv.userId || null);
+                              setShowUserSearch(false);
+                            }}
+                          >
+                            <strong>{conv.email}</strong>
+                            <div className="text-muted">
+                              {conv.lastMessage?.text?.slice(0, 40) || "No messages yet"}
+                            </div>
+
+                            {conv.unreadCount > 0 && (
+                              <span className="badge bg-primary ms-2">
+                                {conv.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* RIGHT: CONVERSATION THREAD */}
+                  <div className="messages-thread">
+                    {activeUserEmail ? (
+                      <ConversationPanel
+                        title={`Conversation with ${activeUserEmail}`}
+                        currentUserEmail={backendUser?.email}
+                        messages={activeConversation?.messages || []}
+                        onSend={({ message }) => {
+                          if (!activeUserId) return;
+                          sendAdminMessage(activeUserId, message);
+                        }}
+                      />
+                    ) : (
+                      <div className="conversation-placeholder text-muted text-center">
+                        Select a conversation or start a new message.
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
-
-              <div className="inner-card">
-                <h2>Send Reply</h2>
-                <textarea
-                  className="admin-textarea"
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  placeholder="Type your reply..."
-                  rows="4"
-                ></textarea>
-
-                <button 
-                  className="book-button-wrapper" 
-                  onClick={handleReply}
-                  disabled={sendingMessage || !reply.trim()}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                >
-                  {sendingMessage ? (
-                    <>
-                      <Spinner animation="border" size="sm" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <FiSend size={16} />
-                      Send Message
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
+            </div>
 
         {/* CALENDAR SECTION */}
         <div className="row-2">
@@ -566,9 +705,9 @@ export default function AdminAppointments() {
       </div>
 
       {/* CANCEL APPOINTMENT MODAL */}
-      <Modal 
-        show={showCancelModal} 
-        onHide={() => !isProcessing && setShowCancelModal(false)} 
+      <Modal
+        show={showCancelModal}
+        onHide={() => !isProcessing && setShowCancelModal(false)}
         centered
         backdrop={isProcessing ? "static" : true}
         size="sm"
@@ -579,7 +718,7 @@ export default function AdminAppointments() {
             Confirm Cancellation
           </Modal.Title>
         </Modal.Header>
-        
+
         <Modal.Body className="modal-body-custom text-center" style={{ padding: "1rem" }}>
           {selectedAppointment && (
             <>
@@ -590,9 +729,16 @@ export default function AdminAppointments() {
                 Are you sure you want to cancel this appointment?
               </p>
               <div className="appointment-details p-2 mb-3 rounded" style={{ fontSize: "0.85rem" }}>
-                <p className="mb-1"><strong>Client:</strong> {selectedAppointment.email}</p>
-                <p className="mb-1"><strong>Type:</strong> {selectedAppointment.appointment_type}</p>
-                <p className="mb-0"><strong>Date:</strong> {formatDateTime(selectedAppointment.date, selectedAppointment.start_time)}</p>
+                <p className="mb-1">
+                  <strong>Client:</strong> {selectedAppointment.email}
+                </p>
+                <p className="mb-1">
+                  <strong>Type:</strong> {selectedAppointment.appointment_type}
+                </p>
+                <p className="mb-0">
+                  <strong>Date:</strong>{" "}
+                  {formatDateTime(selectedAppointment.date, selectedAppointment.start_time)}
+                </p>
               </div>
               <p className="text-muted" style={{ fontSize: "0.8rem" }}>
                 A cancellation email will be sent to the client.
@@ -600,18 +746,18 @@ export default function AdminAppointments() {
             </>
           )}
         </Modal.Body>
-        
+
         <Modal.Footer className="modal-footer-custom" style={{ padding: "0.75rem" }}>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => setShowCancelModal(false)}
             disabled={isProcessing}
             style={{ padding: "0.25rem 0.75rem", fontSize: "0.9rem" }}
           >
             No, Keep
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleCancel}
             disabled={isProcessing}
             style={{ padding: "0.25rem 0.75rem", fontSize: "0.9rem" }}
@@ -628,10 +774,10 @@ export default function AdminAppointments() {
         </Modal.Footer>
       </Modal>
 
-      {/* SUCCESS CONFIRMATION MODAL */}
-      <Modal 
-        show={showConfirmModal} 
-        onHide={() => setShowConfirmModal(false)} 
+      {/* SUCCESS MODAL */}
+      <Modal
+        show={showConfirmModal}
+        onHide={() => setShowConfirmModal(false)}
         centered
         backdrop="static"
         size="sm"
@@ -642,7 +788,7 @@ export default function AdminAppointments() {
             {modalTitle}
           </Modal.Title>
         </Modal.Header>
-        
+
         <Modal.Body className="modal-body-success text-center" style={{ padding: "1rem" }}>
           <div className="success-icon mb-2">
             <FiCheckCircle size={36} />
@@ -651,10 +797,10 @@ export default function AdminAppointments() {
             {modalMessage}
           </p>
         </Modal.Body>
-        
+
         <Modal.Footer className="modal-footer-success justify-content-center" style={{ padding: "0.75rem" }}>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={() => setShowConfirmModal(false)}
             style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
           >
@@ -664,9 +810,9 @@ export default function AdminAppointments() {
       </Modal>
 
       {/* ERROR MODAL */}
-      <Modal 
-        show={showErrorModal} 
-        onHide={() => setShowErrorModal(false)} 
+      <Modal
+        show={showErrorModal}
+        onHide={() => setShowErrorModal(false)}
         centered
         backdrop="static"
         size="sm"
@@ -677,7 +823,7 @@ export default function AdminAppointments() {
             {modalTitle}
           </Modal.Title>
         </Modal.Header>
-        
+
         <Modal.Body className="modal-body-error text-center" style={{ padding: "1rem" }}>
           <div className="error-icon mb-2">
             <FiAlertCircle size={36} />
@@ -686,10 +832,10 @@ export default function AdminAppointments() {
             {modalMessage}
           </p>
         </Modal.Body>
-        
+
         <Modal.Footer className="modal-footer-error justify-content-center" style={{ padding: "0.75rem" }}>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={() => setShowErrorModal(false)}
             style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
           >
