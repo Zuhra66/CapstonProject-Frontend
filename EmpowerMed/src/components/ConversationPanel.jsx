@@ -2,18 +2,14 @@ import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import "../styles/ConversationPanel.css";
 
-/**
- * mode:
- *  - "admin" → admin messages go right
- *  - "user"  → user messages go right
- */
 export default function ConversationPanel({
   title = "Conversation",
   messages = [],
-  mode = "user",             
+  mode = "user",     
   onSend,
   disabled = false,
 }) {
+
   const [draft, setDraft] = useState("");
 
   const handleSend = () => {
@@ -39,26 +35,26 @@ export default function ConversationPanel({
               : "No messages yet. Start the conversation below."}
           </p>
         ) : (
-          messages.map((msg) => {
-            const isOutgoing =
-              mode === "admin"
-                ? msg.sender_role === "admin"
-                : msg.sender_role === "user";
+            messages.map((msg) => {
+                const isOutgoing =
+                mode === "admin"
+                    ? msg.sender_role === "admin"
+                    : msg.sender_role === "user";
 
-            return (
-              <div
-                key={`msg-${msg.id}`}
-                className={`bubble ${isOutgoing ? "outgoing" : "incoming"}`}
-              >
-                <div className="bubble-text">{msg.text}</div>
-                <div className="bubble-time">
-                  {new Date(msg.created_at).toLocaleString()}
+                return (
+                <div
+                    key={`msg-${msg.id}`}
+                    className={`bubble ${isOutgoing ? "outgoing" : "incoming"}`}
+                >
+                    <div className="bubble-text">{msg.text}</div>
+                    <div className="bubble-time">
+                    {new Date(msg.created_at).toLocaleString()}
+                    </div>
                 </div>
-              </div>
-            );
-          })
+                );
+            })
         )}
-      </div>
+    </div>
 
       {/* COMPOSER */}
       <div className="conversation-reply">
@@ -87,3 +83,4 @@ export default function ConversationPanel({
     </div>
   );
 }
+

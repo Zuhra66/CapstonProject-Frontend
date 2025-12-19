@@ -16,6 +16,8 @@ export default function Appointment() {
 
   const [filterDate, setFilterDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("upcoming");
+  const [backendUser, setBackendUser] = useState(null);
+
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -71,6 +73,27 @@ export default function Appointment() {
 
     loadMessages();
   }, [isAuthenticated, getAccessTokenSilently]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchMe = async () => {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      });
+
+      const res = await fetch(`${API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      setBackendUser(data);
+    };
+
+  fetchMe();
+}, [isAuthenticated, getAccessTokenSilently]);
+
+
 
   /* -----------------------------------------------------
      FILTERING LOGIC — MATCHES ADMIN LOGIC
@@ -276,14 +299,16 @@ export default function Appointment() {
             <div className="gradient-card messages-card">
               <div className="inner-card admin-messages-layout">
 
-                <ConversationPanel
-                  title="Conversation with Support"
-                  messages={receivedMessages}
-                  currentUserId={user?.sub || user?.id}
-                  disabled={!isAuthenticated}
-                  onSend={({ message }) => handleSendMessage(message)}
-                />
-
+                {backendUser && (
+                  <ConversationPanel
+                  key={backendUser.id}
+                    title="Conversation with Support"
+                    messages={receivedMessages}
+                    currentUserId={backendUser.id}   
+                    disabled={!isAuthenticated}
+                    onSend={({ message }) => handleSendMessage(message)}
+                  />
+                )}
               </div>
             </div>
           </div>

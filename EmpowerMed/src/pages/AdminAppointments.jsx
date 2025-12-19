@@ -664,6 +664,7 @@ const conversations = useMemo(() => {
               : "Select or search for a user"
           }
           messages={activeConversation?.messages || []}
+          mode="admin"    
           currentUserId={backendUser?.id}
           disabled={!activeUserId}
           onSend={({ message }) => {
