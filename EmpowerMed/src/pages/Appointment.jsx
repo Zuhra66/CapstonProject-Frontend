@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import "../styles/Appointment.css";
+import ConversationPanel from "../components/ConversationPanel";
 
 export default function Appointment() {
   const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
@@ -152,32 +153,41 @@ export default function Appointment() {
   /* -----------------------------------------------------
      SEND MESSAGE TO ADMIN
   ----------------------------------------------------- */
-  const handleSendMessage = async () => {
-    if (!message.trim()) return alert("Message cannot be empty.");
+ const handleSendMessage = async (message) => {
+  try {
+    const token = await getAccessTokenSilently({
+      authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+    });
 
-    try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-      });
+    const res = await fetch(`${API_URL}/messages/user-send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ message }),
+    });
 
-      const res = await fetch(`${API_URL}/messages/user-send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+    const data = await res.json();
+
+    if (data.success) {
+      // Optimistic update (optional but recommended)
+      setReceivedMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender_id: user.id,
+          sender_role: "user",
+          text: message,
+          created_at: new Date().toISOString(),
         },
-        body: JSON.stringify({ message }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("Message sent!");
-        setMessage("");
-      }
-    } catch (err) {
-      console.error("Send message error:", err);
+      ]);
     }
-  };
+  } catch (err) {
+    console.error("Send message error:", err);
+  }
+};
+
 
   /* -----------------------------------------------------
      FORMAT DATE/TIME
@@ -261,49 +271,25 @@ export default function Appointment() {
           </div>
 
           {/* RIGHT COLUMN — MESSAGES */}
-          <div className="col">
-            <div className="gradient-card">
-              <div className="inner-card">
-                <h2>Messages From Admin</h2>
+          <div className="user-messages-page">
+          <div className="col messages-col">
+            <div className="gradient-card messages-card">
+              <div className="inner-card admin-messages-layout">
 
-                <input
-                  type="text"
-                  placeholder="Search messages..."
-                  value={messageFilter}
-                  onChange={(e) => setMessageFilter(e.target.value)}
+                <ConversationPanel
+                  title="Conversation with Support"
+                  messages={receivedMessages}
+                  currentUserId={user?.sub || user?.id}
+                  disabled={!isAuthenticated}
+                  onSend={({ message }) => handleSendMessage(message)}
                 />
 
-                <div className="scroll-box">
-                  {receivedMessages
-                    .filter((m) =>
-                      m.text.toLowerCase().includes(messageFilter.toLowerCase())
-                    )
-                    .map((msg) => (
-                      <div key={msg.id} className="message-card">
-                        <p>{msg.text}</p>
-                        <small>{new Date(msg.sent_at).toLocaleString()}</small>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              <div className="inner-card">
-                <h2>Send a Message</h2>
-                <textarea
-                  className="admin-textarea"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type your message..."
-                ></textarea>
-
-                <button className="book-button-wrapper" onClick={handleSendMessage}>
-                  Send Message
-                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

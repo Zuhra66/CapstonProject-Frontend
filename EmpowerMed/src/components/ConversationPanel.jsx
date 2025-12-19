@@ -1,28 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import "../styles/ConversationPanel.css";
 
+/**
+ * mode:
+ *  - "admin" → admin messages go right
+ *  - "user"  → user messages go right
+ */
 export default function ConversationPanel({
   title = "Conversation",
   messages = [],
-  currentUserId,
+  mode = "user",             
   onSend,
-  disabled = false, // 🔥 NEW
+  disabled = false,
 }) {
   const [draft, setDraft] = useState("");
 
   const handleSend = () => {
-    console.log("SENDING MESSAGE:", draft);
-
     if (!draft.trim() || disabled) return;
-
     onSend({ message: draft.trim() });
     setDraft("");
   };
 
   return (
-    <div className="conversation-panel single-thread">
-      
+    <div className="conversation-panel">
+
       {/* HEADER */}
       <div className="conversation-header">
         <h5 className="conversation-title">{title}</h5>
@@ -38,7 +40,10 @@ export default function ConversationPanel({
           </p>
         ) : (
           messages.map((msg) => {
-            const isOutgoing = msg.sender_id === currentUserId;
+            const isOutgoing =
+              mode === "admin"
+                ? msg.sender_role === "admin"
+                : msg.sender_role === "user";
 
             return (
               <div
@@ -55,7 +60,7 @@ export default function ConversationPanel({
         )}
       </div>
 
-      {/* COMPOSER — ALWAYS VISIBLE */}
+      {/* COMPOSER */}
       <div className="conversation-reply">
         <Form.Control
           as="textarea"
@@ -71,13 +76,13 @@ export default function ConversationPanel({
         />
 
         <Button
-            type="button"
-            className="mt-2 send-button"
-            onClick={handleSend}
-            disabled={!draft.trim()}
-            >
-            Send
-            </Button>
+          type="button"
+          className="mt-2 send-button"
+          onClick={handleSend}
+          disabled={!draft.trim() || disabled}
+        >
+          Send
+        </Button>
       </div>
     </div>
   );

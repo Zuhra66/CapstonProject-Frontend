@@ -464,3 +464,14 @@ textarea.admin-textarea {
 .messages-col .gradient-card {
   overflow: hidden;
 }
+
+.user-messages-page {
+  width: 50%;
+  max-width: 50%;
+}
+
+
+/* USER ONLY */
+.user-messages-page .messages-col .gradient-card {
+  max-height: 90vh;
+}
