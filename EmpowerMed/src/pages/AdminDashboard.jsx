@@ -8,7 +8,7 @@ import {
   FiMail, FiShield, FiDatabase, FiActivity 
 } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
   const { isAuthenticated, isLoading, getAccessTokenSilently, logout } = useAuth0();
@@ -18,6 +18,27 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let alive = true;
+
+    const getFallbackStats = () => ({
+      users: { total: 1, active: 1, newThisMonth: 0 },
+      appointments: { total: 0, pending: 0, today: 0 },
+      products: { total: 0 },
+      categories: { total: 0 },
+      blog: { total: 0 },
+      education: { videos: 0, articles: 0 },
+      events: { upcoming: 0 },
+      memberships: { plans: 0, active: 0 },
+      messages: { total: 0 },
+      audit: { 
+        total: 0, 
+        today: 0,
+        security: 0,
+        authentication: 0,
+        access: 0,
+        modification: 0 
+      },
+      newsletter: { total: 0, active: 0 }
+    });
 
     const fetchDashboardData = async () => {
       try {
@@ -50,27 +71,6 @@ export default function AdminDashboard() {
       }
     };
 
-    const getFallbackStats = () => ({
-      users: { total: 1, active: 1, newThisMonth: 0 },
-      appointments: { total: 0, pending: 0, today: 0 },
-      products: { total: 0 },
-      categories: { total: 0 },
-      blog: { total: 0 },
-      education: { videos: 0, articles: 0 },
-      events: { upcoming: 0 },
-      memberships: { plans: 0, active: 0 },
-      messages: { total: 0 },
-      audit: { 
-        total: 0, 
-        today: 0,
-        security: 0,
-        authentication: 0,
-        access: 0,
-        modification: 0 
-      },
-      newsletter: { total: 0, active: 0 }
-    });
-
     if (isAuthenticated && !isLoading) {
       fetchDashboardData();
     }
@@ -94,11 +94,18 @@ export default function AdminDashboard() {
       link: "/admin/newsletter"
     },
     { 
-      icon: FiCalendar, 
+      icon: FiClipboard,            
       title: "Appointments", 
       value: stats?.appointments?.total,
       gradient: "card-orange",
       link: "/admin/appointments"
+    },
+    { 
+      icon: FiCalendar,           
+      title: "Upcoming Events", 
+      value: stats?.events?.upcoming || 0,
+      gradient: "card-blue",
+      link: "/admin/events"
     },
     { 
       icon: FiShoppingBag, 
@@ -121,6 +128,14 @@ export default function AdminDashboard() {
       gradient: "card-blue",
       link: "/admin/blog"
     },
+    // 🔹 NEW: Education Hub card (uses education stats, links to AdminEducation)
+    { 
+      icon: FiMessageCircle,
+      title: "Education Hub", 
+      value: (stats?.education?.articles ?? 0) + (stats?.education?.videos ?? 0),
+      gradient: "card-green",
+      link: "/admin/education"
+    },
   ];
 
   const detailStats = [
@@ -135,7 +150,6 @@ export default function AdminDashboard() {
     { label: "Membership Plans", value: stats?.memberships?.plans },
     { label: "Upcoming Events", value: stats?.events?.upcoming },
     { label: "Contact Messages", value: stats?.messages?.total },
-    // Add audit-specific stats
     { label: "Today's Audit Logs", value: stats?.audit?.today },
     { label: "Security Events", value: stats?.audit?.security },
     { label: "Login Events", value: stats?.audit?.authentication },
@@ -200,6 +214,7 @@ export default function AdminDashboard() {
             <FiBarChart className="dashboard-icon" />
             Dashboard
           </NavLink>
+
           <NavLink 
             to="/admin/users" 
             className={({ isActive }) => 
@@ -209,6 +224,7 @@ export default function AdminDashboard() {
             <FiUsers className="dashboard-icon" />
             Users
           </NavLink>
+
           <NavLink 
             to="/admin/newsletter" 
             className={({ isActive }) => 
@@ -218,15 +234,27 @@ export default function AdminDashboard() {
             <FiMail className="dashboard-icon" />
             Newsletter
           </NavLink>
+
           <NavLink 
             to="/admin/appointments" 
             className={({ isActive }) => 
               `sidebar-link ${isActive ? 'active' : ''}`
             }
           >
-            <FiCalendar className="dashboard-icon" />
+            <FiClipboard className="dashboard-icon" />
             Appointments
           </NavLink>
+
+          <NavLink 
+            to="/admin/events" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiCalendar className="dashboard-icon" />
+            Events
+          </NavLink>
+
           <NavLink 
             to="/admin/products" 
             className={({ isActive }) => 
@@ -236,6 +264,7 @@ export default function AdminDashboard() {
             <FiShoppingBag className="dashboard-icon" />
             Products
           </NavLink>
+
           <NavLink 
             to="/admin/audit" 
             className={({ isActive }) => 
@@ -245,6 +274,7 @@ export default function AdminDashboard() {
             <FiShield className="dashboard-icon" />
             Audit Logs
           </NavLink>
+
           <NavLink 
             to="/admin/blog" 
             className={({ isActive }) => 
@@ -254,10 +284,25 @@ export default function AdminDashboard() {
             <FiBookOpen className="dashboard-icon" />
             Blog
           </NavLink>
+
+          {/* 🔹 NEW: link to AdminEducation page */}
+          <NavLink 
+            to="/admin/education" 
+            className={({ isActive }) => 
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <FiMessageCircle className="dashboard-icon" />
+            Education Hub
+          </NavLink>
         </nav>
 
         <button 
-          onClick={() => logout({ returnTo: window.location.origin })} 
+          onClick={() => logout({ 
+            logoutParams: { 
+              returnTo: window.location.origin 
+            } 
+          })} 
           className="btn btn-secondary logout-btn btn-sm"
           style={{padding: '0.375rem 0.75rem', fontSize: '0.875rem'}}
         >
@@ -303,7 +348,7 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Quick Stats Section */}
+          {/* Activity Overview & System Status (unchanged) */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="about-section">

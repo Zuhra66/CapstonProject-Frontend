@@ -11,6 +11,49 @@ export default function Account() {
 
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  const handleCancelMembership = async () => {
+  const confirmed = window.confirm("Are you sure you want to cancel your membership?");
+  if (!confirmed) return;
+
+  try {
+    // Get Auth0 token
+    const token = await getAccessTokenSilently({
+      authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+      }
+    });
+
+    // Extract CSRF token from cookies
+    let csrfToken = null;
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    if (match) csrfToken = decodeURIComponent(match[1]);
+
+    // Make the request with CSRF + Auth headers
+    const res = await fetch(`${API}/memberships/cancel`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      credentials: "include"
+    });
+
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Your membership has been cancelled.");
+      window.location.reload();
+    } else {
+      alert(data.error || "Failed to cancel membership.");
+    }
+
+  } catch (err) {
+    console.error("Cancel membership error:", err);
+    alert("Something went wrong. Please try again.");
+  }
+};
+
   useEffect(() => {
     const fetchBackendUser = async () => {
       if (!isAuthenticated) {
@@ -164,13 +207,19 @@ export default function Account() {
                   {backendUser?.is_active ? 'Active' : 'Inactive'}
                 </span>
 
-                {!backendUser?.membership ? (
-                  <span className="badge badge-status inactive" style={{ background: '#b6b6b6', color: '#333' }}>
-                    No Active Membership
+                {backendUser?.membership?.status === "active" ? (
+                  <span
+                    className="badge badge-status active"
+                    style={{ background: '#6f79ff', color: 'white' }}
+                  >
+                    Membership
                   </span>
                 ) : (
-                  <span className="badge badge-status active" style={{ background: '#6f79ff', color: 'white' }}>
-                    Membership
+                  <span
+                    className="badge badge-status inactive"
+                    style={{ background: '#b6b6b6', color: '#333' }}
+                  >
+                    No Active Membership
                   </span>
                 )}
               </div>
@@ -262,69 +311,96 @@ export default function Account() {
             <div className="detail-group">
               <h3 className="detail-group-title display-font">Membership</h3>
 
-              {!backendUser?.membership ? (
+              {/* No Membership */}
+              {!backendUser?.membership && (
                 <div className="detail-grid">
                   <div className="account-detail">
                     <span className="detail-label display-font">Membership Status</span>
                     <span className="detail-value">No Active Membership</span>
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {/* Has Membership */}
+              {backendUser?.membership && (
                 <div className="detail-grid">
 
                   <div className="account-detail">
-                    <span className="detail-label display-font">Member Since</span>
+                    <span className="detail-label display-font">Plan</span>
                     <span className="detail-value">
-                      {formatDate(backendUser.membership.start_date)}
+                      {backendUser.membership.plan_name}
                     </span>
                   </div>
 
-                  <div className="account-detail">
-                    <span className="detail-label display-font">Membership Renews</span>
-                    <span className="detail-value">
-                      {formatDate(backendUser.membership.end_date)}
-                    </span>
-                  </div>
 
+                  {/* STATUS ALWAYS SHOWN */}
                   <div className="account-detail">
                     <span className="detail-label display-font">Status</span>
                     <span className="detail-value">
-                      <span className={`status-indicator ${
-                        backendUser.membership.status === "active"
-                          ? "active"
-                          : backendUser.membership.status === "past_due"
-                          ? "past_due"
-                          : backendUser.membership.status === "cancelled"
-                          ? "cancelled"
-                          : "inactive"
-                      }`}>
+                      <span className={`status-indicator ${backendUser.membership.status}`}>
                         {backendUser.membership.status.replace("_", " ").toUpperCase()}
                       </span>
                     </span>
                   </div>
+
+                  {/* ONLY SHOW DATES + CANCEL WHEN ACTIVE */}
+                  {backendUser.membership.status === "active" && (
+                    <>
+                      <div className="account-detail">
+                        <span className="detail-label display-font">Member Since</span>
+                        <span className="detail-value">
+                          {backendUser.membership.start_date
+                            ? formatDate(backendUser.membership.start_date)
+                            : "—"}
+                        </span>
+                      </div>
+
+
+                      <div className="account-detail">
+                        <span className="detail-label display-font">Membership Renews</span>
+                        <span className="detail-value">
+                          {backendUser.membership.provider === "paypal"
+                            ? "Auto-renews monthly"
+                            : formatDate(backendUser.membership.end_date)}
+                        </span>
+                      </div>
+
+
+                      <div className="account-detail">
+                        <button
+                          className="cancel-membership-btn"
+                          onClick={handleCancelMembership}
+                        >
+                          Cancel Membership
+                        </button>
+                      </div>
+                    </>
+                  )}
+
                 </div>
               )}
+            </div>  
+            </div> 
+            </div> 
+
+            <div className="account-footer">
+              <p>
+                Need help managing your account?{" "}
+                <button 
+                  onClick={() => setIsContactModalOpen(true)}
+                  className="contact-button"
+                >
+                  Contact Us
+                </button>
+              </p>
             </div>
-          </div>
-        </div>
 
-        <div className="account-footer">
-          <p>
-            Need help managing your account?{" "}
-            <button 
-              onClick={() => setIsContactModalOpen(true)}
-              className="contact-button"
-            >
-              Contact Us
-            </button>
-          </p>
-        </div>
-      </div>
+            </div> 
 
-      <ContactModal 
-        isOpen={isContactModalOpen} 
-        onClose={() => setIsContactModalOpen(false)} 
-      />
-    </>
-  );
-}
+              <ContactModal 
+              isOpen={isContactModalOpen} 
+              onClose={() => setIsContactModalOpen(false)} 
+              />
+              </>
+            );
+          }

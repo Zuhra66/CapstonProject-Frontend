@@ -1,0 +1,52 @@
+.admin-inbox-list {
+  border-right: 1px solid #e0e0e0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+}
+
+.new-message-btn {
+  background: none;
+  border: none;
+  color: #3d52a0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.inbox-item {
+  padding: 0.6rem;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.inbox-item:hover {
+  background-color: rgba(61, 82, 160, 0.08);
+}
+
+.inbox-item.active {
+  background-color: rgba(61, 82, 160, 0.18);
+}
+
+.inbox-email {
+  font-weight: 600;
+}
+
+.inbox-preview {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.inbox-badge {
+  background: #3d52a0;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+}

@@ -165,9 +165,8 @@ export default function Home() {
           </motion.h1>
           <div className="hero-buttons">
             <motion.a
-              href="/services"
+              href="/membership"
               className="btn btn-primary"
-              initial={{ opacity: 0, y: -40 }}
               animate={{ opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut', delay: 0.2 } }}
               whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
               whileTap={{ scale: 0.95, transition: { duration: 0.1 } }}
@@ -177,7 +176,6 @@ export default function Home() {
             <motion.a
               href="/booking"
               className="btn btn-secondary"
-              initial={{ opacity: 0, y: -40 }}
               animate={{ opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut', delay: 0.3 } }}
               whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
               whileTap={{ scale: 0.95, transition: { duration: 0.1 } }}

@@ -423,3 +423,50 @@ main,
   color: var(--dark-text);
 }
 
+/* ----------------------------------------------------
+   Memerbership Success 
+---------------------------------------------------- */
+
+.membership-success-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.membership-success-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.success-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.success-message {
+  font-size: 1.1rem;
+  margin-top: 12px;
+}
+
+.success-subtext {
+  color: #666;
+  margin-top: 6px;
+}
+
+.success-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.redirect-note {
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: #999;
+}

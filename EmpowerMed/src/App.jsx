@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -29,10 +28,14 @@ import AdminAppointments from "./pages/AdminAppointments.jsx";
 import NotFound from './pages/NotFound.jsx';
 import { useAuth } from "./lib/useAuth"; 
 import AdminAuditLogs from './components/AdminAuditLogs.jsx';
+import AdminEvents from "./pages/AdminEvents.jsx";
+import AdminBlog from './pages/AdminBlog.jsx';
+import AdminComments from './components/AdminComments.jsx';
+import MembershipSuccess from "./pages/MembershipSuccess";
+
 
 function App() {
-  const { user, ready } = useAuth();   
-  if (!ready) return <div>Loading...</div>; 
+  const { user } = useAuth();   
 
   return (
     <>
@@ -52,10 +55,12 @@ function App() {
             <Route path="/appointment" element={<Appointment />} />
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/events/:slug" element={<EventDetail />} />
+            <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/booking" element={<Booking userId={user?.id} />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/education/admin" element={<EducationAdmin />} />
+            <Route path="/membership/success" element={<MembershipSuccess />} />
+
 
             {/* Admin Routes */}
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
@@ -84,6 +89,23 @@ function App() {
               }
             />
             <Route
+              path="/admin/events"
+              element={
+                <AdminRoute>
+                  <AdminEvents />
+                </AdminRoute>
+              }
+            />
+            {/* ✅ NEW: admin-protected EducationAdmin route */}
+            <Route
+              path="/admin/education"
+              element={
+                <AdminRoute>
+                  <EducationAdmin />
+                </AdminRoute>
+              }
+            />
+            <Route
               path="/admin/audit"
               element={
                 <AdminRoute>
@@ -104,6 +126,22 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminNewsletter />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/blog"
+              element={
+                <AdminRoute>
+                  <AdminBlog />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/comments"
+              element={
+                <AdminRoute>
+                  <AdminComments />
                 </AdminRoute>
               }
             />

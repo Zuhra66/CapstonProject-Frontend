@@ -116,7 +116,9 @@ export default function Navbar() {
 
   const handleSignup = () => {
     loginWithRedirect({
-      screen_hint: "signup",
+      authorizationParams: {
+        screen_hint: "signup"
+      },
       appState: { returnTo: window.location.pathname }
     });
   };
@@ -134,11 +136,16 @@ export default function Navbar() {
     const links = [
       { to: "/blog", label: "Blog" },
       { to: "/education", label: "Education" },
-      { to: "/appointment", label: "Appointments" }, // ALWAYS VISIBLE
+      { to: "/booking", label: "Book An Appointment" },
+      //{ to: "/appointment", label: "Appointments" }, // The appointment page is intended for users only, the page will be blank for anyone that doesnt have an account and may confuse admin. 
     ];
+
+    if (isAuthenticated && !isAdmin) {
+    links.push({ to: "/appointment", label: "My Appointments" });
+  }
     
     return links;
-  }, []); // Removed isAuthenticated dependency
+  }, [isAuthenticated, isAdmin]); // Removed isAuthenticated dependency << reinserted 
 
   // Primary links remain the same
   const primaryLinks = useMemo(() => [
@@ -228,7 +235,7 @@ export default function Navbar() {
               ) : !isAuthenticated ? (
                 <div className={styles.authButtons}>
                   <button className={styles.loginBtn} onClick={handleLogin}>Login</button>
-                  {/* Updated Sign Up Section */}
+                  {/* Updated Sign Up Section - Now properly linked to Auth0 signup */}
                   <div className={styles.signupContainer}>
                     <a 
                       className={styles.signupLink}

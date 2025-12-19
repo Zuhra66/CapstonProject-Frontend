@@ -1,3 +1,7 @@
+/* ----------------------------------------------------
+   🌿 EMPOWERMED – PREMIUM GLASS SERVICES PAGE STYLING
+-----------------------------------------------------*/
+
 /* --- GENERAL PAGE --- */
 .services-page {
   display: flex;
@@ -6,24 +10,40 @@
   justify-content: flex-start;
   min-height: auto;
   background-color: transparent;
-  padding-top: 40px; 
+  padding-top: 40px;
   box-sizing: border-box;
 }
 
-/* --- DETAILED CARD --- */
+/* ----------------------------------------------------
+   🌟 MAIN CARD (GLASS RESTYLE)
+-----------------------------------------------------*/
 #scene {
   display: flex;
   width: 1000px;
   max-width: 90%;
-  height: 550px; 
-  background-color: #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  border-radius: 8px;
+  height: 550px;
+
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 22px;
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+
   overflow: hidden;
-  margin-top: 40px;
+
+  animation: cardFadeIn 0.6s ease-out;
 }
 
-/* --- LEFT PANEL --- */
+@keyframes cardFadeIn {
+  0% { opacity: 0; transform: translateY(30px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ----------------------------------------------------
+   🌟 LEFT MENU – GLASS + GRADIENT HIGHLIGHT
+-----------------------------------------------------*/
 #left-zone {
   width: 270px;
   background: #f5f5f5;
@@ -60,99 +80,145 @@
 }
 
 #left-zone .list li.item input[type="radio"]:checked + label {
-  background-color: #d0f0ff;
-  opacity: 1;
+  background: transparent;
+  border-left: 4px solid #7091E6;
+  padding-left: 11px;
+  background-color: rgba(112, 145, 230, 0.1);
 }
 
-/* --- MIDDLE BORDER --- */
-#middle-border {
-  width: 2px;
-  background: #ccc;
-}
-
-/* --- RIGHT PANEL --- */
+/* ----------------------------------------------------
+   🌟 RIGHT PANEL – GLASS CONTENT AREA
+-----------------------------------------------------*/
 #right-zone {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  padding: 28px;
   height: 100%;
   text-align: center;
-  position: relative; 
+  position: relative;
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+
+  perspective: 1200px;
 }
 
-
+/* Content scroll area */
 .right-content-scroll {
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 10px;
+  animation: flipForward 0.6s ease forwards;
+  transform-style: preserve-3d;
 }
 
+.right-content-scroll.reverse {
+  animation: flipBackward 0.6s ease forwards;
+}
 
+/* Picto (emoji) */
 #right-zone .picto {
-  font-size: 60px;
-  margin-bottom: 35px; 
+  font-size: 72px;
+  margin-bottom: 25px;
 }
 
+/* Title */
 #right-zone h1 {
-  font-size: 1.5rem;
-  margin-top: 20px;
-  margin-bottom: 35px; 
+  font-size: 1.7rem;
+  margin-top: 10px;
+  margin-bottom: 28px;
   color: #3d52a0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
+/* Description */
 #right-zone .description {
-  font-size: 0.95em;
+  font-size: 1rem;
   line-height: 1.6;
-  max-width: 600px;
+  max-width: 620px;
   margin: 0 auto;
+  color: #333;
 }
 
-/* --- WELLNESS LIST --- */
+/* Flip animations */
+@keyframes flipForward {
+  0% { opacity: 0; transform: rotateY(90deg); }
+  50% { opacity: 0.4; transform: rotateY(10deg); }
+  100% { opacity: 1; transform: rotateY(0deg); }
+}
+
+@keyframes flipBackward {
+  0% { opacity: 0; transform: rotateY(-90deg); }
+  50% { opacity: 0.4; transform: rotateY(-10deg); }
+  100% { opacity: 1; transform: rotateY(0deg); }
+}
+
+/* ----------------------------------------------------
+   🌟 BUTTONS (BOTTOM)
+-----------------------------------------------------*/
+.detail-buttons,
+.carousel-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: blur(8px);
+  padding: 12px 0;
+  border-radius: 14px;
+}
+
+.toggle-btn {
+  padding: 10px 25px;
+  font-size: 1rem;
+  border: none;
+  background: linear-gradient(135deg, #3d52a0, #7091e6);
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.toggle-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+}
+
+/* ----------------------------------------------------
+   WELLNESS LIST
+-----------------------------------------------------*/
 .wellness-list {
   list-style: disc;
   padding-left: 20px;
   text-align: left;
 }
-.wellness-list li {
-  margin-bottom: 8px;
-}
+.wellness-list li { margin-bottom: 8px; }
 
-/* --- DETAIL BUTTONS FIXED AT BOTTOM OF CARD --- */
-.detail-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  position: sticky;
-  bottom: 0;
-  background: white; 
-  padding: 10px 0;
-}
-.detail-buttons .toggle-btn {
-  padding: 10px 25px;
-  font-size: 1rem;
-  border: none;
-  background-color: #3d52a0;
-  color: #fff;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.detail-buttons .toggle-btn:hover {
-  background-color: #2e3d7a;
-}
+/* ----------------------------------------------------
+   RESPONSIVE FIXES – MOBILE CARD EXPANSION
+-----------------------------------------------------*/
+@media (max-width: 768px) {
+  #scene {
+    height: auto !important;
+    min-height: 520px;
+    flex-direction: column;
+  }
 
-.carousel-buttons {
-  margin-top: 10px;
-}
-.carousel-buttons .toggle-btn {
-  padding: 10px 25px;
-  font-size: 1rem;
-  border: none;
-  background-color: #3d52a0;
-  color: #fff;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.carousel-buttons .toggle-btn:hover {
-  background-color: #2e3d7a;
+  #left-zone {
+    width: 100%;
+    max-height: 200px;
+  }
+
+  #middle-border { display: none; }
+
+  #right-zone {
+    padding-bottom: 20px;
+    height: auto;
+  }
+
+  .detail-buttons { position: static; margin-top: 20px; }
 }
