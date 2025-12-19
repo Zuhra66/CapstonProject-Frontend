@@ -7,34 +7,34 @@ export default function ConversationPanel({
   messages = [],
   currentUserId,
   onSend,
+  disabled = false, // 🔥 NEW
 }) {
   const [draft, setDraft] = useState("");
-  const bottomRef = useRef(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const handleSend = () => {
+    console.log("SENDING MESSAGE:", draft);
 
-const handleSend = () => {
-  console.log("SENDING MESSAGE:", draft);
+    if (!draft.trim() || disabled) return;
 
-  if (!draft.trim()) return;
-
-  onSend({ message: draft.trim() });
-  setDraft("");
-};
-
+    onSend({ message: draft.trim() });
+    setDraft("");
+  };
 
   return (
     <div className="conversation-panel single-thread">
+      
+      {/* HEADER */}
       <div className="conversation-header">
         <h5 className="conversation-title">{title}</h5>
       </div>
 
+      {/* SCROLLING MESSAGE AREA */}
       <div className="conversation-history">
         {messages.length === 0 ? (
           <p className="text-muted text-center mt-3">
-            No messages yet. Start the conversation below.
+            {disabled
+              ? "Select a user to start messaging."
+              : "No messages yet. Start the conversation below."}
           </p>
         ) : (
           messages.map((msg) => {
@@ -53,27 +53,32 @@ const handleSend = () => {
             );
           })
         )}
-        <div ref={bottomRef} />
       </div>
 
+      {/* COMPOSER — ALWAYS VISIBLE */}
       <div className="conversation-reply">
         <Form.Control
-            as="textarea"
-            rows={3}
-            placeholder="Type your message…"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+          as="textarea"
+          rows={3}
+          placeholder={
+            disabled
+              ? "Select a user to start messaging"
+              : "Type your message…"
+          }
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          disabled={disabled}
         />
 
         <Button
-            type="button"       
-            className="mt-2"
+            type="button"
+            className="mt-2 send-button"
             onClick={handleSend}
             disabled={!draft.trim()}
-        >
+            >
             Send
-        </Button>
-        </div>
+            </Button>
+      </div>
     </div>
   );
 }

@@ -577,118 +577,106 @@ const conversations = useMemo(() => {
           </div>
 
           {/* RIGHT COLUMN: ADMIN MESSAGING */}
-            <div className="col">
-              <div className="gradient-card" style={{ height: "100%" }}>
+<div className="col messages-col">
+  <div className="gradient-card messages-card">
+    <div className="inner-card admin-messages-layout">
+
+      {/* LEFT: INBOX + SEARCH */}
+      <div className="messages-sidebar">
+
+        {/* HEADER */}
+        <div className="messages-header mb-2">
+          <h2 className="mb-0">Messages</h2>
+        </div>
+
+        {/* SEARCH USERS (ALWAYS VISIBLE) */}
+        <div className="user-search-box mb-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search user by email…"
+            value={userSearch}
+            onChange={(e) => {
+              setUserSearch(e.target.value);
+              searchUsers(e.target.value);
+            }}
+            autoComplete="off"
+          />
+
+          {/* SEARCH RESULTS */}
+          {userSearch && userResults.length > 0 && (
+            <div className="user-search-results mt-2">
+              {userResults.map((u) => (
                 <div
-                  className="inner-card admin-messages-layout"
-                  style={{ height: "100%" }}
+                  key={u.id}
+                  className="user-result"
+                  onClick={() => {
+                    setActiveUserEmail(u.email);
+                    setActiveUserId(u.id);
+                    setUserSearch("");
+                  }}
                 >
+                  <strong>{u.email}</strong>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-                  {/* LEFT: INBOX + SEARCH */}
-                  <div className="messages-sidebar">
+       {/* INBOX LIST */}
+      <div className="admin-inbox-wrapper">
+        <div className="admin-inbox-header">
+          <span>Conversations</span>
+        </div>
 
-                    {/* HEADER */}
-                    <div className="messages-header d-flex justify-content-between align-items-center mb-2">
-                      <h2 className="mb-0">Messages</h2>
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => {
-                          setShowUserSearch(true);
-                          setUserSearch("");
-                          setUserResults([]);
-                        }}
-                      >
-                        + New Message
-                      </button>
-                    </div>
-
-                    {/* USER SEARCH */}
-                    {showUserSearch && (
-                      <div className="user-search-box mb-3">
-                        <input
-                          type="text"
-                          className="form-control mb-2"
-                          placeholder="Search user by email..."
-                          value={userSearch}
-                          onChange={(e) => {
-                            setUserSearch(e.target.value);
-                            searchUsers(e.target.value);
-                          }}
-                        />
-
-                        {userResults.map((u) => (
-                          <div
-                            key={u.id}
-                            className="user-result"
-                            onClick={() => {
-                              setActiveUserEmail(u.email);
-                              setActiveUserId(u.id);
-                              setShowUserSearch(false);
-                            }}
-                          >
-                            <strong>{u.email}</strong>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* INBOX LIST */}
-                    <div className="admin-inbox">
-                      {conversations.length === 0 ? (
-                        <p className="text-muted text-center">No conversations yet</p>
-                      ) : (
-                        conversations.map((conv) => (
-                          <div
-                            key={`conv-${conv.email}`}
-                            className={`inbox-item ${
-                              activeUserEmail === conv.email ? "active" : ""
-                            }`}
-                            onClick={() => {
-                              setActiveUserEmail(conv.email);
-                              setActiveUserId(conv.userId || null);
-                              setShowUserSearch(false);
-                            }}
-                          >
-                            <strong>{conv.email}</strong>
-                            <div className="text-muted">
-                              {conv.lastMessage?.text?.slice(0, 40) || "No messages yet"}
-                            </div>
-
-                            {conv.unreadCount > 0 && (
-                              <span className="badge bg-primary ms-2">
-                                {conv.unreadCount}
-                              </span>
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* RIGHT: CONVERSATION THREAD */}
-                  <div className="messages-thread">
-                    {activeUserEmail ? (
-                      <ConversationPanel
-                        title={`Conversation with ${activeUserEmail}`}
-                        currentUserEmail={backendUser?.email}
-                        messages={activeConversation?.messages || []}
-                        onSend={({ message }) => {
-                          if (!activeUserId) return;
-                          sendAdminMessage(activeUserId, message);
-                        }}
-                      />
-                    ) : (
-                      <div className="conversation-placeholder text-muted text-center">
-                        Select a conversation or start a new message.
-                      </div>
-                    )}
-                  </div>
-
+        <div className="admin-inbox">
+          {conversations.length === 0 ? (
+            <p className="text-muted text-center">No conversations yet</p>
+          ) : (
+            conversations.map((conv) => (
+              <div
+                key={`conv-${conv.email}`}
+                className={`inbox-item ${
+                  activeUserEmail === conv.email ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveUserEmail(conv.email);
+                  setActiveUserId(conv.userId || null);
+                }}
+              >
+                <strong>{conv.email}</strong>
+                <div className="text-muted">
+                  {conv.lastMessage?.text?.slice(0, 40) || "No messages yet"}
                 </div>
               </div>
-            </div>
-            </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
 
+      {/* RIGHT: CONVERSATION THREAD (FIXED HEIGHT) */}
+      <div className="messages-thread">
+        <ConversationPanel
+          title={
+            activeUserEmail
+              ? `Conversation with ${activeUserEmail}`
+              : "Select or search for a user"
+          }
+          messages={activeConversation?.messages || []}
+          currentUserId={backendUser?.id}
+          disabled={!activeUserId}
+          onSend={({ message }) => {
+            if (!activeUserId) return;
+            sendAdminMessage(activeUserId, message);
+          }}
+        />
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
         {/* CALENDAR SECTION */}
         <div className="row-2">
           <div className="gradient-card">
