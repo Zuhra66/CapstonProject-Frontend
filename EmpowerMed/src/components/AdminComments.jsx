@@ -38,7 +38,7 @@ export default function AdminComments() {
                 setPagination(data.pagination);
             }
         } catch (error) {
-            console.error("Load comments error:", error);
+            // Error handling would go here in production
         } finally {
             setLoading(false);
         }
@@ -63,7 +63,7 @@ export default function AdminComments() {
                 loadComments();
             }
         } catch (error) {
-            console.error("Comment action error:", error);
+            // Error handling would go here in production
         }
     };
 
@@ -86,7 +86,7 @@ export default function AdminComments() {
                 loadComments();
             }
         } catch (error) {
-            console.error("Delete comment error:", error);
+            // Error handling would go here in production
         }
     };
 

@@ -18,11 +18,9 @@ import {
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Temporary authedJson implementation (same as AdminUsers)
 async function authedJson(path, { method = "GET", body, headers = {} } = {}, getToken) {
   const upper = method.toUpperCase();
   
-  // CSRF token handling
   let csrfToken = null;
   const m = document.cookie.match(new RegExp(`(?:^|; )XSRF-TOKEN=([^;]*)`));
   if (m) csrfToken = decodeURIComponent(m[1]);
@@ -32,7 +30,6 @@ async function authedJson(path, { method = "GET", body, headers = {} } = {}, get
     csrfHeader = { "X-XSRF-TOKEN": csrfToken };
   }
 
-  // Bearer token handling
   let bearerHeader = {};
   if (typeof getToken === "function") {
     const token = await getToken();
@@ -95,18 +92,17 @@ export default function AdminNewsletter() {
       
       const [subscribersData, statsData] = await Promise.all([
         authedJson(
-          `/api/newsletter/admin/subscribers?page=${pagination.currentPage}&search=${searchTerm}&status=${statusFilter}`,  // ADDED /admin/
+          `/api/newsletter/admin/subscribers?page=${pagination.currentPage}&search=${searchTerm}&status=${statusFilter}`,
           { method: "GET" },
           tokenGetter
         ),
         authedJson(
-          '/api/newsletter/admin/stats',  // ADDED /admin/
+          '/api/newsletter/admin/stats',
           { method: "GET" },
           tokenGetter
         )
       ]);
       
-      // Check if statsData has nested stats object
       const statsToUse = statsData.stats ? statsData : { stats: statsData };
       
       setSubscribers(subscribersData.subscribers || []);
@@ -119,7 +115,6 @@ export default function AdminNewsletter() {
       });
     } catch (err) {
       setError(err.message || "Failed to load newsletter data");
-      console.error('Newsletter load error:', err);
     } finally {
       setLoading(false);
     }
@@ -134,7 +129,7 @@ export default function AdminNewsletter() {
       setBusy(true);
       
       const token = await tokenGetter();
-      const response = await fetch(`${API}/api/newsletter/admin/export?status=${statusFilter}`, {  // ADDED /admin/
+      const response = await fetch(`${API}/api/newsletter/admin/export?status=${statusFilter}`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -147,7 +142,6 @@ export default function AdminNewsletter() {
         throw new Error('Export failed');
       }
 
-      // Create download link for CSV
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -162,7 +156,6 @@ export default function AdminNewsletter() {
       document.body.removeChild(a);
 
     } catch (err) {
-      console.error('Export error:', err);
       alert('Failed to export subscribers');
     } finally {
       setBusy(false);
@@ -178,7 +171,7 @@ export default function AdminNewsletter() {
       setBusy(true);
       
       await authedJson(
-        `/api/newsletter/admin/subscribers/${id}`,  // Already has /admin/
+        `/api/newsletter/admin/subscribers/${id}`,
         {
           method: "DELETE"
         },
@@ -188,7 +181,6 @@ export default function AdminNewsletter() {
       await loadData();
       alert('Subscriber deleted successfully');
     } catch (err) {
-      console.error('Delete error:', err);
       alert('Failed to delete subscriber');
     } finally {
       setBusy(false);
@@ -304,7 +296,6 @@ export default function AdminNewsletter() {
           </p>
         </div>
 
-        {/* Stats Cards */}
         <div className="row mb-4">
           <div className="col-md-3 col-6 mb-3">
             <div className="card border-0 shadow-sm h-100" style={{ background: 'linear-gradient(135deg, #EDE8F5, #ADBBDA)' }}>
@@ -352,105 +343,102 @@ export default function AdminNewsletter() {
           </div>
         </div>
 
-{/* Filters */}
-<div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
-  <div className="card-body">
-    <div className="row g-3 align-items-center">
-      <div className="col-md-4">
-        <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Search Subscribers</label>
-        <div className="input-group" style={{ height: '38px' }}>
-          <span className="input-group-text d-flex align-items-center justify-content-center" 
-            style={{ 
-              background: '#ADBBDA', 
-              borderColor: '#8697C4', 
-              color: '#3D52A0',
-              padding: '0.375rem 0.75rem',
-              height: '100%'
-            }}>
-            <FiSearch size={18} />
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            style={{ 
-              borderColor: '#8697C4', 
-              color: 'black',
-              height: '100%'
-            }}
-            placeholder="Search by email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
+          <div className="card-body">
+            <div className="row g-3 align-items-center">
+              <div className="col-md-4">
+                <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Search Subscribers</label>
+                <div className="input-group" style={{ height: '38px' }}>
+                  <span className="input-group-text d-flex align-items-center justify-content-center" 
+                    style={{ 
+                      background: '#ADBBDA', 
+                      borderColor: '#8697C4', 
+                      color: '#3D52A0',
+                      padding: '0.375rem 0.75rem',
+                      height: '100%'
+                    }}>
+                    <FiSearch size={18} />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    style={{ 
+                      borderColor: '#8697C4', 
+                      color: 'black',
+                      height: '100%'
+                    }}
+                    placeholder="Search by email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Status</label>
+                <select
+                  className="form-select"
+                  style={{ 
+                    borderColor: '#8697C4', 
+                    color: 'black',
+                    height: '38px'
+                  }}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active Only</option>
+                  <option value="inactive">Inactive Only</option>
+                  <option value="pending">Pending Verification</option>
+                </select>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Export</label>
+                <div className="input-group">
+                  <button 
+                    className="btn w-100 d-flex align-items-center justify-content-center"
+                    style={{ 
+                      background: '#8697C4', 
+                      borderColor: '#8697C4', 
+                      color: 'white',
+                      height: '38px',
+                      gap: '0.5rem'
+                    }}
+                    onClick={handleExport}
+                    disabled={busy || subscribers.length === 0}
+                  >
+                    <FiDownload size={18} />
+                    {busy ? 'Exporting...' : 'Export CSV'}
+                  </button>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="form-label fw-semibold" style={{ 
+                  color: '#3D52A0', 
+                  visibility: 'hidden',
+                  marginBottom: '0.25rem'
+                }}>
+                  Placeholder
+                </div>
+                <button 
+                  className="btn w-100 d-flex align-items-center justify-content-center"
+                  style={{ 
+                    background: '#3D52A0', 
+                    borderColor: '#3D52A0', 
+                    color: 'white',
+                    height: '38px',
+                    gap: '0.5rem'
+                  }}
+                  onClick={loadData}
+                  disabled={busy}
+                >
+                  <FiRefreshCw size={18} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="col-md-3">
-        <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Status</label>
-        <select
-          className="form-select"
-          style={{ 
-            borderColor: '#8697C4', 
-            color: 'black',
-            height: '38px'
-          }}
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active Only</option>
-          <option value="inactive">Inactive Only</option>
-          <option value="pending">Pending Verification</option>
-        </select>
-      </div>
-      <div className="col-md-3">
-        <label className="form-label fw-semibold" style={{ color: '#3D52A0' }}>Export</label>
-        <div className="input-group">
-          <button 
-            className="btn w-100 d-flex align-items-center justify-content-center"
-            style={{ 
-              background: '#8697C4', 
-              borderColor: '#8697C4', 
-              color: 'white',
-              height: '38px',
-              gap: '0.5rem'
-            }}
-            onClick={handleExport}
-            disabled={busy || subscribers.length === 0}
-          >
-            <FiDownload size={18} />
-            {busy ? 'Exporting...' : 'Export CSV'}
-          </button>
-        </div>
-      </div>
-      <div className="col-md-2">
-        {/* Add a hidden label to match the height of other labels */}
-        <div className="form-label fw-semibold" style={{ 
-          color: '#3D52A0', 
-          visibility: 'hidden',
-          marginBottom: '0.25rem' /* Match mb-1 from other labels */
-        }}>
-          Placeholder
-        </div>
-        <button 
-          className="btn w-100 d-flex align-items-center justify-content-center"
-          style={{ 
-            background: '#3D52A0', 
-            borderColor: '#3D52A0', 
-            color: 'white',
-            height: '38px',
-            gap: '0.5rem'
-          }}
-          onClick={loadData}
-          disabled={busy}
-        >
-          <FiRefreshCw size={18} />
-          Refresh
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
-        {/* Subscribers Table */}
         <div className="card border-0 shadow-sm" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
           <div className="card-body p-2">
             {error && (
@@ -537,7 +525,6 @@ export default function AdminNewsletter() {
               </table>
             </div>
 
-            {/* Pagination */}
             {pagination.totalPages > 1 && (
               <div className="d-flex justify-content-between align-items-center mt-3 p-2" style={{ 
                 background: '#EDE8F5', 
@@ -582,7 +569,6 @@ export default function AdminNewsletter() {
           </div>
         </div>
 
-        {/* Additional Stats */}
         {stats && (
           <div className="row mt-4">
             <div className="col-md-6 mb-3">

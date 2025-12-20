@@ -157,130 +157,123 @@ export default function AdminUsers() {
     });
   };
 
-  // CONFIRM MEMBERSHIP 
-const confirmMembershipOverride = async () => {
-  if (!assignUser || !membershipType) return;
+  const confirmMembershipOverride = async () => {
+    if (!assignUser || !membershipType) return;
 
-  try {
-    setBusy(true);
+    try {
+      setBusy(true);
 
-    await authedJson(
-      "/memberships/admin/assign",
-      {
-        method: "POST",
-        body: {
-          userId: assignUser.id,
-          membershipType, // "general" | "student"
+      await authedJson(
+        "/memberships/admin/assign",
+        {
+          method: "POST",
+          body: {
+            userId: assignUser.id,
+            membershipType,
+          },
         },
-      },
-      tokenGetter
-    );
+        tokenGetter
+      );
 
-    // Reflect change locally so UI updates immediately
-    setEditForm(prev => ({
-      ...prev,
-      role: "Member",
-    }));
+      setEditForm(prev => ({
+        ...prev,
+        role: "Member",
+      }));
 
-    setMembershipAssigned(true);
-    setShowAssignModal(false);
-    setAssignUser(null);
-    setMembershipType(null);
+      setMembershipAssigned(true);
+      setShowAssignModal(false);
+      setAssignUser(null);
+      setMembershipType(null);
 
-    await loadUsers(); // refresh table
-  } catch (err) {
-    alert(err.message || "Failed to assign membership");
-  } finally {
-    setBusy(false);
-  }
-};
+      await loadUsers();
+    } catch (err) {
+      alert(err.message || "Failed to assign membership");
+    } finally {
+      setBusy(false);
+    }
+  };
 
-const confirmDowngrade = async () => {
-  try {
-    setBusy(true);
+  const confirmDowngrade = async () => {
+    try {
+      setBusy(true);
 
-    await authedJson(
-      "/memberships/admin/cancel",
-      {
-        method: "POST",
-        body: { userId: editingId },
-      },
-      tokenGetter
-    );
+      await authedJson(
+        "/memberships/admin/cancel",
+        {
+          method: "POST",
+          body: { userId: editingId },
+        },
+        tokenGetter
+      );
 
-    // reflect change locally
-    setEditForm(prev => ({
-      ...prev,
-      role: "User",
-    }));
+      setEditForm(prev => ({
+        ...prev,
+        role: "User",
+      }));
 
-    setShowDowngradeModal(false);
-    setPendingRoleChange(null);
+      setShowDowngradeModal(false);
+      setPendingRoleChange(null);
 
-    await loadUsers(); // refresh table
-  } catch (err) {
-    alert(err.message || "Failed to cancel membership");
-  } finally {
-    setBusy(false);
-  }
-};
+      await loadUsers();
+    } catch (err) {
+      alert(err.message || "Failed to cancel membership");
+    } finally {
+      setBusy(false);
+    }
+  };
 
- const updateEditForm = (field, value) => {
-  // Assign Member (FREE admin override)
-  if (field === "role" && value === "Member") {
-    setAssignUser({
-      id: editingId,
-      email: editForm.email,
-    });
+  const updateEditForm = (field, value) => {
+    if (field === "role" && value === "Member") {
+      setAssignUser({
+        id: editingId,
+        email: editForm.email,
+      });
 
-    setMembershipType(null);
-    setShowAssignModal(true);
-    return;
-  }
+      setMembershipType(null);
+      setShowAssignModal(true);
+      return;
+    }
 
-  // Downgrade Member → User (CONFIRM FIRST)
-  if (field === "role" && editForm.role === "Member" && value === "User") {
-    setPendingRoleChange("User");
-    setShowDowngradeModal(true);
-    return;
-  }
+    if (field === "role" && editForm.role === "Member" && value === "User") {
+      setPendingRoleChange("User");
+      setShowDowngradeModal(true);
+      return;
+    }
 
-  setEditForm(prev => ({ ...prev, [field]: value }));
-};
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
 
   const saveUser = async (userId) => {
-  try {
-    setBusy(true);
+    try {
+      setBusy(true);
 
-    const payload = {
-      first_name: editForm.first_name,
-      last_name: editForm.last_name,
-      name: editForm.name,
-      email: editForm.email,
-      is_active: editForm.is_active,
-      is_admin: editForm.is_admin,
-    };
+      const payload = {
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        name: editForm.name,
+        email: editForm.email,
+        is_active: editForm.is_active,
+        is_admin: editForm.is_admin,
+      };
 
-    // ❌ NEVER send role or membership here
-    await authedJson(
-      `/api/admin/users/${userId}`,
-      {
-        method: "PUT",
-        body: payload,
-      },
-      tokenGetter
-    );
+      await authedJson(
+        `/api/admin/users/${userId}`,
+        {
+          method: "PUT",
+          body: payload,
+        },
+        tokenGetter
+      );
 
-    setEditingId(null);
-    await loadUsers(); // refresh UI
+      setEditingId(null);
+      await loadUsers();
 
-  } catch (err) {
-    alert(err.message || "Failed to update user");
-  } finally {
-    setBusy(false);
-  }
-};
-
+    } catch (err) {
+      alert(err.message || "Failed to update user");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const toggleUserStatus = async (user) => {
     if (!window.confirm(`Are you sure you want to ${user.is_active ? 'deactivate' : 'activate'} this user?`)) return;
@@ -393,64 +386,62 @@ const confirmDowngrade = async () => {
   };
 
   const getMembershipBadge = (user) => {
-  const membership = user.membership;
+    const membership = user.membership;
 
-  if (!membership || !membership.plan_name) {
+    if (!membership || !membership.plan_name) {
+      return (
+        <span className="badge" style={{
+          padding: '0.25em 0.5em',
+          fontSize: '0.7em',
+          fontWeight: '600',
+          background: '#b6b6b6',
+          color: '#333'
+        }}>
+          No Membership
+        </span>
+      );
+    }
+
+    const status = membership.status;
+    const plan =
+    membership.plan_name
+      ?.replace(" Membership", "")
+      ?.replace(" membership", "");
+
+    const colors = {
+      active:    { bg: "#00FF00", text: "black" },
+      past_due:  { bg: "#FF9900", text: "black" },
+      cancelled: { bg: "#F44336", text: "white" },
+      inactive:  { bg: "#868E96", text: "white" }
+    };
+
+    const c = colors[status] || colors["inactive"];
+
     return (
-      <span className="badge" style={{
-        padding: '0.25em 0.5em',
-        fontSize: '0.7em',
-        fontWeight: '600',
-        background: '#b6b6b6',
-        color: '#333'
-      }}>
-        No Membership
-      </span>
+      <div className="d-flex flex-column">
+        <span className="badge mb-1" style={{
+          padding: '0.25em 0.5em',
+          fontSize: '0.7em',
+          fontWeight: '600',
+          background: '#3D52A0',
+          color: 'white',
+        }}>
+          {plan}
+        </span>
+
+        <span className="badge" style={{
+          padding: '0.25em 0.5em',
+          fontSize: '0.7em',
+          fontWeight: '600',
+          background: c.bg,
+          color: c.text,
+          border: '1px solid rgba(0,0,0,0.1)'
+        }}>
+          {status.toUpperCase().replace("_", " ")}
+        </span>
+      </div>
     );
-  }
-
-  const status = membership.status;
-  const plan =
-  membership.plan_name
-    ?.replace(" Membership", "")
-    ?.replace(" membership", "");
-
-  const colors = {
-    active:    { bg: "#00FF00", text: "black" },
-    past_due:  { bg: "#FF9900", text: "black" },
-    cancelled: { bg: "#F44336", text: "white" },
-    inactive:  { bg: "#868E96", text: "white" }
   };
-
-  const c = colors[status] || colors["inactive"];
-
-  return (
-    <div className="d-flex flex-column">
-      {/* PLAN NAME */}
-      <span className="badge mb-1" style={{
-        padding: '0.25em 0.5em',
-        fontSize: '0.7em',
-        fontWeight: '600',
-        background: '#3D52A0',
-        color: 'white',
-      }}>
-        {plan}
-      </span>
-
-      {/* STATUS */}
-      <span className="badge" style={{
-        padding: '0.25em 0.5em',
-        fontSize: '0.7em',
-        fontWeight: '600',
-        background: c.bg,
-        color: c.text,
-        border: '1px solid rgba(0,0,0,0.1)'
-      }}>
-        {status.toUpperCase().replace("_", " ")}
-      </span>
-    </div>
-  );
-};
 
   const getToggleStatusButtonStyle = (user) => {
     if (user.is_active) {
@@ -545,93 +536,93 @@ const confirmDowngrade = async () => {
           </div>
         </div>
 
-<div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
-  <div className="card-body">
-    <div className="row g-3 align-items-center"> {/* Changed from align-items-end to align-items-center */}
-      <div className="col-md-4">
-        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Search Users</label>
-        <div className="input-group" style={{ height: '38px' }}>
-          <span className="input-group-text d-flex align-items-center justify-content-center" 
-            style={{ 
-              background: '#ADBBDA', 
-              borderColor: '#8697C4', 
-              color: '#3D52A0',
-              padding: '0.375rem 0.75rem',
-              height: '100%'
-            }}>
-            <FiSearch size={18} />
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            style={{ 
-              borderColor: '#8697C4', 
-              color: 'black',
-              height: '100%'
-            }}
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
+          <div className="card-body">
+            <div className="row g-3 align-items-center">
+              <div className="col-md-4">
+                <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Search Users</label>
+                <div className="input-group" style={{ height: '38px' }}>
+                  <span className="input-group-text d-flex align-items-center justify-content-center" 
+                    style={{ 
+                      background: '#ADBBDA', 
+                      borderColor: '#8697C4', 
+                      color: '#3D52A0',
+                      padding: '0.375rem 0.75rem',
+                      height: '100%'
+                    }}>
+                    <FiSearch size={18} />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    style={{ 
+                      borderColor: '#8697C4', 
+                      color: 'black',
+                      height: '100%'
+                    }}
+                    placeholder="Search by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Status</label>
+                <select
+                  className="form-select"
+                  style={{ 
+                    borderColor: '#8697C4', 
+                    color: 'black',
+                    height: '38px'
+                  }}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active Only</option>
+                  <option value="inactive">Inactive Only</option>
+                </select>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Role</label>
+                <select
+                  className="form-select"
+                  style={{ 
+                    borderColor: '#8697C4', 
+                    color: 'black',
+                    height: '38px'
+                  }}
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
+                  <option value="all">All Roles</option>
+                  <option value="User">User</option>
+                  <option value="Member">Member</option>
+                  <option value="Provider">Provider</option>
+                  <option value="Administrator">Administrator</option>
+                </select>
+              </div>
+              <div className="col-md-2">
+                <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0', opacity: 0 }}>Actions</label>
+                <button 
+                  className="btn w-100 d-flex align-items-center justify-content-center"
+                  style={{ 
+                    background: '#8697C4', 
+                    borderColor: '#8697C4', 
+                    color: 'white',
+                    borderRadius: '0.375rem',
+                    height: '38px',
+                    padding: '0'
+                  }}
+                  onClick={loadUsers}
+                  disabled={busy}
+                >
+                  {busy ? 'Loading...' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="col-md-3">
-        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Status</label>
-        <select
-          className="form-select"
-          style={{ 
-            borderColor: '#8697C4', 
-            color: 'black',
-            height: '38px'
-          }}
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active Only</option>
-          <option value="inactive">Inactive Only</option>
-        </select>
-      </div>
-      <div className="col-md-3">
-        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Role</label>
-        <select
-          className="form-select"
-          style={{ 
-            borderColor: '#8697C4', 
-            color: 'black',
-            height: '38px'
-          }}
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-        >
-          <option value="all">All Roles</option>
-          <option value="User">User</option>
-          <option value="Member">Member</option>
-          <option value="Provider">Provider</option>
-          <option value="Administrator">Administrator</option>
-        </select>
-      </div>
-      <div className="col-md-2">
-        <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0', opacity: 0 }}>Actions</label>
-        <button 
-          className="btn w-100 d-flex align-items-center justify-content-center"
-          style={{ 
-            background: '#8697C4', 
-            borderColor: '#8697C4', 
-            color: 'white',
-            borderRadius: '0.375rem',
-            height: '38px',
-            padding: '0'
-          }}
-          onClick={loadUsers}
-          disabled={busy}
-        >
-          {busy ? 'Loading...' : 'Refresh'}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
         <div className="card border-0 shadow-sm" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
           <div className="card-body p-2">
@@ -905,7 +896,7 @@ const confirmDowngrade = async () => {
         centered
       >
           <Modal.Header closeButton={!busy}>
-            <Modal.Title>⚠️ Assign Membership</Modal.Title>
+            <Modal.Title>Assign Membership</Modal.Title>
           </Modal.Header>
 
           <Modal.Body>
@@ -939,10 +930,6 @@ const confirmDowngrade = async () => {
                 Student Membership
               </label>
             </div>
-
-            <div className="alert alert-warning mt-3" style={{ fontSize: "0.85rem" }}>
-              This is a manual admin override. No billing or PayPal subscription will occur.
-            </div>
           </Modal.Body>
 
           <Modal.Footer>
@@ -965,53 +952,47 @@ const confirmDowngrade = async () => {
         </Modal>
 
         <Modal
-        show={showDowngradeModal}
-        onHide={() => !busy && setShowDowngradeModal(false)}
-        centered
-      >
-        <Modal.Header closeButton={!busy}>
-          <Modal.Title>⚠️ Cancel Membership</Modal.Title>
-        </Modal.Header>
+          show={showDowngradeModal}
+          onHide={() => !busy && setShowDowngradeModal(false)}
+          centered
+        >
+          <Modal.Header closeButton={!busy}>
+            <Modal.Title>Cancel Membership</Modal.Title>
+          </Modal.Header>
 
-        <Modal.Body>
-          <p>
-            Downgrading this user to <strong>User</strong> will:
-          </p>
+          <Modal.Body>
+            <p>
+              Downgrading this user to <strong>User</strong> will:
+            </p>
 
-          <ul style={{ fontSize: "0.9rem" }}>
-            <li>Cancel their active membership</li>
-            <li>Revoke member access</li>
-            <li>Stop future billing (if applicable)</li>
-          </ul>
+            <ul style={{ fontSize: "0.9rem" }}>
+              <li>Cancel their active membership</li>
+              <li>Revoke member access</li>
+              <li>Stop future billing (if applicable)</li>
+            </ul>
+          </Modal.Body>
 
-          <div className="alert alert-warning mt-3" style={{ fontSize: "0.85rem" }}>
-            This action cannot be undone.
-          </div>
-        </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => {
+                setShowDowngradeModal(false);
+                setPendingRoleChange(null);
+              }}
+            >
+              Cancel
+            </Button>
 
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            disabled={busy}
-            onClick={() => {
-              setShowDowngradeModal(false);
-              setPendingRoleChange(null);
-            }}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            variant="danger"
-            disabled={busy}
-            onClick={confirmDowngrade}
-          >
-            Confirm Downgrade
-          </Button>
-
-        </Modal.Footer>
-      </Modal>
-
+            <Button
+              variant="danger"
+              disabled={busy}
+              onClick={confirmDowngrade}
+            >
+              Confirm Downgrade
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
       <Modal 
         show={showDeleteModal} 
@@ -1019,17 +1000,16 @@ const confirmDowngrade = async () => {
         centered
         backdrop={busy ? "static" : true}
         size="sm"
-        className="modal-dark"
       >
-        <Modal.Header className="modal-header-custom" closeButton={!busy}>
+        <Modal.Header closeButton={!busy}>
           <Modal.Title>
             <FiAlertTriangle className="me-2" />
             Confirm Delete
           </Modal.Title>
         </Modal.Header>
         
-        <Modal.Body className="modal-body-custom text-center">
-          <div className="error-icon mb-3">
+        <Modal.Body className="text-center">
+          <div className="mb-3">
             <FiAlertTriangle size={48} />
           </div>
           <p className="mb-3">
@@ -1040,12 +1020,11 @@ const confirmDowngrade = async () => {
           </p>
         </Modal.Body>
         
-        <Modal.Footer className="modal-footer-custom">
+        <Modal.Footer>
           <Button 
             variant="secondary" 
             onClick={() => setShowDeleteModal(false)}
             disabled={busy}
-            className="modal-btn-cancel"
           >
             Cancel
           </Button>
@@ -1053,7 +1032,6 @@ const confirmDowngrade = async () => {
             variant="danger" 
             onClick={deleteUser}
             disabled={busy}
-            className="modal-btn-confirm"
           >
             {busy ? (
               <>

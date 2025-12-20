@@ -178,6 +178,24 @@
   border: 1px solid #868E96;
 }
 
+.status-indicator.none {
+  background: rgba(134, 142, 150, 0.2);
+  color: #868E96;
+  border: 1px solid #868E96;
+}
+
+.status-indicator.past_due {
+  background: rgba(255, 153, 0, 0.2);
+  color: #FF9900;
+  border: 1px solid #FF9900;
+}
+
+.status-indicator.cancelled {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid #F44336;
+}
+
 .time-ago {
   font-size: 0.8rem;
   color: #ADBBDA;
@@ -243,6 +261,20 @@
   color: #ADBBDA;
 }
 
+.cancel-membership-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 12px;       
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.account-detail:has(.cancel-membership-btn) {
+  align-items: flex-start !important; 
+}
+
 @media (max-width: 1024px) {
   .account-container {
     margin: 120px 1.5rem 2rem 1.5rem;
@@ -304,47 +336,3 @@
     padding: 0.2rem 0.6rem;
   }
 }
-
-/* -----------------------------
-   MEMBERSHIP STATUS BADGES
-------------------------------*/
-
-.status-indicator.active {
-  background: rgba(81, 207, 102, 0.2);
-  color: #51CF66;
-  border: 1px solid #51CF66;
-}
-
-.status-indicator.inactive,
-.status-indicator.none {
-  background: rgba(134, 142, 150, 0.2);
-  color: #868E96;
-  border: 1px solid #868E96;
-}
-
-.status-indicator.past_due {
-  background: rgba(255, 153, 0, 0.2);
-  color: #FF9900;
-  border: 1px solid #FF9900;
-}
-
-.status-indicator.cancelled {
-  background: rgba(244, 67, 54, 0.2);
-  color: #F44336;
-  border: 1px solid #F44336;
-}
-
-.cancel-membership-btn {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  padding: 6px 12px;       
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.account-detail:has(.cancel-membership-btn) {
-  align-items: flex-start !important; 
-}
-

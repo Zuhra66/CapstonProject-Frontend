@@ -9,14 +9,13 @@ function formatPrice(dollars) {
   return `$${n.toFixed(2)}`;
 }
 
-/* ---------------- Hero slideshow (image-only) ---------------- */
 export function HeroCarousel({ items = [], intervalMs = 4000 }) {
   const slides = React.useMemo(
     () =>
       (items || [])
         .map((p) => ({
           id: p.id,
-          src: p.image_url || p.image, // support either field
+          src: p.image_url || p.image,
           alt: p.name || "slide",
         }))
         .filter((s) => !!s.src),
@@ -29,7 +28,6 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
   React.useEffect(() => {
     if (!slides.length) return;
 
-    // clear any existing interval before starting a new one
     if (timer.current) clearInterval(timer.current);
 
     timer.current = setInterval(
@@ -101,13 +99,10 @@ export function HeroCarousel({ items = [], intervalMs = 4000 }) {
   );
 }
 
-/* ---------------- Product Card ---------------- */
 export default function ProductCard({ product }) {
   const {
     name,
-    // MAIN: price in dollars from your new backend
     price,
-    // Optional legacy field if some rows still use cents
     price_cents,
     image_url,
     image,
@@ -122,7 +117,6 @@ export default function ProductCard({ product }) {
     externalUrl ||
     "https://empowermed.threeinternational.com/en";
 
-  // Prefer dollars; fall back to cents if needed
   const displayPrice =
     price != null
       ? formatPrice(price)

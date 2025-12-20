@@ -10,28 +10,24 @@ const AdminRoute = ({ children }) => {
     isAuthenticated, 
     isLoading: auth0Loading, 
     user, 
-    getAccessTokenSilently // ADD THIS
+    getAccessTokenSilently 
   } = useAuth0();
   const [backendUser, setBackendUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
 
-  // Fetch backend user data
   useEffect(() => {
     let alive = true;
 
     const fetchBackendUser = async () => {
       if (!isAuthenticated) {
-        console.log('❌ Not authenticated, skipping backend user fetch');
         setBackendUser(null);
         setUserLoading(false);
         return;
       }
 
       try {
-        console.log('🔄 Fetching backend user data...');
         setUserLoading(true);
         
-        // Get the access token from Auth0
         const token = await getAccessTokenSilently({
           authorizationParams: {
             audience: import.meta.env.VITE_AUTH0_AUDIENCE,
@@ -50,14 +46,11 @@ const AdminRoute = ({ children }) => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Backend user data:', data.user);
           setBackendUser(data.user);
         } else {
-          console.log('❌ Backend user fetch failed with status:', response.status);
           setBackendUser(null);
         }
       } catch (error) {
-        console.error('❌ Failed to fetch backend user:', error);
         setBackendUser(null);
       } finally {
         if (alive) setUserLoading(false);
@@ -69,22 +62,12 @@ const AdminRoute = ({ children }) => {
     return () => {
       alive = false;
     };
-  }, [isAuthenticated, getAccessTokenSilently]); // Add dependency
+  }, [isAuthenticated, getAccessTokenSilently]);
 
   const isAdmin = !!(backendUser?.is_admin || backendUser?.role === 'Administrator');
   const isLoading = auth0Loading || userLoading;
 
-  console.log('🔍 AdminRoute Debug:', {
-    isAuthenticated,
-    auth0Loading,
-    userLoading,
-    backendUser,
-    isAdmin,
-    user: user?.email
-  });
-
   if (isLoading) {
-    console.log('⏳ AdminRoute: Still loading...');
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -95,16 +78,13 @@ const AdminRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    console.log('🚫 AdminRoute: Not authenticated, redirecting to home');
     return <Navigate to="/" replace />;
   }
 
   if (!isAdmin) {
-    console.log('🚫 AdminRoute: Not admin, redirecting to home. User role:', backendUser?.role, 'is_admin:', backendUser?.is_admin);
     return <Navigate to="/" replace />;
   }
 
-  console.log('✅ AdminRoute: User is admin, rendering children');
   return children;
 };
 

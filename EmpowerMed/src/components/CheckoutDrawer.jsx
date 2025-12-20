@@ -33,14 +33,12 @@ export default function CheckoutDrawer({ plan, onClose }) {
       const data = await res.json();
 
       if (!data.approvalUrl) {
-        console.error("No approval URL returned", data);
         alert("Unable to start PayPal checkout.");
         return;
       }
 
       window.location.href = data.approvalUrl;
     } catch (err) {
-      console.error("PayPal checkout error:", err);
       alert("Authentication error. Please refresh and try again.");
     }
   }
@@ -63,10 +61,8 @@ export default function CheckoutDrawer({ plan, onClose }) {
   return (
     <div className="drawer-overlay">
       <div className="drawer">
-        {/* CLOSE BUTTON */}
         <button className="drawer-close" onClick={onClose}></button>
 
-        {/* TITLE */}
         <h2 className="drawer-title">
           {isStudent ? "Student Membership" : "General Membership"}
         </h2>
@@ -74,7 +70,6 @@ export default function CheckoutDrawer({ plan, onClose }) {
           Review your options and continue.
         </p>
 
-        {/* SUMMARY BOX */}
         <div className="drawer-summary">
           {isStudent ? (
             <>
@@ -101,9 +96,7 @@ export default function CheckoutDrawer({ plan, onClose }) {
           )}
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="drawer-actions">
-          {/* OPTIONAL CONSULTATION CTA (STUDENT ONLY) */}
           {isStudent && (
             <div className="consult-cta">
               <p className="consult-text">
@@ -123,7 +116,6 @@ export default function CheckoutDrawer({ plan, onClose }) {
             </div>
           )}
 
-          {/* STUDENT MEMBERSHIP CHECKOUT */}
           {isStudent && (
             <button
               className="drawer-button primary"
@@ -133,7 +125,6 @@ export default function CheckoutDrawer({ plan, onClose }) {
             </button>
           )}
 
-          {/* GENERAL MEMBERSHIP CHECKOUT */}
           {isGeneral && (
             <button
               className="drawer-button primary"
@@ -143,7 +134,6 @@ export default function CheckoutDrawer({ plan, onClose }) {
             </button>
           )}
 
-          {/* CANCEL */}
           <button className="drawer-button secondary" onClick={onClose}>
             Cancel
           </button>

@@ -96,7 +96,7 @@ function App() {
                 </AdminRoute>
               }
             />
-            {/* ✅ NEW: admin-protected EducationAdmin route */}
+            {/* admin-protected EducationAdmin route */}
             <Route
               path="/admin/education"
               element={

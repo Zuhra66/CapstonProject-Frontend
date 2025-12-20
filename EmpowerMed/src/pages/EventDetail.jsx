@@ -7,13 +7,10 @@ const API_BASE_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:5001"
 ).replace(/\/+$/, "");
 
-// Normalize whatever backend sends (`/uploads/...`, `uploads/...`, full URL, etc.)
 function getRawFilePath(ev) {
   const raw = ev.imageUrl || ev.image_url;
   if (!raw) return null;
-  // if backend already returned a full URL, keep it
   if (/^https?:\/\//i.test(raw)) return raw;
-  // otherwise force it to start with a single /
   return raw.startsWith("/") ? raw : `/${raw}`;
 }
 
@@ -24,7 +21,6 @@ function formatDateTime(value) {
   return d.toLocaleString();
 }
 
-// For IMAGES we’re fine using absolute URLs
 function resolveImageUrl(ev) {
   const raw = getRawFilePath(ev);
   if (!raw) return null;
@@ -56,7 +52,6 @@ export default function EventDetail() {
         const ev = json.event || json;
         setEvent(ev);
       } catch (err) {
-        console.error("Error fetching event:", err);
         if (!alive) return;
         setError("Could not load this event.");
       } finally {
@@ -92,14 +87,12 @@ export default function EventDetail() {
   const rawPath = getRawFilePath(event);
   const isPdf = rawPath && /\.pdf(\?|#|$)/i.test(rawPath);
 
-  // Images: use full API URL
   const imageUrl = !isPdf ? resolveImageUrl(event) : null;
 
-  // PDFs: keep SAME-ORIGIN path when possible so iframe works
   const pdfUrl = isPdf
     ? /^https?:\/\//i.test(rawPath)
       ? rawPath
-      : rawPath // e.g. "/uploads/events/1234-flyer.pdf"
+      : rawPath
     : null;
 
   return (
@@ -123,7 +116,6 @@ export default function EventDetail() {
           )}
         </header>
 
-        {/* MEDIA AREA: PDF in a big box OR image */}
         {pdfUrl && (
           <div className="event-detail-media">
             <a

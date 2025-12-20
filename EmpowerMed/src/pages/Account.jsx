@@ -16,19 +16,12 @@ export default function Account() {
   if (!confirmed) return;
 
   try {
-    // Get Auth0 token
     const token = await getAccessTokenSilently({
       authorizationParams: {
         audience: import.meta.env.VITE_AUTH0_AUDIENCE,
       }
     });
 
-    // Extract CSRF token from cookies
-    let csrfToken = null;
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    if (match) csrfToken = decodeURIComponent(match[1]);
-
-    // Make the request with CSRF + Auth headers
     const res = await fetch(`${API}/memberships/cancel`, {
       method: "POST",
       headers: {
@@ -37,7 +30,6 @@ export default function Account() {
       },
       credentials: "include"
     });
-
 
     const data = await res.json();
 
@@ -49,7 +41,6 @@ export default function Account() {
     }
 
   } catch (err) {
-    console.error("Cancel membership error:", err);
     alert("Something went wrong. Please try again.");
   }
 };
@@ -79,13 +70,10 @@ export default function Account() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('Backend user data:', data.user); // Debug log
           setBackendUser(data.user);
-        } else {
-          console.error('Failed to fetch backend user data');
         }
       } catch (error) {
-        console.error('Error fetching backend user:', error);
+        // Error handled silently
       } finally {
         setLoadingBackend(false);
       }
@@ -180,16 +168,13 @@ export default function Account() {
     <>
       <div className="account-container">
 
-        {/* HEADER */}
         <div className="account-header">
           <h1 className="display-font">Account Settings</h1>
           <p>Manage your profile, preferences, and account information.</p>
         </div>
 
-        {/* CARD */}
         <div className="account-card">
 
-          {/* PROFILE SECTION */}
           <div className="account-profile">
             <img
               src={user?.picture || '/logo.png'}
@@ -226,10 +211,8 @@ export default function Account() {
             </div>
           </div>
 
-          {/* DETAILS */}
           <div className="account-details">
 
-            {/* PERSONAL INFO */}
             <div className="detail-group">
               <h3 className="detail-group-title display-font">Personal Information</h3>
               <div className="detail-grid">
@@ -256,7 +239,6 @@ export default function Account() {
               </div>
             </div>
 
-            {/* ACCOUNT INFO */}
             <div className="detail-group">
               <h3 className="detail-group-title display-font">Account Information</h3>
               <div className="detail-grid">
@@ -307,11 +289,9 @@ export default function Account() {
               </div>
             </div>
 
-            {/* MEMBERSHIP SECTION */}
             <div className="detail-group">
               <h3 className="detail-group-title display-font">Membership</h3>
 
-              {/* No Membership */}
               {!backendUser?.membership && (
                 <div className="detail-grid">
                   <div className="account-detail">
@@ -321,7 +301,6 @@ export default function Account() {
                 </div>
               )}
 
-              {/* Has Membership */}
               {backendUser?.membership && (
                 <div className="detail-grid">
 
@@ -332,8 +311,6 @@ export default function Account() {
                     </span>
                   </div>
 
-
-                  {/* STATUS ALWAYS SHOWN */}
                   <div className="account-detail">
                     <span className="detail-label display-font">Status</span>
                     <span className="detail-value">
@@ -343,7 +320,6 @@ export default function Account() {
                     </span>
                   </div>
 
-                  {/* ONLY SHOW DATES + CANCEL WHEN ACTIVE */}
                   {backendUser.membership.status === "active" && (
                     <>
                       <div className="account-detail">
@@ -355,7 +331,6 @@ export default function Account() {
                         </span>
                       </div>
 
-
                       <div className="account-detail">
                         <span className="detail-label display-font">Membership Renews</span>
                         <span className="detail-value">
@@ -364,7 +339,6 @@ export default function Account() {
                             : formatDate(backendUser.membership.end_date)}
                         </span>
                       </div>
-
 
                       <div className="account-detail">
                         <button

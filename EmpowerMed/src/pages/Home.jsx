@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import jasmineImg from '../assets/jasmine.png';
 import blueberriesImg from '../assets/blueberries-wellness.jpg';
 import arrowImg from '../assets/arrow-decoration.png';
@@ -10,135 +10,8 @@ import '../styles/Global.css';
 import '../styles/WellnessDNAAnalyzer.css';
 import lightImg from '../assets/light.png';
 
-// Wellness DNA Analyzer Component - Simplified without CTA
-const WellnessDNAAnalyzer = () => {
-  const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [showResults, setShowResults] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
-  const [running, setRunning] = useState(false);
-
-  const wellnessStrands = [
-    { id: 1, color: '#3D52A0', name: 'Mental Clarity', aspect: 'Mind' },
-    { id: 2, color: '#7091E6', name: 'Emotional Balance', aspect: 'Emotions' },
-    { id: 3, color: '#8697C4', name: 'Physical Vitality', aspect: 'Body' },
-    { id: 4, color: '#ADBBDA', name: 'Spiritual Connection', aspect: 'Spirit' },
-    { id: 5, color: '#4ECDC4', name: 'Nutritional Harmony', aspect: 'Nutrition' }
-  ];
-
-  const generateUserProfile = () => {
-    const profile = {
-      mental: Math.floor(Math.random() * 40) + 60,
-      emotional: Math.floor(Math.random() * 40) + 60,
-      physical: Math.floor(Math.random() * 40) + 60,
-      spiritual: Math.floor(Math.random() * 40) + 60,
-      nutritional: Math.floor(Math.random() * 40) + 60,
-      primaryNeed: wellnessStrands[Math.floor(Math.random() * wellnessStrands.length)].name,
-      recommendedPlan: 'Personalized Wellness Journey'
-    };
-    setUserProfile(profile);
-  };
-
-  const startAnalysis = () => {
-    if (running) return;
-    setRunning(true);
-    setAnalysisProgress(0);
-    setShowResults(false);
-    const interval = setInterval(() => {
-      setAnalysisProgress(prev => {
-        const next = Math.min(prev + Math.floor(Math.random() * 15) + 10, 100);
-        if (next >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            generateUserProfile();
-            setShowResults(true);
-            setRunning(false);
-          }, 400);
-        }
-        return next;
-      });
-    }, 400);
-  };
-
-  return (
-    <div className="dna-analyzer-container">
-      {/* CTA section removed as requested */}
-
-      <motion.div
-        className="analysis-progress"
-        initial={{ width: 0 }}
-        animate={{ width: `${analysisProgress}%` }}
-      >
-        <span>Decoding Your Wellness DNA... {analysisProgress}%</span>
-      </motion.div>
-
-      <AnimatePresence>
-        {showResults && userProfile && (
-          <motion.div
-            className="results-modal"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-          >
-            <div className="modal-content">
-              <h2>Your Wellness DNA Blueprint</h2>
-
-              <div className="profile-stats">
-                {wellnessStrands.map((strand, index) => {
-                  const key = strand.name.toLowerCase().includes('mental') ? 'mental'
-                    : strand.name.toLowerCase().includes('emotional') ? 'emotional'
-                    : strand.name.toLowerCase().includes('physical') ? 'physical'
-                    : strand.name.toLowerCase().includes('spiritual') ? 'spiritual'
-                    : 'nutritional';
-
-                  const value = userProfile[key];
-
-                  return (
-                    <div key={strand.id} className="stat-item">
-                      <div className="stat-header">
-                        <span className="stat-name">{strand.name}</span>
-                        <span className="stat-value">{value}%</span>
-                      </div>
-                      <div className="stat-bar">
-                        <motion.div
-                          className="stat-fill"
-                          style={{ backgroundColor: strand.color }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${value}%` }}
-                          transition={{ delay: index * 0.1 + 0.5 }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="key-insights">
-                <h3>Key Insights</h3>
-                <p>Your primary wellness focus should be on <strong>{userProfile.primaryNeed}</strong></p>
-                <p>We recommend starting with our <strong>{userProfile.recommendedPlan}</strong></p>
-              </div>
-
-              <div className="modal-actions">
-                <button className="btn-primary" onClick={() => window.location.href = '/services'}>
-                  Start Your Personalized Journey
-                </button>
-                <button className="btn-secondary" onClick={() => setShowResults(false)}>
-                  Explore More
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 // Main Home Component
 export default function Home() {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 300], [0, 60]);
-  const opacity = useTransform(scrollY, [0, 200], [1, 0.9]);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -152,7 +25,6 @@ export default function Home() {
 
   return (
     <main className="home-root" role="main">
-      {/* HERO SECTION */}
       <section className="hero-section">
         <div className="hero-content text-center px-3">
           <motion.h1
@@ -186,7 +58,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Section */}
       <section className="about-section">
         <div className="container">
           <div className="about-content">
@@ -205,7 +76,6 @@ export default function Home() {
               </p>              
             </motion.div>
 
-            {/* Intro Section */}
             <div className="about-main-grid">
               <motion.div
                 className="about-image-main"
@@ -237,7 +107,6 @@ export default function Home() {
               </motion.div>
             </div>
 
-            {/* Philosophy Section */}
             <div className="philosophy-section">
               <div className="philosophy-grid">
                 <motion.div
@@ -309,7 +178,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* WELLNESS DNA ANALYZER SECTION */}
       <section className="dna-analyzer-section">
         <div className="container">
           <div className="dna-header">
@@ -327,7 +195,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Preview cards only - no interactive analyzer */}
           <motion.div
             className="dna-results-preview"
             initial={{ opacity: 0 }}
@@ -366,7 +233,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mission Section */}
       <section className="mission-section">
         <div className="container">
           <div className="mission-content">
@@ -395,7 +261,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Hours & Availability Section */}
       <section className="hours-section">
         <div className="container">
           <div className="hours-grid">
@@ -458,7 +323,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Locations Section */}
       <section className="locations-section">
         <div className="container">
           <div className="locations-grid">

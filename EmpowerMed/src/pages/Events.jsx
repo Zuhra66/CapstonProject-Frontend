@@ -9,7 +9,6 @@ const API_BASE_URL = (
 ).replace(/\/+$/, "");
 
 function normalizeEvent(ev) {
-  // DB columns: id, title, description, location, start_at, end_at, image_url
   const start = ev.startTime || ev.start_time || ev.start_at;
   const end = ev.endTime || ev.end_time || ev.end_at;
 
@@ -70,7 +69,6 @@ function Events() {
         const list = Array.isArray(json.events) ? json.events : json;
         setEvents(list.map(normalizeEvent));
       } catch (err) {
-        console.error("Error loading events:", err);
         if (!alive) return;
         setError("Failed to load events.");
       } finally {
@@ -84,7 +82,6 @@ function Events() {
     };
   }, []);
 
-  // Map dateKey (YYYY-MM-DD) -> [events...]
   const eventsByDate = useMemo(() => {
     const map = {};
     for (const ev of events) {
@@ -95,7 +92,6 @@ function Events() {
     return map;
   }, [events]);
 
-  // Helpers to move month
   const goPrevMonth = () => {
     setCurrentMonth((m) => {
       if (m === 0) {
@@ -121,17 +117,14 @@ function Events() {
     { month: "long", year: "numeric" }
   );
 
-  // Build calendar cells for the current month
   const firstOfMonth = new Date(currentYear, currentMonth, 1);
-  const firstWeekday = firstOfMonth.getDay(); // 0=Sun
+  const firstWeekday = firstOfMonth.getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
   const cells = [];
-  // Leading empty cells
   for (let i = 0; i < firstWeekday; i += 1) {
     cells.push({ type: "empty", key: `empty-${i}` });
   }
-  // Actual days
   for (let day = 1; day <= daysInMonth; day += 1) {
     const d = new Date(currentYear, currentMonth, day);
     const key = d.toISOString().slice(0, 10);
@@ -163,17 +156,14 @@ function Events() {
     setSelectedDate(cell.dateObj);
 
     const dayEvents = eventsByDate[cell.key] || [];
-    // If there is exactly ONE event on this day, go straight to its detail page
     if (dayEvents.length === 1) {
       const ev = dayEvents[0];
       navigate(`/events/${ev.id}`);
     }
-    // If multiple events, just highlight the day and show list on the right
   }
 
   return (
     <div className="events-page">
-      {/* Hero banner */}
       <section className="events-hero">
         <div className="events-hero-text">
           <h1 className="events-hero-title">EVENTS</h1>
@@ -193,13 +183,11 @@ function Events() {
       </section>
 
       <div className="events-inner">
-        {/* Loading / errors */}
         {loading && <p className="events-status">Loading events…</p>}
         {error && <p className="events-status events-error">{error}</p>}
 
         {!loading && !error && (
           <div className="events-layout">
-            {/* LEFT: calendar */}
             <aside className="events-sidebar">
               <div className="events-calendar-card">
                 <div className="calendar-header">
@@ -265,7 +253,6 @@ function Events() {
               </div>
             </aside>
 
-            {/* RIGHT: events for selected day */}
             <section className="events-main">
               <h2 className="events-month-heading">{monthLabel}</h2>
               <p className="events-selected-date">

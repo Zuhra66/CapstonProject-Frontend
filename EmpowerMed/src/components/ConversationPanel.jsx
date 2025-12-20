@@ -21,12 +21,10 @@ export default function ConversationPanel({
   return (
     <div className="conversation-panel">
 
-      {/* HEADER */}
       <div className="conversation-header">
         <h5 className="conversation-title">{title}</h5>
       </div>
 
-      {/* SCROLLING MESSAGE AREA */}
       <div className="conversation-history">
         {messages.length === 0 ? (
           <p className="text-muted text-center mt-3">
@@ -56,7 +54,6 @@ export default function ConversationPanel({
         )}
     </div>
 
-      {/* COMPOSER */}
       <div className="conversation-reply">
         <Form.Control
           as="textarea"
@@ -83,4 +80,3 @@ export default function ConversationPanel({
     </div>
   );
 }
-

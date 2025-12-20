@@ -22,7 +22,6 @@ export default function Navbar() {
   const [backendUser, setBackendUser] = useState(null);
   const [fetchingBackendUser, setFetchingBackendUser] = useState(false);
 
-  // Optimized: Fetch backend user only when needed
   useEffect(() => {
     let alive = true;
 
@@ -56,7 +55,7 @@ export default function Navbar() {
           setBackendUser(data.user);
         }
       } catch (error) {
-        console.debug("Navbar: Could not fetch backend user", error);
+        // Error handled silently
       } finally {
         if (alive) setFetchingBackendUser(false);
       }
@@ -131,23 +130,20 @@ export default function Navbar() {
     });
   };
 
-  // UPDATED: Appointments is now always in More menu (visible to everyone)
   const moreLinks = useMemo(() => {
     const links = [
       { to: "/blog", label: "Blog" },
       { to: "/education", label: "Education" },
       { to: "/booking", label: "Book An Appointment" },
-      //{ to: "/appointment", label: "Appointments" }, // The appointment page is intended for users only, the page will be blank for anyone that doesnt have an account and may confuse admin. 
     ];
 
     if (isAuthenticated && !isAdmin) {
-    links.push({ to: "/appointment", label: "My Appointments" });
-  }
+      links.push({ to: "/appointment", label: "My Appointments" });
+    }
     
     return links;
-  }, [isAuthenticated, isAdmin]); // Removed isAuthenticated dependency << reinserted 
+  }, [isAuthenticated, isAdmin]);
 
-  // Primary links remain the same
   const primaryLinks = useMemo(() => [
     { to: "/", label: "Home" },
     { to: "/about", label: "About" },
@@ -174,7 +170,6 @@ export default function Navbar() {
 
           <div className={styles.navbarMain}>
             <div className={styles.navbarNav}>
-              {/* Primary Links */}
               {primaryLinks.map(link => (
                 <NavLink 
                   key={link.to}
@@ -186,7 +181,6 @@ export default function Navbar() {
                 </NavLink>
               ))}
 
-              {/* More Menu - Now includes Appointments for everyone */}
               <div 
                 className={styles.moreMenu}
                 onMouseEnter={() => setShowMoreMenu(true)}
@@ -235,7 +229,6 @@ export default function Navbar() {
               ) : !isAuthenticated ? (
                 <div className={styles.authButtons}>
                   <button className={styles.loginBtn} onClick={handleLogin}>Login</button>
-                  {/* Updated Sign Up Section - Now properly linked to Auth0 signup */}
                   <div className={styles.signupContainer}>
                     <a 
                       className={styles.signupLink}
@@ -285,10 +278,8 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Nav */}
         <div className={`${styles.mobileNav} ${isOpen ? styles.mobileNavOpen : ""}`}>
           <div className={styles.mobileNavContent}>
-            {/* Primary links */}
             {primaryLinks.map(link => (
               <NavLink 
                 key={link.to} 
@@ -300,7 +291,6 @@ export default function Navbar() {
               </NavLink>
             ))}
 
-            {/* More links - Appointments always visible */}
             {moreLinks.map(link => (
               <NavLink 
                 key={link.to} 

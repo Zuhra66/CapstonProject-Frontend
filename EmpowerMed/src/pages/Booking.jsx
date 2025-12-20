@@ -52,9 +52,6 @@ function getTZAbbreviation(timeZone, date = new Date()) {
   }
 }
 
-  // -------------------------
-  // TIMEZONE HANDLING
-  // -------------------------
 function convertToUserTime(pstTime, date) {
   if (!pstTime || !date) return pstTime;
 

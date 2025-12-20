@@ -74,7 +74,7 @@ function Services() {
     }
   ];
 
-  const [selected, setSelected] = useState(0); 
+  const [selected, setSelected] = useState(0);
 
   const exploreServices = () => setSelected(1);
   const backToIntro = () => setSelected(0);
@@ -83,9 +83,7 @@ function Services() {
     <div className="services-page">
       <div style={{ height: '140px' }}></div>
 
-      {/* MAIN CARD */}
       <div id="scene">
-        {/* LEFT MENU */}
         {selected !== 0 && (
           <div id="left-zone">
             <ul className="list">
@@ -110,7 +108,6 @@ function Services() {
 
         {selected !== 0 && <div id="middle-border"></div>}
 
-        {/* RIGHT CONTENT */}
         <div id="right-zone">
           <div className="right-content-scroll">
             <span className="picto">{services[selected].icon}</span>
