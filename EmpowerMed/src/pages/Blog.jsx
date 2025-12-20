@@ -109,7 +109,7 @@ export default function Blog() {
             
             const response = await fetch(url);
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error("Failed to load posts");
             
             const data = await response.json();
             

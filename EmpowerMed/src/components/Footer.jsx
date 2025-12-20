@@ -1,9 +1,7 @@
-// src/components/Footer.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "../styles/Footer.module.css";
 
-// Modal Component (inside same file)
 function Modal({ isOpen, onClose, title, children }) {
   useEffect(() => {
     const handleEscape = (e) => {
@@ -49,7 +47,6 @@ function Modal({ isOpen, onClose, title, children }) {
   );
 }
 
-// Newsletter Success Modal Component
 function NewsletterSuccessModal({ isOpen, onClose, message }) {
   if (!isOpen) return null;
 
@@ -132,7 +129,6 @@ function NewsletterSuccessModal({ isOpen, onClose, message }) {
   );
 }
 
-// Newsletter Error Modal Component
 function NewsletterErrorModal({ isOpen, onClose, message }) {
   if (!isOpen) return null;
 
@@ -215,7 +211,6 @@ function NewsletterErrorModal({ isOpen, onClose, message }) {
   );
 }
 
-// Main Footer Component
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [isTermsOpen, setIsTermsOpen] = useState(false);
@@ -225,7 +220,6 @@ export default function Footer() {
   const [modalMessage, setModalMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-// In Footer.jsx, update the handleNewsletterSubmit function:
 const handleNewsletterSubmit = async (e) => {
   e.preventDefault();
   
@@ -235,7 +229,6 @@ const handleNewsletterSubmit = async (e) => {
     return;
   }
   
-  // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     setModalMessage("Please enter a valid email address");
@@ -264,11 +257,9 @@ const handleNewsletterSubmit = async (e) => {
       setEmail('');
       
       if (result.verified) {
-        // Already verified and subscribed
         setModalMessage("You're already subscribed to our newsletter!");
         setIsSuccessModalOpen(true);
       } else {
-        // Needs verification
         setModalMessage("Thank you! Please check your email to confirm your subscription.");
         setIsSuccessModalOpen(true);
       }
@@ -278,7 +269,6 @@ const handleNewsletterSubmit = async (e) => {
       setIsErrorModalOpen(true);
     }
   } catch (error) {
-    console.error("Newsletter error:", error);
     setModalMessage("Network error. Please check your connection and try again.");
     setIsErrorModalOpen(true);
   } finally {
@@ -299,7 +289,6 @@ const handleNewsletterSubmit = async (e) => {
     <>
       <footer className={styles.footerSection}>
         <div className={styles.footerContent}>
-          {/* Left side - Branding & Navigation */}
           <div className={styles.footerLeft}>
             <h3 className={styles.footerBrand}>EmpowerMEd</h3>
             <nav className={styles.footerNav} aria-label="Footer navigation">
@@ -330,7 +319,6 @@ const handleNewsletterSubmit = async (e) => {
             </div>
           </div>
 
-          {/* Right side - Newsletter & Copyright */}
           <div className={styles.footerRight}>
             <div className={styles.newsletter}>
               <h4 className={styles.newsletterTitle}>Stay in the loop</h4>
@@ -383,21 +371,18 @@ const handleNewsletterSubmit = async (e) => {
         </div>
       </footer>
 
-      {/* Newsletter Success Modal */}
       <NewsletterSuccessModal 
         isOpen={isSuccessModalOpen} 
         onClose={() => setIsSuccessModalOpen(false)}
         message={modalMessage}
       />
 
-      {/* Newsletter Error Modal */}
       <NewsletterErrorModal 
         isOpen={isErrorModalOpen} 
         onClose={() => setIsErrorModalOpen(false)}
         message={modalMessage}
       />
 
-      {/* Terms of Service Modal */}
       <Modal 
         isOpen={isTermsOpen} 
         onClose={() => setIsTermsOpen(false)}
@@ -521,7 +506,6 @@ const handleNewsletterSubmit = async (e) => {
         </button>
       </Modal>
 
-      {/* Privacy Policy Modal */}
       <Modal 
         isOpen={isPrivacyOpen} 
         onClose={() => setIsPrivacyOpen(false)}

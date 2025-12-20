@@ -8,7 +8,6 @@ export default function MembershipSuccess() {
   const { user } = useAuth0();
   const [countdown, setCountdown] = useState(8);
 
-  // Auto-redirect to account page
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((c) => c - 1);

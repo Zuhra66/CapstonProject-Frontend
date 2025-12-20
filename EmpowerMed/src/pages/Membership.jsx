@@ -15,7 +15,6 @@ export default function Membership() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
-  // Membership Plans
   const studentPlan = {
     id: "student",
     type: "student",
@@ -35,7 +34,6 @@ export default function Membership() {
     price: "$99 / month",
   };
 
-  // Motion animations
   const titleFade = {
     hidden: { opacity: 0, y: -35 },
     visible: { opacity: 1, y: 0, transition: { duration: 1 } },
@@ -50,26 +48,24 @@ export default function Membership() {
     },
   };
 
-useEffect(() => {
-  const state = location.state;
+  useEffect(() => {
+    const state = location.state;
 
-  if (
-    isAuthenticated &&
-    state?.resumeCheckout &&
-    state?.planType
-  ) {
-    setSelectedPlan(
-      state.planType === "student" ? studentPlan : generalPlan
-    );
-    setDrawerOpen(true);
-  }
-}, [isAuthenticated, location.state]);
-
+    if (
+      isAuthenticated &&
+      state?.resumeCheckout &&
+      state?.planType
+    ) {
+      setSelectedPlan(
+        state.planType === "student" ? studentPlan : generalPlan
+      );
+      setDrawerOpen(true);
+    }
+  }, [isAuthenticated, location.state]);
 
   return (
     <div className="membership-page">
 
-      {/* ---------- FULL-WIDTH BLUE HERO BANNER ---------- */}
       <motion.div
         className="membership-hero-banner"
         variants={titleFade}
@@ -82,20 +78,17 @@ useEffect(() => {
         </p>
       </motion.div>
 
-      {/* ---------- TWO-COLUMN HERO CARD ---------- */}
       <motion.div
         className="membership-hero-card"
         variants={cardFade}
         initial="hidden"
         animate="visible"
       >
-        {/* LEFT IMAGE */}
         <div
           className="membership-hero-image"
           style={{ backgroundImage: `url(${membershipImg})` }}
         />
 
-        {/* RIGHT CONTENT */}
         <div className="membership-hero-body">
           <h2 className="display-font card-title">Why Become a Member?</h2>
           <div className="divider"></div>
@@ -105,7 +98,6 @@ useEffect(() => {
             ongoing support, and personalized care designed to help you thrive.
           </p>
 
-          {/* FEATURE LIST VERTICAL STYLE */}
           <div className="features-vertical">
             <div className="feature-item">
               <span className="feature-icon">✔</span>
@@ -140,12 +132,11 @@ useEffect(() => {
         </div>
       </motion.div>
 
-      {/* ---------- MEMBERSHIP ACCESS & FEE (NOW SEPARATE SECTION) ---------- */}
       <div className="membership-fee-section">
         <h3 className="membership-fee-title">Membership Access and Fee</h3>
 
         <p className="membership-fee-text">
-          <strong>General Membership:</strong> One flat fee of $99 per month — that’s it!
+          <strong>General Membership:</strong> One flat fee of $99 per month — that's it!
         </p>
 
         <p className="membership-fee-text">
@@ -153,7 +144,6 @@ useEffect(() => {
           college students. Afterward, enjoy 3 sessions for just $70.
         </p>
 
-        {/* Buttons */}
         <div className="membership-buttons">
           <button
             className="btn student-btn"
@@ -177,7 +167,6 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* ---------- CHECKOUT DRAWER ---------- */}
       {drawerOpen && (
         <CheckoutDrawer
           open={drawerOpen}

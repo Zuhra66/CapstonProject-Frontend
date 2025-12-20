@@ -11,8 +11,7 @@ export default function useAuthFetch() {
       const token = await getAccessTokenSilently({
         authorizationParams: {
           audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-          scope: "openid profile email" // same as provider
-        },
+          scope: "openid profile email" 
       });
 
       const res = await axios(url, {

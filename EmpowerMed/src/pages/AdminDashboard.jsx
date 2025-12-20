@@ -64,7 +64,6 @@ export default function AdminDashboard() {
         const data = await res.json();
         setStats(data);
       } catch (err) {
-        console.error("Dashboard data fetch error:", err);
         setStats(getFallbackStats());
       } finally {
         if (alive) setLoading(false);
@@ -128,7 +127,6 @@ export default function AdminDashboard() {
       gradient: "card-blue",
       link: "/admin/blog"
     },
-    // 🔹 NEW: Education Hub card (uses education stats, links to AdminEducation)
     { 
       icon: FiMessageCircle,
       title: "Education Hub", 
@@ -285,7 +283,6 @@ export default function AdminDashboard() {
             Blog
           </NavLink>
 
-          {/* 🔹 NEW: link to AdminEducation page */}
           <NavLink 
             to="/admin/education" 
             className={({ isActive }) => 
@@ -348,7 +345,6 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Activity Overview & System Status (unchanged) */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="about-section">
@@ -356,7 +352,6 @@ export default function AdminDashboard() {
                   <h2 className="display-font about-title">Activity Overview</h2>
                 </div>
                 <div className="row">
-                  {/* Audit Activity Card */}
                   <div className="col-md-6 mb-3">
                     <div className="card h-100">
                       <div className="card-body">
@@ -388,7 +383,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   
-                  {/* System Status Card */}
                   <div className="col-md-6 mb-3">
                     <div className="card h-100">
                       <div className="card-body">
@@ -426,7 +420,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Detailed Statistics Section */}
           <div className="about-section">
             <div className="about-header">
               <h2 className="display-font about-title">Detailed Statistics</h2>

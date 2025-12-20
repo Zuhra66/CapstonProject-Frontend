@@ -1,4 +1,3 @@
-// src/pages/AdminEvents.jsx
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -6,7 +5,6 @@ const API_BASE = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5001"
 ).replace(/\/+$/, "");
 
-// helper to read cookies (for CSRF)
 function getCookie(name) {
   if (typeof document === "undefined") return null;
   const match = document.cookie
@@ -40,9 +38,8 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [file, setFile] = useState(null); // <-- selected file
+  const [file, setFile] = useState(null);
 
-  // Load events
   useEffect(() => {
     let alive = true;
 
@@ -81,7 +78,6 @@ export default function AdminEvents() {
 
         if (!res.ok) {
           const text = await res.text();
-          console.error("Failed to load events:", res.status, text);
           throw new Error(`HTTP ${res.status}`);
         }
 
@@ -90,7 +86,6 @@ export default function AdminEvents() {
 
         setEvents(data.events || []);
       } catch (err) {
-        console.error("Admin events error:", err);
         if (!alive) return;
         setError("Failed to load events.");
       } finally {
@@ -119,7 +114,6 @@ export default function AdminEvents() {
   function onFileChange(e) {
     const f = e.target.files && e.target.files[0];
     setFile(f || null);
-    // keep any existing URL in case they don't actually want to upload a new file
   }
 
   function startNew() {
@@ -193,7 +187,6 @@ export default function AdminEvents() {
       let body;
 
       if (file) {
-        // 🔄 Send multipart/form-data with file
         const fd = new FormData();
         fd.append("title", form.title);
         fd.append("description", form.description || "");
@@ -207,12 +200,10 @@ export default function AdminEvents() {
           form.endTime ? new Date(form.endTime).toISOString() : ""
         );
         fd.append("status", form.status);
-        fd.append("imageUrl", form.imageUrl || ""); // optional extra URL if you want
+        fd.append("imageUrl", form.imageUrl || "");
         fd.append("file", file);
         body = fd;
-        // NOTE: do NOT set Content-Type, browser will set boundary automatically
       } else {
-        // 🔄 Fallback: JSON request (no file)
         headers["Content-Type"] = "application/json";
         const payload = {
           title: form.title,
@@ -239,7 +230,6 @@ export default function AdminEvents() {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error("Save event failed:", res.status, text);
         throw new Error(`HTTP ${res.status}`);
       }
 
@@ -247,7 +237,6 @@ export default function AdminEvents() {
       setForm(emptyEvent);
       setFile(null);
     } catch (err) {
-      console.error("Admin events save error:", err);
       setError("Failed to save event.");
     } finally {
       setSaving(false);
@@ -283,7 +272,6 @@ export default function AdminEvents() {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error("Delete event failed:", res.status, text);
         throw new Error(`HTTP ${res.status}`);
       }
 
@@ -293,7 +281,6 @@ export default function AdminEvents() {
         setFile(null);
       }
     } catch (err) {
-      console.error("Admin events delete error:", err);
       setError("Failed to delete event.");
     }
   }
@@ -336,7 +323,6 @@ export default function AdminEvents() {
           <div className="alert alert-danger body-font mb-3">{error}</div>
         )}
 
-        {/* Filter + New button */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
             <label className="body-font me-2">Filter by status:</label>
@@ -358,7 +344,6 @@ export default function AdminEvents() {
           </button>
         </div>
 
-        {/* Layout: list + form */}
         <div className="row">
           <div className="col-md-6 mb-4">
             <div className="card h-100">
@@ -387,7 +372,6 @@ export default function AdminEvents() {
                           </div>
                         </div>
 
-                        {/* ✅ stack Edit / Delete vertically so they don't overlap */}
                         <div className="admin-event-actions">
                           <button
                             className="btn btn-sm btn-outline-primary"
@@ -456,7 +440,6 @@ export default function AdminEvents() {
                     />
                   </div>
 
-                  {/* Existing URL field still supported */}
                   <div className="mb-3">
                     <label className="form-label body-font">
                       Image / Flyer URL (optional)
@@ -471,7 +454,6 @@ export default function AdminEvents() {
                     />
                   </div>
 
-                  {/* New file upload */}
                   <div className="mb-3">
                     <label className="form-label body-font">
                       Upload image or PDF (optional)

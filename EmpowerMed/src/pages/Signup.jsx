@@ -9,9 +9,9 @@ export default function Signup() {
   useEffect(() => {
     const timer = setTimeout(() => {
       loginWithRedirect({
-        screen_hint: 'signup', // forces Universal Signup screen
+        screen_hint: 'signup',
       });
-    }, 100); // short delay to avoid flash
+    }, 100);
     return () => clearTimeout(timer);
   }, [loginWithRedirect]);
 

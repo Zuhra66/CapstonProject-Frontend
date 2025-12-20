@@ -7,7 +7,6 @@ const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").repla
   ""
 );
 
-// Tags used for filter pills
 const TAGS = [
   "All",
   "Burnout",
@@ -20,7 +19,6 @@ const TAGS = [
   "Spanish / English",
 ];
 
-// Could be populated later if you have video-specific links
 const STATIC_VIDEOS = [];
 
 const STATIC_DOWNLOADS = [
@@ -62,21 +60,17 @@ const STATIC_DOWNLOADS = [
   },
 ];
 
-// 🔧 Helper: if URL is relative (/uploads/...), prefix with backend base URL
 function withApiBase(url) {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   if (url.startsWith("/")) return `${API_BASE}${url}`;
-  return url; // some other relative URL; leave as-is
+  return url;
 }
 
-// 🔎 Helper: derive a thumbnail for videos
 function getVideoThumb(v) {
-  // 1) Prefer explicit thumbnail URL from API/DB
   if (v.thumb_url) return withApiBase(v.thumb_url);
   if (v.thumb) return withApiBase(v.thumb);
 
-  // 2) Try to infer from YouTube link
   if (v.href) {
     const match = v.href.match(
       /(?:youtube\.com\/.*v=|youtu\.be\/)([A-Za-z0-9_-]+)/
@@ -87,7 +81,6 @@ function getVideoThumb(v) {
     }
   }
 
-  // 3) Fallback: no thumbnail
   return "";
 }
 
@@ -100,7 +93,6 @@ export default function EducationalHub() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // ✅ Load content from API ONCE; client-side handles search & tags
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -127,10 +119,8 @@ export default function EducationalHub() {
         setVideos([...STATIC_VIDEOS, ...apiVideos]);
         setDownloads([...STATIC_DOWNLOADS, ...apiDownloads]);
       } catch (e) {
-        console.error(e);
         if (!alive) return;
 
-        // If API fails, just show no articles and keep static downloads
         setArticles([]);
         setVideos(STATIC_VIDEOS);
         setDownloads(STATIC_DOWNLOADS);
@@ -143,9 +133,8 @@ export default function EducationalHub() {
     return () => {
       alive = false;
     };
-  }, []); // 👈 no q/tag deps
+  }, []);
 
-  // ✅ Client-side search & tag filtering
   const filteredArticles = useMemo(() => {
     if (!articles.length) return [];
 
@@ -166,7 +155,6 @@ export default function EducationalHub() {
 
   return (
     <div className={s.page}>
-      {/* Hero */}
       <section className={s.hero}>
         <div className={s.heroInner}>
           <h1 className={s.title}>Education &amp; Resources</h1>
@@ -201,13 +189,11 @@ export default function EducationalHub() {
         </div>
       </section>
 
-      {/* Status messages */}
       <section className={s.wrap}>
         {loading && <div className={s.muted}>Loading resources…</div>}
         {err && !loading && <div className={s.muted}>{err}</div>}
       </section>
 
-      {/* Core topics overview / purpose */}
       {!loading && !err && (
         <section className={s.wrap}>
           <h2 className={s.sectionTitle}>Core Topics</h2>
@@ -222,7 +208,6 @@ export default function EducationalHub() {
         </section>
       )}
 
-      {/* Featured Articles & Courses */}
       <section className={s.wrap}>
         <h2 className={s.sectionTitle}>Featured Articles &amp; Courses</h2>
         <div className={s.grid}>
@@ -283,7 +268,6 @@ export default function EducationalHub() {
         </div>
       </section>
 
-      {/* Video Guides */}
       <section className={s.wrap}>
         <h2 className={s.sectionTitle}>Video Guides</h2>
         <p className={s.muted}>
@@ -323,12 +307,11 @@ export default function EducationalHub() {
         </div>
       </section>
 
-      {/* Purpose section at the bottom */}
       {!loading && !err && (
         <section className={s.wrap}>
           <h2 className={s.sectionTitle}>Our Educational Purpose</h2>
           <p className={s.cardSummary}>
-            The purpose of EmpowerMEd’s educational material is to{" "}
+            The purpose of EmpowerMEd's educational material is to{" "}
             <strong>teach, empower, and equip</strong> individuals to make
             sustainable changes that support lifelong wellness. We believe that
             combining evidence-based tools, faith-informed practices, and

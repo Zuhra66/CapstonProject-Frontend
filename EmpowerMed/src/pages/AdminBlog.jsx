@@ -109,7 +109,6 @@ export default function AdminBlog() {
       setPosts(data.posts || []);
     } catch (err) {
       setError(err.message || "Failed to load blog posts");
-      console.error("Load posts error:", err);
     } finally {
       setLoading(false);
     }
@@ -237,7 +236,6 @@ export default function AdminBlog() {
       cancelEdit();
     } catch (err) {
       setError(err.message || "Failed to save post");
-      console.error("Save post error:", err);
     } finally {
       setBusy(false);
     }
@@ -863,7 +861,6 @@ export default function AdminBlog() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       <Modal 
         show={showDeleteModal} 
         onHide={() => !busy && setShowDeleteModal(false)} 

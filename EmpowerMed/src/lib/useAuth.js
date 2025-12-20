@@ -9,9 +9,6 @@ const API = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(
 
 let auth0Client = null;
 
-/**
- * Main auth hook – your original logic, with a small cancellation guard.
- */
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
@@ -21,7 +18,6 @@ export function useAuth() {
 
     (async () => {
       try {
-        // Initialize Auth0 client once
         if (!auth0Client) {
           auth0Client = await createAuth0Client({
             domain: import.meta.env.VITE_AUTH0_DOMAIN,
@@ -34,7 +30,6 @@ export function useAuth() {
           });
         }
 
-        // Handle redirect callback
         if (window.location.search.includes("code=")) {
           await auth0Client.handleRedirectCallback();
           window.history.replaceState({}, document.title, "/");
@@ -50,9 +45,7 @@ export function useAuth() {
           return;
         }
 
-        // Basic Auth0 user info
         const auth0User = await auth0Client.getUser();
-        // Get API token
         const token = await auth0Client.getTokenSilently();
 
         const res = await fetch(`${API}/auth/me`, {
@@ -62,11 +55,9 @@ export function useAuth() {
         const data = await res.json();
 
         if (!cancelled) {
-          // you can merge auth0User + data.user if needed
           setUser(data.user || auth0User || null);
         }
       } catch (err) {
-        console.error("Auth error:", err);
         if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) setReady(true);
@@ -81,17 +72,7 @@ export function useAuth() {
   return { user, ready, auth0: auth0Client };
 }
 
-/**
- * useAuthFetch
- * Hook that returns an authenticated fetch helper using the same Auth0 client.
- *
- * Usage:
- *   const authFetch = useAuthFetch();
- *   const res = await authFetch("/api/admin/education/articles");
- *   console.log(res.data);
- */
 export function useAuthFetch() {
-  // calling useAuth here ensures Auth0 gets initialized
   const { ready } = useAuth();
 
   const authFetch = useCallback(
@@ -147,5 +128,4 @@ export function useAuthFetch() {
   return authFetch;
 }
 
-// Default export so `import useAuthFetch from "../lib/useAuth"` works
 export default useAuthFetch;

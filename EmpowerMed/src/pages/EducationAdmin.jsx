@@ -7,10 +7,8 @@ const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001").repla
   ""
 );
 
-// helper: convert array -> "tag1, tag2"
 const tagsToString = (tags) => (Array.isArray(tags) ? tags.join(", ") : "");
 
-// generic authenticated fetch helper for this page
 async function authedFetch(getAccessTokenSilently, path, options = {}) {
   const token = await getAccessTokenSilently({
     authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
@@ -18,7 +16,6 @@ async function authedFetch(getAccessTokenSilently, path, options = {}) {
 
   const isFormData = options.body instanceof FormData;
 
-  // 🔐 Read CSRF token from cookie
   let xsrfToken = null;
   if (typeof document !== "undefined") {
     const match = document.cookie
@@ -30,18 +27,15 @@ async function authedFetch(getAccessTokenSilently, path, options = {}) {
     }
   }
 
-  // Build headers, respecting FormData & any custom headers
   const headers = {
     ...(options.headers || {}),
     Authorization: `Bearer ${token}`,
   };
 
-  // Only set Content-Type for non-FormData; browser sets it automatically for FormData
   if (!isFormData && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
 
-  // Add CSRF header if we have a token
   if (xsrfToken) {
     headers["X-XSRF-TOKEN"] = xsrfToken;
   }
@@ -55,13 +49,13 @@ async function authedFetch(getAccessTokenSilently, path, options = {}) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     const err = new Error(
-      `Request failed with ${res.status} ${res.statusText} ${text}`
+      `Request failed with ${res.status} ${res.statusText}`
     );
     err.status = res.status;
     err.body = text;
     throw err;
   }
-  // if response has no body (e.g. DELETE), just return null
+
   const contentType = res.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) return null;
   return res.json();
@@ -82,10 +76,8 @@ export default function AdminEducation() {
   const [articles, setArticles] = useState([]);
   const [videos, setVideos] = useState([]);
 
-  // which section is active in UI
   const [section, setSection] = useState("articles");
 
-  // forms
   const [articleForm, setArticleForm] = useState({
     id: null,
     title: "",
@@ -95,7 +87,7 @@ export default function AdminEducation() {
     cover_url: "",
     href: "",
     is_active: true,
-    coverFile: null, // ✅ new: local file for cover image
+    coverFile: null,
   });
 
   const [videoForm, setVideoForm] = useState({
@@ -111,7 +103,6 @@ export default function AdminEducation() {
   const isEditingArticle = articleForm.id !== null;
   const isEditingVideo = videoForm.id !== null;
 
-  /* ---------------------- LOAD DATA ---------------------- */
   useEffect(() => {
     let alive = true;
 
@@ -139,7 +130,6 @@ export default function AdminEducation() {
         setArticles(articlesRes.articles || []);
         setVideos(videosRes.videos || []);
       } catch (err) {
-        console.error("Admin education load error:", err);
         if (!alive) return;
         setError("Failed to load education content.");
       } finally {
@@ -152,11 +142,9 @@ export default function AdminEducation() {
     };
   }, [isLoading, isAuthenticated, loginWithRedirect, getAccessTokenSilently]);
 
-  /* ---------------------- FORM HANDLERS ---------------------- */
   const handleArticleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
 
-    // ✅ handle file input separately
     if (name === "coverFile") {
       const file = files && files[0] ? files[0] : null;
       setArticleForm((f) => ({
@@ -180,7 +168,6 @@ export default function AdminEducation() {
     }));
   };
 
-  /* ---- edit / reset helpers ---- */
   const resetArticleForm = () =>
     setArticleForm({
       id: null,
@@ -216,7 +203,7 @@ export default function AdminEducation() {
       cover_url: a.cover_url || "",
       href: a.href || "",
       is_active: a.is_active ?? true,
-      coverFile: null, // reset file when editing
+      coverFile: null,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -235,7 +222,6 @@ export default function AdminEducation() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  /* ---------------------- SUBMIT HANDLERS ---------------------- */
   const submitArticle = async (e) => {
     e.preventDefault();
     try {
@@ -272,7 +258,6 @@ export default function AdminEducation() {
       let saved;
 
       if (articleForm.coverFile) {
-        // ✅ send multipart/form-data when a file is chosen
         const formData = new FormData();
         formData.append("title", baseFields.title);
         formData.append("summary", baseFields.summary);
@@ -283,7 +268,6 @@ export default function AdminEducation() {
         formData.append("href", baseFields.href || "");
         formData.append("is_active", baseFields.is_active ? "true" : "false");
 
-        // field name "file" – match your backend multer config
         formData.append("file", articleForm.coverFile);
 
         saved = await authedFetch(getAccessTokenSilently, path, {
@@ -291,7 +275,6 @@ export default function AdminEducation() {
           body: formData,
         });
       } else {
-        // ✅ no file: send JSON as before (cover_url still supported)
         const payload = {
           ...baseFields,
           cover_url: articleForm.cover_url.trim() || null,
@@ -312,7 +295,6 @@ export default function AdminEducation() {
 
       resetArticleForm();
     } catch (err) {
-      console.error("Save education article error:", err);
       alert("Failed to save article.");
     } finally {
       setSaving(false);
@@ -334,7 +316,7 @@ export default function AdminEducation() {
         duration: videoForm.duration.trim() || null,
         tags: videoForm.tags,
         thumb_url: videoForm.thumb_url.trim() || null,
-        href: videoForm.href.trim() || null, // ✅ video link (YouTube, Vimeo, etc.)
+        href: videoForm.href.trim() || null,
         is_active: !!videoForm.is_active,
       };
 
@@ -368,14 +350,12 @@ export default function AdminEducation() {
 
       resetVideoForm();
     } catch (err) {
-      console.error("Save education video error:", err);
       alert("Failed to save video.");
     } finally {
       setSaving(false);
     }
   };
 
-  /* ---------------------- DELETE HANDLERS ---------------------- */
   const deleteArticle = async (a) => {
     if (!window.confirm(`Delete article "${a.title}"?`)) return;
     try {
@@ -388,7 +368,6 @@ export default function AdminEducation() {
       setArticles((prev) => prev.filter((x) => x.id !== a.id));
       if (articleForm.id === a.id) resetArticleForm();
     } catch (err) {
-      console.error("Delete article error:", err);
       alert("Failed to delete article.");
     } finally {
       setSaving(false);
@@ -407,14 +386,12 @@ export default function AdminEducation() {
       setVideos((prev) => prev.filter((x) => x.id !== v.id));
       if (videoForm.id === v.id) resetVideoForm();
     } catch (err) {
-      console.error("Delete video error:", err);
       alert("Failed to delete video.");
     } finally {
       setSaving(false);
     }
   };
 
-  /* ---------------------- STATUS RENDERS ---------------------- */
   if (isLoading) {
     return (
       <div className="page-content pt-small">
@@ -445,13 +422,11 @@ export default function AdminEducation() {
     );
   }
 
-  /* ---------------------- MAIN RENDER ---------------------- */
   return (
     <div className="page-content pt-small">
       <div className="container">
         <h1 className="display-font mb-4">Education Hub (Admin)</h1>
 
-        {/* Tabs */}
         <ul className="nav nav-tabs mb-4">
           <li className="nav-item">
             <button
@@ -471,7 +446,6 @@ export default function AdminEducation() {
           </li>
         </ul>
 
-        {/* ARTICLES FORM + LIST */}
         {section === "articles" && (
           <>
             <section className="mb-5">
@@ -545,7 +519,6 @@ export default function AdminEducation() {
                     />
                   </div>
 
-                  {/* ✅ NEW: upload cover image from computer */}
                   <div className="col-md-6">
                     <label className="form-label">Cover image (upload)</label>
                     <input
@@ -569,7 +542,6 @@ export default function AdminEducation() {
                     )}
                   </div>
 
-                  {/* Still allow direct URL (optional) */}
                   <div className="col-md-12">
                     <label className="form-label">
                       Cover image URL (optional if you upload a file)
@@ -666,7 +638,6 @@ export default function AdminEducation() {
           </>
         )}
 
-        {/* VIDEOS FORM + LIST */}
         {section === "videos" && (
           <>
             <section className="mb-5">

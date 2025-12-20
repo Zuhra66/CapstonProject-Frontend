@@ -6,7 +6,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5001")
   .replace(/\/+$/, "");
 
-// 1) Add this helper ABOVE authFetchWithToken
 function getCookie(name) {
   if (typeof document === "undefined") return null;
   const value = `; ${document.cookie}`;
@@ -15,7 +14,6 @@ function getCookie(name) {
   return null;
 }
 
-// 2) Put your authFetchWithToken RIGHT AFTER getCookie
 async function authFetchWithToken(getAccessTokenSilently, path, options = {}) {
   const token = await getAccessTokenSilently({
     audience: import.meta.env.VITE_AUTH0_AUDIENCE,
@@ -23,13 +21,11 @@ async function authFetchWithToken(getAccessTokenSilently, path, options = {}) {
 
   const { data, ...restOptions } = options;
 
-  // base headers: auth + (optional) CSRF
   const headers = {
     ...(restOptions.headers || {}),
     Authorization: `Bearer ${token}`,
   };
 
-  // grab CSRF token from cookie and send as header
   const xsrf = getCookie("XSRF-TOKEN");
   if (xsrf) {
     headers["x-xsrf-token"] = xsrf;
@@ -42,7 +38,7 @@ async function authFetchWithToken(getAccessTokenSilently, path, options = {}) {
   const fetchOptions = {
     ...restOptions,
     headers,
-    credentials: "include",         // keep cookies flowing
+    credentials: "include",
     body: data !== undefined ? JSON.stringify(data) : restOptions.body,
   };
 
@@ -84,7 +80,6 @@ export default function AdminProducts() {
 
   const fileInputRef = useRef(null);
 
-  // form state – price is in *dollars*
   const [form, setForm] = useState({
     id: null,
     name: "",
@@ -97,7 +92,6 @@ export default function AdminProducts() {
 
   const isEditing = form.id !== null;
 
-  /* -------------------------- Helpers -------------------------- */
   const resetForm = () =>
     setForm({
       id: null,
@@ -119,7 +113,6 @@ export default function AdminProducts() {
     });
   };
 
-  /* -------------------------- Load data -------------------------- */
   useEffect(() => {
     let alive = true;
 
@@ -144,7 +137,7 @@ export default function AdminProducts() {
           }),
         ]);
 
-        const productsJson = productsRes.data; // { products, pagination }
+        const productsJson = productsRes.data;
         const rows = productsJson?.products || [];
 
         const categoriesJson = categoriesRes.ok
@@ -157,7 +150,6 @@ export default function AdminProducts() {
         setCategories(categoriesJson.categories || categoriesJson || []);
       } catch (err) {
         if (!alive) return;
-        console.error("Admin products load error:", err);
         setError("Failed to load products.");
       } finally {
         if (alive) setLoading(false);
@@ -169,7 +161,6 @@ export default function AdminProducts() {
     };
   }, [isLoading, isAuthenticated, loginWithRedirect, getAccessTokenSilently]);
 
-  /* -------------------------- Form handlers -------------------------- */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({
@@ -215,7 +206,6 @@ export default function AdminProducts() {
       const updated = res.data;
       setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     } catch (err) {
-      console.error("Deactivate product error:", err);
       alert("Failed to update product status.");
     } finally {
       setSaving(false);
@@ -242,7 +232,6 @@ export default function AdminProducts() {
         resetForm();
       }
     } catch (err) {
-      console.error("Delete product error:", err);
       const message =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -253,7 +242,6 @@ export default function AdminProducts() {
     }
   };
 
-  // when user selects a file for the image
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -262,7 +250,6 @@ export default function AdminProducts() {
     reader.onloadend = () => {
       const result = reader.result;
       if (typeof result === "string") {
-        // store as data URL in image_url
         setForm((f) => ({ ...f, image_url: result }));
       }
     };
@@ -291,8 +278,8 @@ export default function AdminProducts() {
 
       const payload = {
         name: form.name.trim(),
-        price: priceNumber, // dollars (matches backend)
-        image_url: form.image_url || null, // may be URL OR data URL
+        price: priceNumber,
+        image_url: form.image_url || null,
         external_url: form.external_url.trim() || null,
         category_id: form.category_id || null,
         is_active: !!form.is_active,
@@ -330,7 +317,6 @@ export default function AdminProducts() {
       resetForm();
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
-      console.error("Save product error:", err);
       const message =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -341,7 +327,6 @@ export default function AdminProducts() {
     }
   };
 
-  /* -------------------------- Render states -------------------------- */
   if (isLoading) {
     return (
       <div className="page-content pt-small">
@@ -372,7 +357,6 @@ export default function AdminProducts() {
     );
   }
 
-  /* -------------------------- Main render -------------------------- */
   return (
     <div className="page-content pt-small">
       <div className="container">
@@ -383,7 +367,6 @@ export default function AdminProducts() {
           </NavLink>
         </div>
 
-        {/* Create / edit form */}
         <section className="mb-5">
           <h2 className="display-font mb-3">
             {isEditing ? "Edit product" : "Create product"}
@@ -462,12 +445,11 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              {/* IMAGE: URL + upload from computer */}
-              <div className="col-md-6">
-                <label htmlFor="image_url" className="form-label body-font">
-                  Image
-                </label>
-                <div className="input-group">
+<div className="col-md-6">
+  <label htmlFor="image_url" className="form-label body-font">
+    Image
+  </label>
+                <div className="input-group" style={{ height: '38px' }}>
                   <input
                     id="image_url"
                     name="image_url"
@@ -476,11 +458,16 @@ export default function AdminProducts() {
                     value={form.image_url}
                     onChange={handleChange}
                     placeholder="https://example.com/image.jpg"
+                    style={{ height: '100%' }}
                   />
                   <button
-                    className="btn btn-outline-secondary"
+                    className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
                     onClick={triggerFilePicker}
                     type="button"
+                    style={{ 
+                      height: '100%',
+                      padding: '0 12px'
+                    }}
                   >
                     Upload…
                   </button>
@@ -541,7 +528,6 @@ export default function AdminProducts() {
           </form>
         </section>
 
-        {/* Existing products */}
         <section>
           <h2 className="display-font mb-3">Existing products</h2>
 

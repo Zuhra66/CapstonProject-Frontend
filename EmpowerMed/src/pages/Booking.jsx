@@ -4,17 +4,17 @@ import { Card, Spinner, Modal, Button, Form } from "react-bootstrap";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../styles/Booking.css";
-import { useAuth } from "../lib/useAuth";   
+import { useAuth } from "../lib/useAuth";
 import { FiCheckCircle, FiAlertTriangle, FiAlertCircle } from "react-icons/fi";
 
 export default function Booking({ userId }) {
-  const { user } = useAuth();               
-  const finalUserId = userId || user?.id;  
+  const { user } = useAuth();
+  const finalUserId = userId || user?.id;
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [selectedType, setSelectedType] = useState(""); 
+  const [selectedType, setSelectedType] = useState("");
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -37,52 +37,44 @@ export default function Booking({ userId }) {
   const providerTimeZone = "America/Los_Angeles";
   const userIsInProviderTZ = userTimeZone === providerTimeZone;
 
-
-function getTZAbbreviation(timeZone, date = new Date()) {
-  try {
-    const dtf = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      timeZoneName: "short"
-    });
-    const parts = dtf.formatToParts(date);
-    const tz = parts.find(p => p.type === "timeZoneName");
-    return tz ? tz.value : "";
-  } catch {
-    return "";
+  function getTZAbbreviation(timeZone, date = new Date()) {
+    try {
+      const dtf = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        timeZoneName: "short"
+      });
+      const parts = dtf.formatToParts(date);
+      const tz = parts.find(p => p.type === "timeZoneName");
+      return tz ? tz.value : "";
+    } catch {
+      return "";
+    }
   }
-}
 
-  // -------------------------
-  // TIMEZONE HANDLING
-  // -------------------------
-function convertToUserTime(pstTime, date) {
-  if (!pstTime || !date) return pstTime;
+  function convertToUserTime(pstTime, date) {
+    if (!pstTime || !date) return pstTime;
 
-  const [time, modifier] = pstTime.split(" ");
-  let [hours, minutes] = time.split(":");
-  hours = parseInt(hours, 10);
+    const [time, modifier] = pstTime.split(" ");
+    let [hours, minutes] = time.split(":");
+    hours = parseInt(hours, 10);
 
-  if (modifier === "PM" && hours !== 12) hours += 12;
-  if (modifier === "AM" && hours === 12) hours = 0;
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
 
-  const dateStr = date.toISOString().split("T")[0];
+    const dateStr = date.toISOString().split("T")[0];
 
-  // Build the "provider time" in their timezone
-  const providerDate = new Date(
-    new Date(`${dateStr}T${String(hours).padStart(2, "0")}:${minutes}:00`)
-      .toLocaleString("en-US", { timeZone: providerTimeZone })
-  );
+    const providerDate = new Date(
+      new Date(`${dateStr}T${String(hours).padStart(2, "0")}:${minutes}:00`)
+        .toLocaleString("en-US", { timeZone: providerTimeZone })
+    );
 
-  // Convert to the user's timezone
-  return providerDate.toLocaleTimeString("en-US", {
-    timeZone: userTimeZone,
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
+    return providerDate.toLocaleTimeString("en-US", {
+      timeZone: userTimeZone,
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
 
-
-  // Fetch available times
   useEffect(() => {
     if (!selectedDate) return;
 
@@ -94,7 +86,6 @@ function convertToUserTime(pstTime, date) {
         const data = await res.json();
         setAvailableTimes(data.times || []);
       } catch (err) {
-        console.error("Error fetching times:", err);
         setAvailableTimes([]);
         showError("Failed to load available times. Please try again.");
       } finally {
@@ -126,7 +117,6 @@ function convertToUserTime(pstTime, date) {
   };
 
   const handleConfirmBooking = async () => {
-    // Validation
     if (!selectedType) {
       showValidationError("Please select an appointment type.");
       return;
@@ -137,7 +127,6 @@ function convertToUserTime(pstTime, date) {
       return;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showValidationError("Please enter a valid email address.");
@@ -157,7 +146,7 @@ function convertToUserTime(pstTime, date) {
           time: selectedTime,
           email,
           appointment_type: selectedType,
-          userId: finalUserId,  
+          userId: finalUserId,
         }),
       });
 
@@ -174,13 +163,11 @@ function convertToUserTime(pstTime, date) {
 
         setAvailableTimes((prev) => prev.filter((t) => t !== selectedTime));
         
-        // Reset form
         resetForm();
       } else {
         showError(data.message || "Booking failed. Please try again.");
       }
     } catch (err) {
-      console.error("Booking error:", err);
       showError("Network error. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
@@ -201,12 +188,10 @@ function convertToUserTime(pstTime, date) {
           <h1 className="booking-title text-center">Book an Appointment</h1>
 
           <div className="calendar-times-container">
-            {/* Calendar */}
             <div className="calendar-wrapper">
               <Calendar value={selectedDate} onChange={setSelectedDate} />
             </div>
 
-            {/* Times */}
             <div className="times-wrapper">
               <h4 className="available-times-title">Available Times</h4>
 
@@ -227,11 +212,8 @@ function convertToUserTime(pstTime, date) {
                         onClick={() => handleTimeClick(time)}
                         disabled={isSubmitting}
                       >
-
-                        {/* User time with user's timezone abbreviation */}
                         {userTime} ({getTZAbbreviation(userTimeZone, selectedDate)})
 
-                        {/* Provider time shown ONLY if user is not in PST */}
                         {!userIsInProviderTZ && (
                           <div className="provider-time-label">
                             (Provider time: {time} {getTZAbbreviation(providerTimeZone, selectedDate)})
@@ -252,7 +234,6 @@ function convertToUserTime(pstTime, date) {
         </Card.Body>
       </Card>
 
-      {/* Booking Confirmation Modal - COMPACT VERSION */}
       <Modal 
         show={showModal} 
         onHide={() => !isSubmitting && setShowModal(false)} 
@@ -262,13 +243,12 @@ function convertToUserTime(pstTime, date) {
       >
         <Modal.Header
           closeButton={!isSubmitting}
-          className="modal-header-custom"
           style={{ padding: "0.75rem 1rem" }}
         >
           <Modal.Title style={{ fontSize: "1.1rem" }}>Confirm Appointment</Modal.Title>
         </Modal.Header>
 
-        <Modal.Body className="modal-body-custom" style={{ padding: "1rem" }}>
+        <Modal.Body style={{ padding: "1rem" }}>
           <div className="appointment-details mb-3 p-2 rounded" style={{ fontSize: "0.9rem" }}>
             <p className="mb-1">
               <strong>Date:</strong> {selectedDate.toDateString()}
@@ -279,9 +259,8 @@ function convertToUserTime(pstTime, date) {
             </p>
           </div>
 
-          {/* Radio Buttons for Appointment Type */}
           <Form.Group className="mb-3">
-            <Form.Label className="form-label-custom" style={{ fontSize: "0.9rem" }}>
+            <Form.Label style={{ fontSize: "0.9rem" }}>
               <strong>Appointment Type:</strong>
             </Form.Label>
             {appointmentTypes.map((type) => (
@@ -294,36 +273,33 @@ function convertToUserTime(pstTime, date) {
                 checked={selectedType === type}
                 onChange={(e) => setSelectedType(e.target.value)}
                 disabled={isSubmitting}
-                className="mb-1 form-check-custom appointment-radio" // Added to change appointment type color
+                className="mb-1 appointment-radio"
                 style={{ fontSize: "0.9rem" }}
               />
             ))}
           </Form.Group>
 
-          {/* Email */}
           <Form.Group>
-            <Form.Label className="form-label-custom" style={{ fontSize: "0.9rem" }}>Email for confirmation:</Form.Label>
+            <Form.Label style={{ fontSize: "0.9rem" }}>Email for confirmation:</Form.Label>
             <Form.Control
               type="email"
               placeholder="Enter your email..."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isSubmitting}
-              className="form-control-custom"
               style={{ padding: "0.375rem 0.75rem", fontSize: "0.9rem" }}
             />
-            <Form.Text className="form-text-custom" style={{ fontSize: "0.8rem" }}>
+            <Form.Text style={{ fontSize: "0.8rem" }}>
               We'll send a confirmation email to this address
             </Form.Text>
           </Form.Group>
         </Modal.Body>
 
-        <Modal.Footer className="modal-footer-custom" style={{ padding: "0.75rem" }}>
+        <Modal.Footer style={{ padding: "0.75rem" }}>
           <Button 
             variant="secondary" 
             onClick={() => setShowModal(false)}
             disabled={isSubmitting}
-            className="modal-btn-cancel"
             style={{ padding: "0.25rem 0.75rem", fontSize: "0.9rem" }}
           >
             Cancel
@@ -332,7 +308,6 @@ function convertToUserTime(pstTime, date) {
             variant="primary" 
             onClick={handleConfirmBooking}
             disabled={isSubmitting}
-            className="modal-btn-confirm"
             style={{ padding: "0.25rem 0.75rem", fontSize: "0.9rem" }}
           >
             {isSubmitting ? (
@@ -347,39 +322,36 @@ function convertToUserTime(pstTime, date) {
         </Modal.Footer>
       </Modal>
 
-      {/* Success Modal - COMPACT VERSION */}
       <Modal 
         show={showSuccessModal} 
         onHide={() => setShowSuccessModal(false)} 
         centered
         backdrop="static"
         size="sm"
-        contentClassName="compact-modal"
       >
-        <Modal.Header className="modal-header-success" closeButton style={{ padding: "0.75rem 1rem" }}>
+        <Modal.Header closeButton style={{ padding: "0.75rem 1rem" }}>
           <Modal.Title style={{ fontSize: "1rem" }}>
             <FiCheckCircle className="me-2" size={18} />
             Success!
           </Modal.Title>
         </Modal.Header>
         
-        <Modal.Body className="modal-body-success text-center" style={{ padding: "1rem" }}>
-          <div className="success-icon mb-2">
+        <Modal.Body className="text-center" style={{ padding: "1rem" }}>
+          <div className="mb-2">
             <FiCheckCircle size={36} />
           </div>
-          <p className="success-message" style={{ fontSize: "0.85rem" }}>
+          <p style={{ fontSize: "0.85rem" }}>
             {modalMessage}
           </p>
         </Modal.Body>
         
-        <Modal.Footer className="modal-footer-success justify-content-center" style={{ padding: "0.75rem" }}>
+        <Modal.Footer className="justify-content-center" style={{ padding: "0.75rem" }}>
           <Button 
             variant="primary" 
             onClick={() => {
               setShowSuccessModal(false);
               resetForm();
             }}
-            className="modal-btn-ok"
             style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
           >
             OK
@@ -387,36 +359,33 @@ function convertToUserTime(pstTime, date) {
         </Modal.Footer>
       </Modal>
 
-      {/* Error Modal - COMPACT VERSION */}
       <Modal 
         show={showErrorModal} 
         onHide={() => setShowErrorModal(false)} 
         centered
         backdrop="static"
         size="sm"
-        contentClassName="compact-modal"
       >
-        <Modal.Header className="modal-header-error" closeButton style={{ padding: "0.75rem 1rem" }}>
+        <Modal.Header closeButton style={{ padding: "0.75rem 1rem" }}>
           <Modal.Title style={{ fontSize: "1rem" }}>
             <FiAlertTriangle className="me-2" size={18} />
             Error
           </Modal.Title>
         </Modal.Header>
         
-        <Modal.Body className="modal-body-error text-center" style={{ padding: "1rem" }}>
-          <div className="error-icon mb-2">
+        <Modal.Body className="text-center" style={{ padding: "1rem" }}>
+          <div className="mb-2">
             <FiAlertTriangle size={36} />
           </div>
-          <p className="error-message" style={{ fontSize: "0.85rem" }}>
+          <p style={{ fontSize: "0.85rem" }}>
             {modalMessage}
           </p>
         </Modal.Body>
         
-        <Modal.Footer className="modal-footer-error justify-content-center" style={{ padding: "0.75rem" }}>
+        <Modal.Footer className="justify-content-center" style={{ padding: "0.75rem" }}>
           <Button 
             variant="primary" 
             onClick={() => setShowErrorModal(false)}
-            className="modal-btn-ok"
             style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
           >
             OK
@@ -424,35 +393,32 @@ function convertToUserTime(pstTime, date) {
         </Modal.Footer>
       </Modal>
 
-      {/* Validation Error Modal - COMPACT VERSION */}
       <Modal 
         show={showValidationModal} 
         onHide={() => setShowValidationModal(false)} 
         centered
         size="sm"
-        contentClassName="compact-modal"
       >
-        <Modal.Header className="modal-header-warning" closeButton style={{ padding: "0.75rem 1rem" }}>
+        <Modal.Header closeButton style={{ padding: "0.75rem 1rem" }}>
           <Modal.Title style={{ fontSize: "1rem" }}>
             <FiAlertCircle className="me-2" size={18} />
             Required
           </Modal.Title>
         </Modal.Header>
         
-        <Modal.Body className="modal-body-warning text-center" style={{ padding: "1rem" }}>
-          <div className="warning-icon mb-2">
+        <Modal.Body className="text-center" style={{ padding: "1rem" }}>
+          <div className="mb-2">
             <FiAlertCircle size={36} />
           </div>
-          <p className="warning-message" style={{ fontSize: "0.85rem" }}>
+          <p style={{ fontSize: "0.85rem" }}>
             {modalMessage}
           </p>
         </Modal.Body>
         
-        <Modal.Footer className="modal-footer-warning justify-content-center" style={{ padding: "0.75rem" }}>
+        <Modal.Footer className="justify-content-center" style={{ padding: "0.75rem" }}>
           <Button 
             variant="primary" 
             onClick={() => setShowValidationModal(false)}
-            className="modal-btn-ok"
             style={{ padding: "0.25rem 1rem", fontSize: "0.9rem" }}
           >
             OK

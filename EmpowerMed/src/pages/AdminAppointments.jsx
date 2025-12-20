@@ -1,4 +1,3 @@
-// src/pages/AdminAppointments.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -20,54 +19,29 @@ export default function AdminAppointments() {
 
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
-
-  // Raw messages from /messages/admin
   const [messages, setMessages] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // ✅ backendUser must be loaded so we know admin user id/email
   const [backendUser, setBackendUser] = useState(null);
-
-  // FILTERS
   const [searchEmail, setSearchEmail] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [searchType, setSearchType] = useState("");
   const [statusFilter, setStatusFilter] = useState("upcoming");
-
-  // MODALS
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [modalMessage, setModalMessage] = useState("");
   const [modalTitle, setModalTitle] = useState("");
-
-  // ---------------------------
-  // Admin messaging UI state
-  // ---------------------------
   const [activeUserEmail, setActiveUserEmail] = useState(null);
   const [activeUserId, setActiveUserId] = useState(null);
-
-  const [showUserSearch, setShowUserSearch] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState([]);
   const [sendingMessage, setSendingMessage] = useState(false);
 
-  // ✅ If you already have an admin-search endpoint, set it here.
-  // Example options you might already have:
-  // - `${API_URL}/admin/users/search?email=...`
-  // - `${API_URL}/admin/users?search=...`
-  // - `${API_URL}/users/admin-search?email=...`
-  const USER_SEARCH_ENDPOINT = `${API_URL}/admin/users/search`; // <-- CHANGE THIS IF NEEDED
-
   const GOOGLE_CALENDAR_EMBED =
     "https://calendar.google.com/calendar/embed?src=empowermeddev%40gmail.com&ctz=America%2FLos_Angeles";
 
-  // ---------------------------
-  // CSRF helpers
-  // ---------------------------
   const fetchCsrfToken = async () => {
     try {
       await fetch(`${API_URL}/csrf-token`, {
@@ -75,7 +49,7 @@ export default function AdminAppointments() {
         credentials: "include",
       });
     } catch (err) {
-      console.error("Failed to fetch CSRF token:", err);
+      // Error handled silently
     }
   };
 
@@ -84,9 +58,6 @@ export default function AdminAppointments() {
     return m ? decodeURIComponent(m[1]) : null;
   };
 
-  // ---------------------------
-  // Auth helper: fetch backend user (admin)
-  // ---------------------------
   const fetchBackendUser = async () => {
     try {
       const token = await getAccessTokenSilently({
@@ -102,14 +73,10 @@ export default function AdminAppointments() {
       if (res.ok && data?.user) setBackendUser(data.user);
       else setBackendUser(null);
     } catch (err) {
-      console.error("Error fetching backend user:", err);
       setBackendUser(null);
     }
   };
 
-  // ---------------------------
-  // Initial load
-  // ---------------------------
   useEffect(() => {
     (async () => {
       await fetchCsrfToken();
@@ -119,35 +86,28 @@ export default function AdminAppointments() {
     })();
   }, []);
 
-  // ---------------------------
-  // Fetch appointments
-  // ---------------------------
   const fetchAppointments = async () => {
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-        });
+      });
 
-        const res = await fetch(`${API_URL}/calendar/admin-appointments`, {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
-        });
+      const res = await fetch(`${API_URL}/calendar/admin-appointments`, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      });
 
-        const data = await res.json();
-        setAppointments(data.appointments || []);
-        setFilteredAppointments(data.appointments || []);
-      } catch (err) {
-        console.error("Error loading appointments:", err);
-        showError("Failed to load appointments. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      const data = await res.json();
+      setAppointments(data.appointments || []);
+      setFilteredAppointments(data.appointments || []);
+    } catch (err) {
+      showError("Failed to load appointments. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // ---------------------------
-    // Fetch messages (admin)
-    // ---------------------------
-    const fetchMessages = async () => {
+  const fetchMessages = async () => {
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: {
@@ -167,99 +127,81 @@ export default function AdminAppointments() {
       }
 
       const data = await res.json();
-      console.log("📨 Messages loaded:", data.messages);
-
       setMessages(data.messages || []);
     } catch (err) {
-      console.error("fetchMessages failed:", err);
+      // Error handled silently
     }
   };
 
+  const conversations = useMemo(() => {
+    const map = new Map();
 
+    messages.forEach((msg) => {
+      const otherEmail =
+        msg.sender_role === "admin"
+          ? msg.receiver_email
+          : msg.sender_email;
 
-  // ---------------------------
-// DERIVED: conversations from messages
-// ---------------------------
-const conversations = useMemo(() => {
-  const map = new Map();
+      if (!otherEmail) return;
 
-  messages.forEach((msg) => {
-    const otherEmail =
-      msg.sender_role === "admin"
-        ? msg.receiver_email
-        : msg.sender_email;
+      if (!map.has(otherEmail)) {
+        map.set(otherEmail, {
+          email: otherEmail,
+          userId: msg.sender_role === "admin"
+            ? msg.receiver_id
+            : msg.sender_id,
+          messages: [],
+          unreadCount: 0,
+          lastMessage: null,
+        });
+      }
 
-    if (!otherEmail) return;
+      const conv = map.get(otherEmail);
+      conv.messages.push(msg);
+      conv.lastMessage = msg;
 
-    if (!map.has(otherEmail)) {
-      map.set(otherEmail, {
-        email: otherEmail,
-        userId: msg.sender_role === "admin"
-          ? msg.receiver_id
-          : msg.sender_id,
-        messages: [],
-        unreadCount: 0,
-        lastMessage: null,
-      });
-    }
+      if (!msg.read_at && msg.receiver_role === "admin") {
+        conv.unreadCount += 1;
+      }
+    });
 
-    const conv = map.get(otherEmail);
-    conv.messages.push(msg);
-    conv.lastMessage = msg;
+    return Array.from(map.values());
+  }, [messages]);
 
-    if (!msg.read_at && msg.receiver_role === "admin") {
-      conv.unreadCount += 1;
-    }
-  });
-
-  return Array.from(map.values());
-}, [messages]);
-
-
-  // -----------------------
-  // DERIVE ACTIVE CONVERSATION
-  // -----------------------
   const activeConversation = useMemo(() => {
     if (!activeUserEmail) return null;
     return conversations.find(c => c.email === activeUserEmail) || null;
   }, [activeUserEmail, conversations]);
 
-
-  // ---------------------------
-  // Admin user search by email
-  // ---------------------------
   async function searchUsers(query) {
-  if (!query) return;
+    if (!query) return;
 
-  try {
-    const token = await getAccessTokenSilently({
-      authorizationParams: {
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-      },
-    });
-
-    const res = await fetch(
-      `${API_URL}/messages/admin-users?email=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
         },
-        credentials: "include",
-      }
-    );
+      });
 
-    if (!res.ok) throw new Error(res.status);
+      const res = await fetch(
+        `${API_URL}/messages/admin-users?email=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        }
+      );
 
-    const data = await res.json();
-    setUserResults(data.users);
-  } catch (err) {
-    console.error("searchUsers failed:", err);
+      if (!res.ok) throw new Error(res.status);
+
+      const data = await res.json();
+      setUserResults(data.users);
+    } catch (err) {
+      // Error handled silently
+    }
   }
-}
 
-  // ---------------------------
-  // Send admin message (with CSRF retry once)
-  // ---------------------------
   const sendAdminMessage = async (receiverId, message) => {
     const msg = (message || "").trim();
     if (!receiverId || !msg) throw new Error("Missing receiverId or message");
@@ -287,7 +229,6 @@ const conversations = useMemo(() => {
 
       let res = await attempt();
 
-      // If CSRF invalid, refetch token once and retry
       if (res.status === 403) {
         await fetchCsrfToken();
         res = await attempt();
@@ -295,7 +236,6 @@ const conversations = useMemo(() => {
 
       if (!res.ok) {
         const body = await res.text().catch(() => "");
-        console.error("sendAdminMessage failed:", res.status, body);
         throw new Error("Failed to send message");
       }
 
@@ -305,10 +245,6 @@ const conversations = useMemo(() => {
     }
   };
 
-
-  // ---------------------------
-  // Appointment filters
-  // ---------------------------
   useEffect(() => {
     const now = new Date();
     const hasDateFilter = !!searchDate;
@@ -366,9 +302,6 @@ const conversations = useMemo(() => {
     setFilteredAppointments(results);
   }, [statusFilter, searchEmail, searchType, searchDate, appointments]);
 
-  // ---------------------------
-  // Cancel appointment
-  // ---------------------------
   const handleCancel = async () => {
     if (!selectedAppointment) return;
 
@@ -402,7 +335,6 @@ const conversations = useMemo(() => {
         showError(data.message || "Failed to cancel appointment. Please try again.");
       }
     } catch (err) {
-      console.error(err);
       showError("Network error. Please check your connection and try again.");
     } finally {
       setIsProcessing(false);
@@ -426,9 +358,6 @@ const conversations = useMemo(() => {
     return `${formattedDate} @ ${formattedTime}`;
   };
 
-  // ---------------------------
-  // Modal helpers
-  // ---------------------------
   const showSuccess = (message) => {
     setModalMessage(message);
     setModalTitle("Success");
@@ -446,9 +375,6 @@ const conversations = useMemo(() => {
     setShowCancelModal(true);
   };
 
-  // ---------------------------
-  // Render
-  // ---------------------------
   return (
     <div className="admin-dashboard">
       <section className="mini-hero">
@@ -464,10 +390,8 @@ const conversations = useMemo(() => {
 
       <div className="admin-grid">
         <div className="row-1">
-          {/* LEFT COLUMN */}
           <div className="col">
             <div className="gradient-card">
-              {/* FILTER CARD */}
               <div className="inner-card">
                 <h2>Filter Appointments</h2>
 
@@ -518,7 +442,6 @@ const conversations = useMemo(() => {
                 </div>
               </div>
 
-              {/* APPOINTMENTS LIST */}
               <div className="inner-card">
                 <h2>All Appointments</h2>
 
@@ -576,20 +499,16 @@ const conversations = useMemo(() => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: ADMIN MESSAGING */}
 <div className="col messages-col">
   <div className="gradient-card messages-card">
     <div className="inner-card admin-messages-layout">
 
-      {/* LEFT: INBOX + SEARCH */}
       <div className="messages-sidebar">
 
-        {/* HEADER */}
         <div className="messages-header mb-2">
           <h2 className="mb-0">Messages</h2>
         </div>
 
-        {/* SEARCH USERS (ALWAYS VISIBLE) */}
         <div className="user-search-box mb-3">
           <input
             type="text"
@@ -603,7 +522,6 @@ const conversations = useMemo(() => {
             autoComplete="off"
           />
 
-          {/* SEARCH RESULTS */}
           {userSearch && userResults.length > 0 && (
             <div className="user-search-results mt-2">
               {userResults.map((u) => (
@@ -623,7 +541,6 @@ const conversations = useMemo(() => {
           )}
         </div>
 
-       {/* INBOX LIST */}
       <div className="admin-inbox-wrapper">
         <div className="admin-inbox-header">
           <span>Conversations</span>
@@ -655,7 +572,6 @@ const conversations = useMemo(() => {
       </div>
     </div>
 
-      {/* RIGHT: CONVERSATION THREAD (FIXED HEIGHT) */}
       <div className="messages-thread">
         <ConversationPanel
           title={
@@ -678,7 +594,6 @@ const conversations = useMemo(() => {
   </div>
 </div>
 </div>
-        {/* CALENDAR SECTION */}
         <div className="row-2">
           <div className="gradient-card">
             <div className="inner-card">
@@ -693,7 +608,6 @@ const conversations = useMemo(() => {
         </div>
       </div>
 
-      {/* CANCEL APPOINTMENT MODAL */}
       <Modal
         show={showCancelModal}
         onHide={() => !isProcessing && setShowCancelModal(false)}
@@ -763,7 +677,6 @@ const conversations = useMemo(() => {
         </Modal.Footer>
       </Modal>
 
-      {/* SUCCESS MODAL */}
       <Modal
         show={showConfirmModal}
         onHide={() => setShowConfirmModal(false)}
@@ -798,7 +711,6 @@ const conversations = useMemo(() => {
         </Modal.Footer>
       </Modal>
 
-      {/* ERROR MODAL */}
       <Modal
         show={showErrorModal}
         onHide={() => setShowErrorModal(false)}

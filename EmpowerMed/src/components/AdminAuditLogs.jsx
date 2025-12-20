@@ -1,4 +1,4 @@
-// components/AdminAuditLogs.jsx - FIXED VERSION
+// components/AdminAuditLogs.jsx - PRODUCTION READY
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { 
@@ -27,7 +27,6 @@ import {
 } from 'react-icons/fi';
 import { format, subDays } from 'date-fns';
 
-// Your existing authedJson function
 const authedJson = async (url, options = {}, getAccessTokenSilently) => {
   try {
     const token = await getAccessTokenSilently({
@@ -53,7 +52,6 @@ const authedJson = async (url, options = {}, getAccessTokenSilently) => {
 
     return await response.json();
   } catch (error) {
-    console.error('API request failed:', error);
     throw error;
   }
 };
@@ -70,8 +68,8 @@ export default function AdminAuditLogs() {
   const [filters, setFilters] = useState({
     eventCategory: '',
     status: '',
-    startDate: format(new Date(), 'yyyy-MM-dd'), // Today
-    endDate: format(new Date(), 'yyyy-MM-dd'),   // Today
+    startDate: format(new Date(), 'yyyy-MM-dd'),
+    endDate: format(new Date(), 'yyyy-MM-dd'),
     search: ''
   });
   const [pagination, setPagination] = useState({
@@ -87,7 +85,6 @@ export default function AdminAuditLogs() {
     itemsPerPage: 20
   });
 
-  // Modal state
   const [selectedLog, setSelectedLog] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -112,8 +109,6 @@ export default function AdminAuditLogs() {
         search: filters.search || ''
       });
 
-      console.log('🔍 Loading audit logs from endpoint:', activeTab);
-
       const endpoint = activeTab === 'audit' ? '/api/audit/logs' : '/api/audit/admin-logs';
       const fullUrl = `${API_URL}${endpoint}?${queryParams}`;
 
@@ -122,8 +117,6 @@ export default function AdminAuditLogs() {
         { method: 'GET' },
         tokenGetter
       );
-
-      console.log('✅ Audit logs response:', response);
 
       if (activeTab === 'audit') {
         setLogs(response.logs || []);
@@ -148,7 +141,6 @@ export default function AdminAuditLogs() {
       }
       
     } catch (error) {
-      console.error('❌ Load audit logs error:', error);
       alert(`Failed to load audit logs: ${error.message}`);
     } finally {
       setLoading(false);
@@ -171,7 +163,6 @@ export default function AdminAuditLogs() {
       setReport(response.report);
       
     } catch (error) {
-      console.error('Generate report error:', error);
       alert(`Failed to generate report: ${error.message}`);
     }
   };
@@ -207,7 +198,6 @@ export default function AdminAuditLogs() {
       document.body.removeChild(a);
       
     } catch (error) {
-      console.error('Export error:', error);
       alert(`Failed to export: ${error.message}`);
     }
   };
@@ -216,7 +206,6 @@ export default function AdminAuditLogs() {
     loadLogs();
   }, [loadLogs]);
 
-  // Handle tab change
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
@@ -291,9 +280,7 @@ export default function AdminAuditLogs() {
     try {
       const date = new Date(dateString);
       
-      // Check if date is valid
       if (isNaN(date.getTime())) {
-        console.warn(`Invalid date string: ${dateString}`);
         return 'Invalid Date';
       }
       
@@ -306,7 +293,6 @@ export default function AdminAuditLogs() {
         second: '2-digit'
       });
     } catch (error) {
-      console.error('Error formatting date:', error, 'Date string:', dateString);
       return 'Error';
     }
   };
@@ -319,7 +305,6 @@ export default function AdminAuditLogs() {
     try {
       const date = new Date(dateString);
       
-      // Check if date is valid
       if (isNaN(date.getTime())) {
         return 'Invalid Date';
       }
@@ -334,10 +319,8 @@ export default function AdminAuditLogs() {
     }
   };
 
-  // Format admin action details for display
   const formatAdminDetails = (details, actionType = '') => {
     if (!details || typeof details !== 'object' || Object.keys(details).length === 0) {
-      // Try to infer from action type
       if (actionType) {
         const action = actionType.replace(/_/g, ' ').toLowerCase();
         return `${action}`;
@@ -346,7 +329,6 @@ export default function AdminAuditLogs() {
     }
 
     try {
-      // Handle user-related actions
       if (details.action === 'CREATE' || details.operation === 'create user') {
         return `Created user: ${details.target_user_email || details.target_email || 'User'}`;
       }
@@ -371,7 +353,6 @@ export default function AdminAuditLogs() {
         return `Password reset: ${details.target_user_email || details.target_email || 'User'}`;
       }
       
-      // Check if we can extract something from the details
       if (details.target_email) {
         return `Action on: ${details.target_email}`;
       }
@@ -388,7 +369,6 @@ export default function AdminAuditLogs() {
         return `Resource type: ${details.resource_type}`;
       }
       
-      // Default: show first few values
       const firstKey = Object.keys(details)[0];
       if (firstKey && details[firstKey]) {
         return `${firstKey}: ${details[firstKey]}`;
@@ -397,12 +377,10 @@ export default function AdminAuditLogs() {
       return 'Action logged';
       
     } catch (error) {
-      console.error('Error formatting admin details:', error);
       return 'Action logged';
     }
   };
 
-  // Check if details should be clickable (has actual content)
   const hasDetails = (details) => {
     return details && typeof details === 'object' && Object.keys(details).length > 0;
   };
@@ -423,7 +401,6 @@ export default function AdminAuditLogs() {
     }
   };
 
-  // Handle opening details modal
   const openDetailsModal = (log) => {
     setSelectedLog(log);
     setShowDetailsModal(true);
@@ -456,7 +433,6 @@ export default function AdminAuditLogs() {
   return (
     <div className="page-content">
       <div className="container-fluid">
-        {/* Header */}
         <div className="about-header mb-4">
           <h1 className="display-font about-title" style={{ color: '#3D52A0' }}>HIPAA Audit Logs</h1>
           <p className="about-subtitle body-font" style={{ color: '#3D52A0' }}>
@@ -464,7 +440,6 @@ export default function AdminAuditLogs() {
           </p>
         </div>
 
-        {/* Stats Cards - Always show, based on active tab */}
         <div className="row mb-4">
           <div className="col-md-3 col-6 mb-3">
             <div className="card border-0 shadow-sm h-100" style={{ background: 'linear-gradient(135deg, #EDE8F5, #ADBBDA)' }}>
@@ -560,7 +535,6 @@ export default function AdminAuditLogs() {
           )}
         </div>
 
-        {/* Tabs */}
         <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
           <div className="card-body p-3">
             <ul className="nav nav-tabs border-0">
@@ -618,178 +592,176 @@ export default function AdminAuditLogs() {
           </div>
         </div>
 
-{/* Filters (only show for audit logs) */}
-{activeTab !== 'report' && (
-  <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
-    <div className="card-body">
-      <div className="row g-3 align-items-center"> {/* Changed from align-items-end to align-items-center */}
-        {activeTab === 'audit' && (
-          <>
-            <div className="col-md-3">
-              <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Event Category</label>
-              <select
-                className="form-select"
-                style={{ 
-                  borderColor: '#8697C4', 
-                  color: 'black',
-                  height: '38px'
-                }}
-                value={filters.eventCategory}
-                onChange={(e) => setFilters({...filters, eventCategory: e.target.value})}
-              >
-                <option value="">All Categories</option>
-                <option value="authentication">Authentication</option>
-                <option value="access">Access</option>
-                <option value="modification">Modification</option>
-                <option value="security">Security</option>
-                <option value="system">System</option>
-              </select>
+        {activeTab !== 'report' && (
+          <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
+            <div className="card-body">
+              <div className="row g-3 align-items-center">
+                {activeTab === 'audit' && (
+                  <>
+                    <div className="col-md-3">
+                      <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Event Category</label>
+                      <select
+                        className="form-select"
+                        style={{ 
+                          borderColor: '#8697C4', 
+                          color: 'black',
+                          height: '38px'
+                        }}
+                        value={filters.eventCategory}
+                        onChange={(e) => setFilters({...filters, eventCategory: e.target.value})}
+                      >
+                        <option value="">All Categories</option>
+                        <option value="authentication">Authentication</option>
+                        <option value="access">Access</option>
+                        <option value="modification">Modification</option>
+                        <option value="security">Security</option>
+                        <option value="system">System</option>
+                      </select>
+                    </div>
+                    
+                    <div className="col-md-2">
+                      <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Status</label>
+                      <select
+                        className="form-select"
+                        style={{ 
+                          borderColor: '#8697C4', 
+                          color: 'black',
+                          height: '38px'
+                        }}
+                        value={filters.status}
+                        onChange={(e) => setFilters({...filters, status: e.target.value})}
+                      >
+                        <option value="">All Status</option>
+                        <option value="success">Success</option>
+                        <option value="failure">Failure</option>
+                        <option value="warning">Warning</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+                
+                <div className="col-md-2">
+                  <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Start Date</label>
+                  <div className="input-group" style={{ height: '38px' }}>
+                    <span className="input-group-text d-flex align-items-center justify-content-center" 
+                      style={{ 
+                        background: '#ADBBDA', 
+                        borderColor: '#8697C4', 
+                        color: '#3D52A0',
+                        padding: '0.375rem 0.75rem',
+                        height: '100%'
+                      }}>
+                      <FiCalendar size={18} />
+                    </span>
+                    <input
+                      type="date"
+                      className="form-control"
+                      style={{ 
+                        borderColor: '#8697C4', 
+                        color: 'black',
+                        height: '100%'
+                      }}
+                      value={filters.startDate}
+                      onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div className="col-md-2">
+                  <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>End Date</label>
+                  <div className="input-group" style={{ height: '38px' }}>
+                    <span className="input-group-text d-flex align-items-center justify-content-center" 
+                      style={{ 
+                        background: '#ADBBDA', 
+                        borderColor: '#8697C4', 
+                        color: '#3D52A0',
+                        padding: '0.375rem 0.75rem',
+                        height: '100%'
+                      }}>
+                      <FiCalendar size={18} />
+                    </span>
+                    <input
+                      type="date"
+                      className="form-control"
+                      style={{ 
+                        borderColor: '#8697C4', 
+                        color: 'black',
+                        height: '100%'
+                      }}
+                      value={filters.endDate}
+                      onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                {activeTab === 'audit' && (
+                  <div className="col-md-3">
+                    <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Search</label>
+                    <div className="input-group" style={{ height: '38px' }}>
+                      <span className="input-group-text d-flex align-items-center justify-content-center" 
+                        style={{ 
+                          background: '#ADBBDA', 
+                          borderColor: '#8697C4', 
+                          color: '#3D52A0',
+                          padding: '0.375rem 0.75rem',
+                          height: '100%'
+                        }}>
+                        <FiSearch size={18} />
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        style={{ 
+                          borderColor: '#8697C4', 
+                          color: 'black',
+                          height: '100%'
+                        }}
+                        placeholder="Search user, event, resource..."
+                        value={filters.search}
+                        onChange={(e) => setFilters({...filters, search: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="col-md-2">
+                  <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Actions</label>
+                  <div className="d-flex gap-2" style={{ height: '38px' }}>
+                    <button
+                      onClick={loadLogs}
+                      className="btn w-100 d-flex align-items-center justify-content-center"
+                      style={{ 
+                        background: '#8697C4', 
+                        borderColor: '#8697C4', 
+                        color: 'white',
+                        height: '100%',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <FiSearch size={18} />
+                      Search
+                    </button>
+                    <button
+                      onClick={exportToCSV}
+                      className="btn w-100 d-flex align-items-center justify-content-center"
+                      style={{ 
+                        background: '#3D52A0', 
+                        borderColor: '#3D52A0', 
+                        color: 'white',
+                        height: '100%',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <FiDownload size={18} />
+                      Export
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <div className="col-md-2">
-              <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Status</label>
-              <select
-                className="form-select"
-                style={{ 
-                  borderColor: '#8697C4', 
-                  color: 'black',
-                  height: '38px'
-                }}
-                value={filters.status}
-                onChange={(e) => setFilters({...filters, status: e.target.value})}
-              >
-                <option value="">All Status</option>
-                <option value="success">Success</option>
-                <option value="failure">Failure</option>
-                <option value="warning">Warning</option>
-              </select>
-            </div>
-          </>
+          </div>
         )}
-        
-        <div className="col-md-2">
-          <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Start Date</label>
-          <div className="input-group" style={{ height: '38px' }}>
-            <span className="input-group-text d-flex align-items-center justify-content-center" 
-              style={{ 
-                background: '#ADBBDA', 
-                borderColor: '#8697C4', 
-                color: '#3D52A0',
-                padding: '0.375rem 0.75rem',
-                height: '100%'
-              }}>
-              <FiCalendar size={18} />
-            </span>
-            <input
-              type="date"
-              className="form-control"
-              style={{ 
-                borderColor: '#8697C4', 
-                color: 'black',
-                height: '100%'
-              }}
-              value={filters.startDate}
-              onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-            />
-          </div>
-        </div>
-        
-        <div className="col-md-2">
-          <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>End Date</label>
-          <div className="input-group" style={{ height: '38px' }}>
-            <span className="input-group-text d-flex align-items-center justify-content-center" 
-              style={{ 
-                background: '#ADBBDA', 
-                borderColor: '#8697C4', 
-                color: '#3D52A0',
-                padding: '0.375rem 0.75rem',
-                height: '100%'
-              }}>
-              <FiCalendar size={18} />
-            </span>
-            <input
-              type="date"
-              className="form-control"
-              style={{ 
-                borderColor: '#8697C4', 
-                color: 'black',
-                height: '100%'
-              }}
-              value={filters.endDate}
-              onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-            />
-          </div>
-        </div>
 
-        {activeTab === 'audit' && (
-          <div className="col-md-3">
-            <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Search</label>
-            <div className="input-group" style={{ height: '38px' }}>
-              <span className="input-group-text d-flex align-items-center justify-content-center" 
-                style={{ 
-                  background: '#ADBBDA', 
-                  borderColor: '#8697C4', 
-                  color: '#3D52A0',
-                  padding: '0.375rem 0.75rem',
-                  height: '100%'
-                }}>
-                <FiSearch size={18} />
-              </span>
-              <input
-                type="text"
-                className="form-control"
-                style={{ 
-                  borderColor: '#8697C4', 
-                  color: 'black',
-                  height: '100%'
-                }}
-                placeholder="Search user, event, resource..."
-                value={filters.search}
-                onChange={(e) => setFilters({...filters, search: e.target.value})}
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="col-md-2">
-          <label className="form-label fw-semibold mb-1" style={{ color: '#3D52A0' }}>Actions</label>
-          <div className="d-flex gap-2" style={{ height: '38px' }}>
-            <button
-              onClick={loadLogs}
-              className="btn w-100 d-flex align-items-center justify-content-center"
-              style={{ 
-                background: '#8697C4', 
-                borderColor: '#8697C4', 
-                color: 'white',
-                height: '100%',
-                gap: '0.5rem'
-              }}
-            >
-              <FiSearch size={18} />
-              Search
-            </button>
-            <button
-              onClick={exportToCSV}
-              className="btn w-100 d-flex align-items-center justify-content-center"
-              style={{ 
-                background: '#3D52A0', 
-                borderColor: '#3D52A0', 
-                color: 'white',
-                height: '100%',
-                gap: '0.5rem'
-              }}
-            >
-              <FiDownload size={18} />
-              Export
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-        {/* Report Section */}
         {activeTab === 'report' && (
           <div className="card border-0 shadow-sm mb-4" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
             <div className="card-body">
@@ -929,7 +901,6 @@ export default function AdminAuditLogs() {
           </div>
         )}
 
-        {/* Logs Table */}
         {activeTab !== 'report' && (
           <div className="card border-0 shadow-sm" style={{ background: '#EDE8F5', border: '1px solid #ADBBDA' }}>
             <div className="card-body p-2">
@@ -1015,7 +986,6 @@ export default function AdminAuditLogs() {
                       ))
                     ) : (
                       adminLogs.map((log, index) => {
-                        // Safely extract all properties with fallbacks
                         const timestamp = log?.timestamp || log?.created_at || null;
                         const adminEmail = log?.admin_email || log?.user || 'N/A';
                         const actionType = log?.action_type || log?.action || 'N/A';
@@ -1082,7 +1052,6 @@ export default function AdminAuditLogs() {
                 </table>
               </div>
 
-              {/* Pagination - FIXED DISPLAY */}
               {currentPagination.totalPages > 1 && (
                 <div className="d-flex justify-content-between align-items-center mt-3 p-2" style={{ 
                   background: '#EDE8F5', 
@@ -1128,7 +1097,6 @@ export default function AdminAuditLogs() {
           </div>
         )}
 
-        {/* Details Modal */}
         {showDetailsModal && selectedLog && (
           <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="modal-dialog modal-lg">

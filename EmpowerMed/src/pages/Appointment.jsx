@@ -9,21 +9,13 @@ export default function Appointment() {
 
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
-
-  const [message, setMessage] = useState("");
   const [receivedMessages, setReceivedMessages] = useState([]);
-  const [messageFilter, setMessageFilter] = useState("");
-
   const [filterDate, setFilterDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("upcoming");
   const [backendUser, setBackendUser] = useState(null);
 
-
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  /* -----------------------------------------------------
-     FETCH USER APPOINTMENTS
-  ----------------------------------------------------- */
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -41,16 +33,14 @@ export default function Appointment() {
         setAppointments(data.appointments || []);
         setFilteredAppointments(data.appointments || []);
       } catch (err) {
-        console.error("❌ Error fetching appointments:", err);
+        setAppointments([]);
+        setFilteredAppointments([]);
       }
     };
 
     fetchAppointments();
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  /* -----------------------------------------------------
-     FETCH USER MESSAGES
-  ----------------------------------------------------- */
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -67,7 +57,7 @@ export default function Appointment() {
         const data = await res.json();
         setReceivedMessages(data.messages || []);
       } catch (err) {
-        console.error("❌ Error loading received messages:", err);
+        setReceivedMessages([]);
       }
     };
 
@@ -90,16 +80,9 @@ export default function Appointment() {
       setBackendUser(data);
     };
 
-  fetchMe();
-}, [isAuthenticated, getAccessTokenSilently]);
+    fetchMe();
+  }, [isAuthenticated, getAccessTokenSilently]);
 
-
-
-  /* -----------------------------------------------------
-     FILTERING LOGIC — MATCHES ADMIN LOGIC
-  ----------------------------------------------------- */
-
-  // Normalize date to yyyy-mm-dd
   const normalizeDate = (d) => {
     if (!d) return "";
     return new Date(d).toISOString().split("T")[0];
@@ -109,12 +92,10 @@ export default function Appointment() {
     let results = [...appointments];
     const now = new Date();
 
-    /* ---------- STATUS FILTER ---------- */
     if (statusFilter !== "all") {
       results = results.filter((appt) => {
         const status = appt.status || "scheduled";
 
-        // Determine appointment end date reliably
         let end;
         if (appt.end_time) end = new Date(appt.end_time);
         else if (appt.start_time) end = new Date(appt.start_time);
@@ -133,7 +114,6 @@ export default function Appointment() {
       });
     }
 
-    /* ---------- DATE FILTER (OVERRIDES STATUS) ---------- */
     if (filterDate) {
       results = results.filter(
         (appt) => normalizeDate(appt.date) === filterDate
@@ -143,9 +123,6 @@ export default function Appointment() {
     setFilteredAppointments(results);
   }, [filterDate, statusFilter, appointments]);
 
-  /* -----------------------------------------------------
-     CANCEL APPOINTMENT
-  ----------------------------------------------------- */
   const handleCancel = async (id) => {
     if (!window.confirm("Cancel this appointment?")) return;
 
@@ -169,52 +146,44 @@ export default function Appointment() {
         );
       }
     } catch (err) {
-      console.error("Cancel error:", err);
+      alert("Failed to cancel appointment");
     }
   };
 
-  /* -----------------------------------------------------
-     SEND MESSAGE TO ADMIN
-  ----------------------------------------------------- */
- const handleSendMessage = async (message) => {
-  try {
-    const token = await getAccessTokenSilently({
-      authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
-    });
+  const handleSendMessage = async (message) => {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+      });
 
-    const res = await fetch(`${API_URL}/messages/user-send`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ message }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      // Optimistic update (optional but recommended)
-      setReceivedMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          sender_id: user.id,
-          sender_role: "user",
-          text: message,
-          created_at: new Date().toISOString(),
+      const res = await fetch(`${API_URL}/messages/user-send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      ]);
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setReceivedMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender_id: user.id,
+            sender_role: "user",
+            text: message,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+      }
+    } catch (err) {
+      alert("Failed to send message");
     }
-  } catch (err) {
-    console.error("Send message error:", err);
-  }
-};
+  };
 
-
-  /* -----------------------------------------------------
-     FORMAT DATE/TIME
-  ----------------------------------------------------- */
   const formatDateTime = (date, time) => {
     const d = new Date(date);
     const t = new Date(time);
@@ -225,9 +194,6 @@ export default function Appointment() {
     })}`;
   };
 
-  /* -----------------------------------------------------
-     UI
-  ----------------------------------------------------- */
   return (
     <div className="admin-dashboard">
       <section className="mini-hero">
@@ -236,10 +202,8 @@ export default function Appointment() {
 
       <div className="admin-grid">
         <div className="row-1">
-          {/* LEFT COLUMN — APPOINTMENTS */}
           <div className="col">
             <div className="gradient-card">
-              {/* FILTER SECTION */}
               <div className="inner-card">
                 <h2>Filter Appointments</h2>
 
@@ -263,7 +227,6 @@ export default function Appointment() {
                 </div>
               </div>
 
-              {/* APPOINTMENTS LIST */}
               <div className="inner-card">
                 <h2>My Scheduled Appointments</h2>
 
@@ -293,28 +256,26 @@ export default function Appointment() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN — MESSAGES */}
           <div className="user-messages-page">
-          <div className="col messages-col">
-            <div className="gradient-card messages-card">
-              <div className="inner-card admin-messages-layout">
-
-                {backendUser && (
-                  <ConversationPanel
-                  key={backendUser.id}
-                    title="Conversation with Support"
-                    messages={receivedMessages}
-                    currentUserId={backendUser.id}   
-                    disabled={!isAuthenticated}
-                    onSend={({ message }) => handleSendMessage(message)}
-                  />
-                )}
+            <div className="col messages-col">
+              <div className="gradient-card messages-card">
+                <div className="inner-card admin-messages-layout">
+                  {backendUser && (
+                    <ConversationPanel
+                      key={backendUser.id}
+                      title="Conversation with Support"
+                      messages={receivedMessages}
+                      currentUserId={backendUser.id}
+                      disabled={!isAuthenticated}
+                      onSend={({ message }) => handleSendMessage(message)}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

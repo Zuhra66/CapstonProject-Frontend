@@ -13,46 +13,6 @@ export default function Products() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
 
-  // Load products
-useEffect(() => {
-  let alive = true;
-  setLoading(true);
-  setErr("");
-  (async () => {
-    try {
-      const url = new URL(`${API}/api/products`);
-      if (q) url.searchParams.set("q", q);
-      if (cat && cat !== "all") url.searchParams.set("category", cat);
-
-      const res = await fetch(url.toString(), {
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to load products`);
-      }
-
-      const json = await res.json();
-      if (!alive) return;
-
-      // handle either shape: [{...}] OR { products: [...] }
-      const rows = Array.isArray(json) ? json : json.products || [];
-      setProducts(rows);
-    } catch (e) {
-      if (!alive) return;
-      setErr("We couldn't load products. Please try again.");
-    } finally {
-      if (alive) setLoading(false);
-    }
-  })();
-
-  return () => {
-    alive = false;
-  };
-}, [q, cat]);
-
-
-  // Load products
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -63,18 +23,19 @@ useEffect(() => {
         if (q) url.searchParams.set("q", q);
         if (cat && cat !== "all") url.searchParams.set("category", cat);
 
-        const res = await fetch(url.toString(), { 
+        const res = await fetch(url.toString(), {
           credentials: "include",
         });
-        
+
         if (!res.ok) {
           throw new Error(`Failed to load products`);
         }
-        
-        const rows = await res.json();
+
+        const json = await res.json();
         if (!alive) return;
-        
-        setProducts(rows || []);
+
+        const rows = Array.isArray(json) ? json : json.products || [];
+        setProducts(rows);
       } catch (e) {
         if (!alive) return;
         setErr("We couldn't load products. Please try again.");
@@ -88,7 +49,6 @@ useEffect(() => {
     };
   }, [q, cat]);
 
-  // Client-side filter
   const filtered = useMemo(() => {
     const list = products || [];
     const ql = q.trim().toLowerCase();

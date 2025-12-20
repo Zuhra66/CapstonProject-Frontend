@@ -8,7 +8,6 @@ import "../styles/Blog.css";
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5001").replace(/\/+$/, "");
 const MAX_WORDS = 75;
 
-// Delete Confirmation Modal Component - Matches Footer Newsletter style
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, commentContent, commentAuthor }) {
   useEffect(() => {
     const handleEscape = (e) => {
@@ -175,7 +174,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, commentContent, c
 
 export default function BlogPost() {
     const { slug } = useParams();
-    const { isAuthenticated, loginWithRedirect, getAccessTokenSilently, user } = useAuth0();
+    const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0();
     
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
@@ -202,7 +201,6 @@ export default function BlogPost() {
         adjustTextareaHeight();
     }, [newComment]);
 
-    // Check if user is admin by trying to access an admin endpoint
     useEffect(() => {
         const checkAdminStatus = async () => {
             if (!isAuthenticated) {
@@ -211,7 +209,6 @@ export default function BlogPost() {
             }
 
             try {
-                // Try to call an admin endpoint to see if we have access
                 const token = await getAccessTokenSilently();
                 const response = await fetch(`${API_BASE_URL}/api/blog/admin/posts?limit=1`, {
                     headers: {
@@ -219,16 +216,13 @@ export default function BlogPost() {
                     }
                 });
                 
-                // If we get a 200 or 403, we know the user's status
                 if (response.ok) {
                     setIsAdmin(true);
                 } else if (response.status === 403) {
                     setIsAdmin(false);
                 }
             } catch (err) {
-                // If we get an error, assume not admin
                 setIsAdmin(false);
-                console.log("User is not an admin or admin check failed");
             }
         };
 
@@ -259,7 +253,7 @@ export default function BlogPost() {
             setLoading(true);
             const response = await fetch(`${API_BASE_URL}/api/blog/${slug}`);
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error("Failed to load post");
             
             const data = await response.json();
             setPost(data.post);
@@ -289,7 +283,7 @@ export default function BlogPost() {
                 setComments(data.comments || []);
             }
         } catch (err) {
-            console.error("Failed to load comments");
+            // Comments load silently
         }
     }, [slug, isAuthenticated, getAccessTokenSilently]);
 
@@ -612,7 +606,6 @@ export default function BlogPost() {
                 </article>
             </div>
 
-            {/* Delete Confirmation Modal */}
             <DeleteConfirmationModal
                 isOpen={showDeleteModal}
                 onClose={() => {

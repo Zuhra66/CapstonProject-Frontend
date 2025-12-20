@@ -8,7 +8,7 @@ export default function Login() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      loginWithRedirect(); // default is login
+      loginWithRedirect();
     }, 100);
     return () => clearTimeout(timer);
   }, [loginWithRedirect]);

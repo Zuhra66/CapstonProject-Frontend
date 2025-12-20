@@ -1,7 +1,6 @@
-// src/lib/api.js - FIXED VERSION for api.empowermedwellness.com
+// src/lib/api.js
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-/* ---------- CSRF handling ---------- */
 let _csrf = null;
 
 function readCookie(name) {
@@ -15,11 +14,8 @@ async function ensureCsrf() {
   const c = readCookie("XSRF-TOKEN");
   if (c) {
     _csrf = c;
-    console.log('✅ Using cached CSRF token');
     return _csrf;
   }
-  
-  console.log('🔄 Fetching CSRF token from:', `${API_BASE_URL}/csrf-token`);
   
   try {
     const r = await fetch(`${API_BASE_URL}/csrf-token`, { 
@@ -31,7 +27,6 @@ async function ensureCsrf() {
     
     if (!r.ok) {
       const text = await r.text();
-      console.error('❌ CSRF fetch failed:', r.status, text);
       throw new Error(`CSRF fetch failed: ${r.status}`);
     }
     
@@ -42,18 +37,15 @@ async function ensureCsrf() {
       throw new Error('No CSRF token in response');
     }
     
-    console.log('✅ CSRF token received');
     return _csrf;
     
   } catch (error) {
-    console.error('❌ CSRF token error:', error);
     throw error;
   }
 }
 
 const NEEDS_CSRF = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-/* ---------- Core helper ---------- */
 export async function authedJson(
   path,
   { method = "GET", body, headers = {} } = {},
@@ -61,31 +53,26 @@ export async function authedJson(
 ) {
   const upper = method.toUpperCase();
 
-  // CSRF for unsafe methods
   let csrfHeader = {};
   if (NEEDS_CSRF.has(upper)) {
     try {
       const token = await ensureCsrf();
       if (token) {
         csrfHeader = { "X-XSRF-TOKEN": token };
-        console.log(`🔒 Attached CSRF token for ${upper} request`);
       } else {
         throw new Error('No CSRF token available');
       }
     } catch (error) {
-      console.error(`❌ CSRF token error for ${upper}:`, error.message);
       throw new Error(`CSRF protection failed: ${error.message}`);
     }
   }
 
-  // Optional Bearer auth
   let bearerHeader = {};
   if (typeof getToken === "function") {
     try {
       const t = await getToken();
       if (t) bearerHeader = { Authorization: `Bearer ${t}` };
     } catch (error) {
-      console.warn('⚠️ Auth token fetch failed:', error.message);
       // Continue without auth - some endpoints might work without it
     }
   }
@@ -104,24 +91,18 @@ export async function authedJson(
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
-    console.error(`❌ ${upper} ${path} failed:`, res.status, text);
     
-    // Clear CSRF cache on CSRF errors
     if (res.status === 403 && text.includes('CSRF')) {
       _csrf = null;
-      console.log('🔄 CSRF error detected, clearing cache');
     }
     
     throw new Error(`${res.status}: ${text}`);
   }
 
-  console.log(`✅ ${upper} ${path} successful`);
-  
   const ct = res.headers.get("content-type") || "";
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
-/* ---------- Convenience wrappers ---------- */
 export const getJson  = (path, getToken, headers) => 
   authedJson(path, { method: "GET", headers }, getToken);
 
@@ -137,9 +118,8 @@ export const patchJson = (path, body, getToken, headers) =>
 export const deleteJson = (path, getToken, headers) => 
   authedJson(path, { method: "DELETE", headers }, getToken);
 
-export const delJson = deleteJson; // Alias for backward compatibility
+export const delJson = deleteJson;
 
-/* ---------- Admin: Products ---------- */
 export async function adminCreateProduct(payload, getToken) {
   return postJson(`/api/admin/products`, payload, getToken);
 }
@@ -152,7 +132,6 @@ export async function adminDeleteProduct(id, getToken) {
   return deleteJson(`/api/admin/products/${id}`, getToken);
 }
 
-/* ---------- Admin: Users ---------- */
 export async function adminGetUsers(params = '', getToken) {
   const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
   return getJson(`/api/admin/users${queryString}`, getToken);
@@ -170,12 +149,9 @@ export async function adminDeleteUser(userId, getToken) {
   return deleteJson(`/api/admin/users/${userId}`, getToken);
 }
 
-// Add these functions to your existing api.js file
-
-// Newsletter API functions
 export const subscribeToNewsletter = async (email) => {
   try {
-    const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
+    const response = await fetch(`${API_BASE_URL}/api/newsletter/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -191,13 +167,11 @@ export const subscribeToNewsletter = async (email) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Newsletter subscription error:', error);
     throw error;
   }
 };
 
-// Admin newsletter functions
-export const getNewsletterSubscribers = async (params = {}) => {
+export const getNewsletterSubscribers = async (params = {}, getToken) => {
   try {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
@@ -206,53 +180,31 @@ export const getNewsletterSubscribers = async (params = {}) => {
       }
     });
 
-    const token = getAuthToken();
-    const response = await fetch(`${API_URL}/api/newsletter/subscribers?${queryParams}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include'
-    });
+    const response = await authedJson(`/api/newsletter/subscribers?${queryParams}`, 
+      { method: "GET" }, 
+      getToken
+    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch subscribers');
-    }
-
-    return await response.json();
+    return response;
   } catch (error) {
-    console.error('Get subscribers error:', error);
-    throw error;
+    throw new Error(error.message || 'Failed to fetch subscribers');
   }
 };
 
-export const getNewsletterStats = async () => {
+export const getNewsletterStats = async (getToken) => {
   try {
-    const token = getAuthToken();
-    const response = await fetch(`${API_URL}/api/newsletter/stats`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include'
-    });
+    const response = await authedJson('/api/newsletter/stats', 
+      { method: "GET" }, 
+      getToken
+    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch stats');
-    }
-
-    return await response.json();
+    return response;
   } catch (error) {
-    console.error('Get stats error:', error);
-    throw error;
+    throw new Error(error.message || 'Failed to fetch stats');
   }
 };
 
-export const exportSubscribersCSV = async (params = {}) => {
+export const exportSubscribersCSV = async (params = {}, getToken) => {
   try {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
@@ -261,11 +213,10 @@ export const exportSubscribersCSV = async (params = {}) => {
       }
     });
 
-    const token = getAuthToken();
-    const response = await fetch(`${API_URL}/api/newsletter/export?${queryParams}`, {
-      method: 'GET',
+    const response = await fetch(`${API_BASE_URL}/api/newsletter/export?${queryParams}`, {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${await getToken()}`,
       },
       credentials: 'include'
     });
@@ -274,7 +225,6 @@ export const exportSubscribersCSV = async (params = {}) => {
       throw new Error('Failed to export subscribers');
     }
 
-    // Create download link for CSV
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -290,58 +240,39 @@ export const exportSubscribersCSV = async (params = {}) => {
 
     return true;
   } catch (error) {
-    console.error('Export error:', error);
     throw error;
   }
 };
 
-export const deleteSubscriber = async (subscriberId) => {
+export const deleteSubscriber = async (subscriberId, getToken) => {
   try {
-    const token = getAuthToken();
-    const response = await fetch(`${API_URL}/api/newsletter/subscribers/${subscriberId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include'
-    });
+    const response = await authedJson(`/api/newsletter/subscribers/${subscriberId}`, 
+      { method: "DELETE" }, 
+      getToken
+    );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to delete subscriber');
-    }
-
-    return await response.json();
+    return response;
   } catch (error) {
-    console.error('Delete subscriber error:', error);
-    throw error;
+    throw new Error(error.message || 'Failed to delete subscriber');
   }
 };
 
-/* ---------- Public catalog ---------- */
 export const fetchProducts = (params = "", getToken) => 
   getJson(`/api/products${params}`, getToken);
 
 export const fetchCategories = (_ = "", getToken) => 
   getJson(`/api/categories`, getToken);
 
-/* ---------- Test function ---------- */
 export async function testCsrfConnection() {
   try {
-    console.log('🧪 Testing CSRF connection...');
     const token = await ensureCsrf();
-    console.log('✅ CSRF token available:', !!token);
     return { success: true, token: !!token };
   } catch (error) {
-    console.error('❌ CSRF test failed:', error);
     return { success: false, error: error.message };
   }
 }
 
-/* ---------- Initialize ---------- */
 if (typeof window !== 'undefined') {
-  // Pre-fetch CSRF token in background
   setTimeout(() => {
     ensureCsrf().catch(() => {
       // Silent fail on initialization
